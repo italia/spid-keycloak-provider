@@ -102,11 +102,13 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     }
 
     public String getNameIDPolicyFormat() {
-        return getConfig().get(NAME_ID_POLICY_FORMAT);
+        return "urn:oasis:names:tc:SAML:2.0:nameid-format:transient";
+        //return getConfig().get(NAME_ID_POLICY_FORMAT);
     }
 
     public void setNameIDPolicyFormat(String nameIDPolicyFormat) {
-        getConfig().put(NAME_ID_POLICY_FORMAT, nameIDPolicyFormat);
+        //getConfig().put(NAME_ID_POLICY_FORMAT, nameIDPolicyFormat);
+        getConfig().put(NAME_ID_POLICY_FORMAT, "urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
     }
 
     public boolean isWantAuthnRequestsSigned() {
