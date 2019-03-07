@@ -77,6 +77,10 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         StaxUtil.writeAttribute(writer, JBossSAMLConstants.ISSUE_INSTANT.get(), request.getIssueInstant().toString());
 
         URI destination = request.getDestination();
+
+        StaxUtil.writeAttribute(writer, "AttributeConsumingServiceIndex", "1");
+
+
         if (destination != null)
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.DESTINATION.get(), destination.toASCIIString());
 

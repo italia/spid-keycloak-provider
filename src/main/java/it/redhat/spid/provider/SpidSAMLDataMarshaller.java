@@ -17,6 +17,8 @@
 
 package it.redhat.spid.provider;
 
+import it.redhat.spid.XMLUtil;
+import org.jboss.logging.Logger;
 import org.keycloak.broker.provider.DefaultDataMarshaller;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
@@ -37,6 +39,7 @@ import java.io.InputStream;
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
  */
 public class SpidSAMLDataMarshaller extends DefaultDataMarshaller {
+    protected static final Logger logger = Logger.getLogger(SpidSAMLDataMarshaller.class);
 
     @Override
     public String serialize(Object obj) {
@@ -76,6 +79,12 @@ public class SpidSAMLDataMarshaller extends DefaultDataMarshaller {
         if (clazz.getName().startsWith("org.keycloak.dom.saml")) {
             String xmlString = serialized;
 
+            if (logger.isDebugEnabled()) {
+                logger.debug("=====================================================================================");
+                logger.debug("=====================================================================================");
+                logger.debug("=====================================================================================");
+                logger.debug(XMLUtil.prettify(xmlString));
+            }
             try {
                 if (clazz.equals(ResponseType.class) || clazz.equals(AssertionType.class) || clazz.equals(AuthnStatementType.class)) {
                     byte[] bytes = xmlString.getBytes(GeneralConstants.SAML_CHARSET);

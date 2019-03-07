@@ -76,9 +76,7 @@ import java.net.URI;
 import java.security.Key;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -128,7 +126,7 @@ public class SpidSAMLEndpoint {
     @GET
     public Response redirectBinding(@QueryParam(GeneralConstants.SAML_REQUEST_KEY) String samlRequest,
                                     @QueryParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse,
-                                    @QueryParam(GeneralConstants.RELAY_STATE) String relayState)  {
+                                    @QueryParam(GeneralConstants.RELAY_STATE) String relayState) {
         return new RedirectBinding().execute(samlRequest, samlResponse, relayState, null);
     }
 
@@ -148,7 +146,7 @@ public class SpidSAMLEndpoint {
     public Response redirectBinding(@QueryParam(GeneralConstants.SAML_REQUEST_KEY) String samlRequest,
                                     @QueryParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse,
                                     @QueryParam(GeneralConstants.RELAY_STATE) String relayState,
-                                    @PathParam("client_id") String clientId)  {
+                                    @PathParam("client_id") String clientId) {
         return new RedirectBinding().execute(samlRequest, samlResponse, relayState, clientId);
     }
 
@@ -196,8 +194,11 @@ public class SpidSAMLEndpoint {
         }
 
         protected abstract String getBindingType();
+
         protected abstract void verifySignature(String key, SAMLDocumentHolder documentHolder) throws VerificationException;
+
         protected abstract SAMLDocumentHolder extractRequestDocument(String samlRequest);
+
         protected abstract SAMLDocumentHolder extractResponseDocument(String response);
 
         protected KeyLocator getIDPKeyLocator() {
@@ -231,7 +232,7 @@ public class SpidSAMLEndpoint {
             SAMLDocumentHolder holder = extractRequestDocument(samlRequest);
             RequestAbstractType requestAbstractType = (RequestAbstractType) holder.getSamlObject();
             // validate destination
-            if (! destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), requestAbstractType.getDestination())) {
+            if (!destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), requestAbstractType.getDestination())) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                 event.detail(Details.REASON, "invalid_destination");
                 event.error(Errors.INVALID_SAML_RESPONSE);
@@ -276,7 +277,7 @@ public class SpidSAMLEndpoint {
                     }
                 }
 
-            }  else {
+            } else {
                 for (String sessionIndex : request.getSessionIndex()) {
                     String brokerSessionId = brokerUserId + "." + sessionIndex;
                     UserSessionModel userSession = session.sessions().getUserSessionByBrokerSessionId(realm, brokerSessionId);
@@ -299,7 +300,7 @@ public class SpidSAMLEndpoint {
             builder.destination(config.getSingleLogoutServiceUrl());
             builder.issuer(issuerURL);
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder()
-                        .relayState(relayState);
+                    .relayState(relayState);
             boolean postBinding = config.isPostBindingLogout();
             if (config.isWantAuthnRequestsSigned()) {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
@@ -307,7 +308,7 @@ public class SpidSAMLEndpoint {
                 binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())
                         .signatureAlgorithm(provider.getSignatureAlgorithm())
                         .signDocument();
-                if (! postBinding && config.isAddExtensionsElementWithKeyInfo()) {    // Only include extension if REDIRECT binding and signing whole SAML protocol message
+                if (!postBinding && config.isAddExtensionsElementWithKeyInfo()) {    // Only include extension if REDIRECT binding and signing whole SAML protocol message
                     builder.addExtension(new KeycloakKeySamlExtensionGenerator(keyName));
                 }
             }
@@ -335,7 +336,7 @@ public class SpidSAMLEndpoint {
 
             try {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
-                if (! isSuccessfulSamlResponse(responseType)) {
+                if (!isSuccessfulSamlResponse(responseType)) {
                     String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
                     return callback.error(relayState, statusMessage);
                 }
@@ -381,11 +382,29 @@ public class SpidSAMLEndpoint {
                 BrokeredIdentityContext identity = new BrokeredIdentityContext(subjectNameID.getValue());
                 identity.getContextData().put(SAML_LOGIN_RESPONSE, responseType);
                 identity.getContextData().put(SAML_ASSERTION, assertion);
-                if (clientId != null && ! clientId.trim().isEmpty()) {
+                if (clientId != null && !clientId.trim().isEmpty()) {
                     identity.getContextData().put(SAML_IDP_INITIATED_CLIENT_ID, clientId);
                 }
 
                 identity.setUsername(subjectNameID.getValue());
+
+                //@spid: set username with spidCode
+                Set<AttributeStatementType> attributeStatements = assertion.getAttributeStatements();
+                for (AttributeStatementType next : attributeStatements) {
+                    List<AttributeStatementType.ASTChoiceType> attributes = next.getAttributes();
+                    for (AttributeStatementType.ASTChoiceType astChoiceType : attributes) {
+                        String name = astChoiceType.getAttribute().getName();
+                        if (name.equals("spidCode")) {
+                            identity.setUsername(astChoiceType.getAttribute().getAttributeValue().get(0).toString());
+                        }
+
+                        if (name.equals("email")) {
+                            identity.setEmail(astChoiceType.getAttribute().getAttributeValue().get(0).toString());
+                        }
+
+                    }
+                }
+
 
                 //SAML Spec 2.2.2 Format is optional
                 if (subjectNameID.getFormat() != null && subjectNameID.getFormat().toString().equals(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get())) {
@@ -407,7 +426,7 @@ public class SpidSAMLEndpoint {
                 } catch (IllegalArgumentException ex) {
                     // warning has been already emitted in DeploymentBuilder
                 }
-                if (! cvb.build().isValid()) {
+                if (!cvb.build().isValid()) {
                     logger.error("Assertion expired.");
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
@@ -417,18 +436,19 @@ public class SpidSAMLEndpoint {
                 AuthnStatementType authn = null;
                 for (Object statement : assertion.getStatements()) {
                     if (statement instanceof AuthnStatementType) {
-                        authn = (AuthnStatementType)statement;
+                        authn = (AuthnStatementType) statement;
                         identity.getContextData().put(SAML_AUTHN_STATEMENT, authn);
                         break;
                     }
                 }
-                if (assertion.getAttributeStatements() != null ) {
+                if (assertion.getAttributeStatements() != null) {
                     for (AttributeStatementType attrStatement : assertion.getAttributeStatements()) {
                         for (AttributeStatementType.ASTChoiceType choice : attrStatement.getAttributes()) {
                             AttributeType attribute = choice.getAttribute();
                             if (X500SAMLProfileConstants.EMAIL.getFriendlyName().equals(attribute.getFriendlyName())
                                     || X500SAMLProfileConstants.EMAIL.get().equals(attribute.getName())) {
-                                if (!attribute.getAttributeValue().isEmpty()) identity.setEmail(attribute.getAttributeValue().get(0).toString());
+                                if (!attribute.getAttributeValue().isEmpty())
+                                    identity.setEmail(attribute.getAttributeValue().get(0).toString());
                             }
                         }
 
@@ -441,7 +461,7 @@ public class SpidSAMLEndpoint {
                 identity.setIdp(provider);
                 if (authn != null && authn.getSessionIndex() != null) {
                     identity.setBrokerSessionId(identity.getBrokerUserId() + "." + authn.getSessionIndex());
-                 }
+                }
                 identity.setCode(relayState);
 
 
@@ -456,18 +476,18 @@ public class SpidSAMLEndpoint {
 
         private boolean isSuccessfulSamlResponse(ResponseType responseType) {
             return responseType != null
-              && responseType.getStatus() != null
-              && responseType.getStatus().getStatusCode() != null
-              && responseType.getStatus().getStatusCode().getValue() != null
-              && Objects.equals(responseType.getStatus().getStatusCode().getValue().toString(), JBossSAMLURIConstants.STATUS_SUCCESS.get());
+                    && responseType.getStatus() != null
+                    && responseType.getStatus().getStatusCode() != null
+                    && responseType.getStatus().getStatusCode().getValue() != null
+                    && Objects.equals(responseType.getStatus().getStatusCode().getValue().toString(), JBossSAMLURIConstants.STATUS_SUCCESS.get());
         }
 
 
         public Response handleSamlResponse(String samlResponse, String relayState, String clientId) {
             SAMLDocumentHolder holder = extractResponseDocument(samlResponse);
-            StatusResponseType statusResponse = (StatusResponseType)holder.getSamlObject();
+            StatusResponseType statusResponse = (StatusResponseType) holder.getSamlObject();
             // validate destination
-            if (! destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), statusResponse.getDestination())) {
+            if (!destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), statusResponse.getDestination())) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                 event.detail(Details.REASON, "invalid_destination");
                 event.error(Errors.INVALID_SAML_RESPONSE);
@@ -484,7 +504,7 @@ public class SpidSAMLEndpoint {
                 }
             }
             if (statusResponse instanceof ResponseType) {
-                return handleLoginResponse(samlResponse, holder, (ResponseType)statusResponse, relayState, clientId);
+                return handleLoginResponse(samlResponse, holder, (ResponseType) statusResponse, relayState, clientId);
 
             } else {
                 // todo need to check that it is actually a LogoutResponse
@@ -518,9 +538,6 @@ public class SpidSAMLEndpoint {
         }
 
 
-
-
-
     }
 
     protected class PostBinding extends Binding {
@@ -528,10 +545,10 @@ public class SpidSAMLEndpoint {
         protected void verifySignature(String key, SAMLDocumentHolder documentHolder) throws VerificationException {
             NodeList nl = documentHolder.getSamlDocument().getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
             boolean anyElementSigned = (nl != null && nl.getLength() > 0);
-            if ((! anyElementSigned) && (documentHolder.getSamlObject() instanceof ResponseType)) {
+            if ((!anyElementSigned) && (documentHolder.getSamlObject() instanceof ResponseType)) {
                 ResponseType responseType = (ResponseType) documentHolder.getSamlObject();
                 List<ResponseType.RTChoiceType> assertions = responseType.getAssertions();
-                if (! assertions.isEmpty() ) {
+                if (!assertions.isEmpty()) {
                     // Only relax verification if the response is an authnresponse and contains (encrypted/plaintext) assertion.
                     // In that case, signature is validated on assertion element
                     return;
@@ -544,6 +561,7 @@ public class SpidSAMLEndpoint {
         protected SAMLDocumentHolder extractRequestDocument(String samlRequest) {
             return SAMLRequestParser.parseRequestPostBinding(samlRequest);
         }
+
         @Override
         protected SAMLDocumentHolder extractResponseDocument(String response) {
             byte[] samlBytes = PostBindingUtil.base64Decode(response);
@@ -562,7 +580,6 @@ public class SpidSAMLEndpoint {
             KeyLocator locator = getIDPKeyLocator();
             SamlProtocolUtils.verifyRedirectSignature(documentHolder, locator, session.getContext().getUri(), key);
         }
-
 
 
         @Override
