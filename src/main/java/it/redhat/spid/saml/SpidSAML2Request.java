@@ -269,7 +269,7 @@ public class SpidSAML2Request {
 
         String requestSaml = new String(bos.toByteArray(), GeneralConstants.SAML_CHARSET);
 
-        System.out.println(requestSaml);
+        //System.out.println(requestSaml);
         
         return DocumentUtil.getDocument(requestSaml);
     }

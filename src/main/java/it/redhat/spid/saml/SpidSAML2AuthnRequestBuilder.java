@@ -26,9 +26,13 @@ import org.keycloak.saml.processing.core.saml.v2.common.IDGenerator;
 import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
 import org.w3c.dom.Document;
 
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.logging.Logger;
+
 import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
 
 /**
@@ -94,8 +98,6 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
     public Document toDocument() {
         try {
-
-            System.out.println("SPID>> Custom builder");
             
             AuthnRequestType authnRequestType = this.authnRequestType;
 
@@ -105,16 +107,12 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
             authnRequestType.setIssuer(nameIDType);
 
-            //authnRequestType.setDestination(URI.create(this.destination));
-
-            //@todo: questo cablato è stato inserito per un probabile bug del'idp Spid mock che non costruisce
-            //       correttamente la url di login configurata
+            String hostDestination = getDestinationHost(this.destination);
             
-            authnRequestType.setDestination(URI.create("http://localhost:8088"));
+            authnRequestType.setDestination(URI.create(hostDestination));
+            
 
-
-
-            if (! this.extensions.isEmpty()) {
+            if (!this.extensions.isEmpty()) {
                 ExtensionsType extensionsType = new ExtensionsType();
                 for (NodeGenerator extension : this.extensions) {
                     extensionsType.addExtension(extension);
@@ -127,5 +125,25 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
             e.printStackTrace();
             throw new RuntimeException("Could not convert " + authnRequestType + " to a document.", e);
         }
+    }
+
+    private String getDestinationHost(String destination) {
+
+        try {
+            URL url = new URL(destination);
+            String hostAndProtocol = url.getProtocol() + "://" + url.getHost();
+
+            if (url.getPort() > 0) {
+                return hostAndProtocol + ":" + url.getPort();
+            }
+
+            return hostAndProtocol;
+
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+
+        }
+
+        return destination;
     }
 }
