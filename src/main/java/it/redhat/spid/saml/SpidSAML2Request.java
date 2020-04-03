@@ -60,7 +60,6 @@ import java.net.URL;
  * @since Jan 5, 2009
  */
 public class SpidSAML2Request {
-
     private static final PicketLinkLogger logger = PicketLinkLoggerFactory.getLogger();
 
     private SAMLDocumentHolder samlDocumentHolder = null;
@@ -77,7 +76,7 @@ public class SpidSAML2Request {
     }
 
     /**
-     * Create an authentication request
+     * Create authentication request with protocolBinding defaulting to POST
      *
      * @param id
      * @param assertionConsumerURL
@@ -88,11 +87,29 @@ public class SpidSAML2Request {
      */
     public AuthnRequestType createAuthnRequestType(String id, String assertionConsumerURL, String destination,
                                                    String issuerValue) throws ConfigurationException {
+        return createAuthnRequestType(id, assertionConsumerURL, destination, issuerValue, JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri());
+    }
+
+    /**
+     * Create an authentication request
+     *
+     * @param id
+     * @param assertionConsumerURL
+     * @param destination
+     * @param issuerValue
+     * @param protocolBindingUri
+     *
+     * @return
+     *
+     * @throws ConfigurationException
+     */
+    public AuthnRequestType createAuthnRequestType(String id, String assertionConsumerURL, String destination,
+                                                   String issuerValue, URI protocolBinding) throws ConfigurationException {
         XMLGregorianCalendar issueInstant = XMLTimeUtil.getIssueInstant();
 
         AuthnRequestType authnRequest = new AuthnRequestType(id, issueInstant);
         authnRequest.setAssertionConsumerServiceURL(URI.create(assertionConsumerURL));
-        authnRequest.setProtocolBinding(JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri());
+        authnRequest.setProtocolBinding(protocolBinding);
         if (destination != null) {
             authnRequest.setDestination(URI.create(destination));
         }
@@ -123,13 +140,15 @@ public class SpidSAML2Request {
      * Get AuthnRequestType from a file
      *
      * @param fileName file with the serialized AuthnRequestType
+     *
      * @return AuthnRequestType
+     *
      * @throws ParsingException
      * @throws ProcessingException
      * @throws ConfigurationException
      * @throws IllegalArgumentException if the input fileName is null IllegalStateException if the InputStream from the
-     *                                  fileName
-     *                                  is null
+     * fileName
+     * is null
      */
     public AuthnRequestType getAuthnRequestType(String fileName) throws ConfigurationException, ProcessingException,
             ParsingException {
@@ -152,7 +171,9 @@ public class SpidSAML2Request {
      * Get the Underlying SAML2Object from the input stream
      *
      * @param is
+     *
      * @return
+     *
      * @throws IOException
      * @throws ParsingException
      */
@@ -174,7 +195,9 @@ public class SpidSAML2Request {
      * Get a Request Type from Input Stream
      *
      * @param is
+     *
      * @return
+     *
      * @throws ProcessingException
      * @throws ConfigurationException
      * @throws
@@ -199,7 +222,9 @@ public class SpidSAML2Request {
      * Get the AuthnRequestType from an input stream
      *
      * @param is Inputstream containing the AuthnRequest
+     *
      * @return
+     *
      * @throws ParsingException
      * @throws ProcessingException
      * @throws ConfigurationException
@@ -233,7 +258,9 @@ public class SpidSAML2Request {
      * Create a Logout Request
      *
      * @param issuer
+     *
      * @return
+     *
      * @throws ConfigurationException
      */
     public static LogoutRequestType createLogoutRequest(String issuer) throws ConfigurationException {
@@ -252,7 +279,9 @@ public class SpidSAML2Request {
      * Return the DOM object
      *
      * @param rat
+     *
      * @return
+     *
      * @throws ProcessingException
      * @throws ParsingException
      * @throws ConfigurationException
@@ -278,7 +307,9 @@ public class SpidSAML2Request {
      * Convert a SAML2 Response into a Document
      *
      * @param responseType
+     *
      * @return
+     *
      * @throws ProcessingException
      * @throws ParsingException
      * @throws ConfigurationException
@@ -297,14 +328,15 @@ public class SpidSAML2Request {
      *
      * @param requestType
      * @param os
+     *
      * @throws ProcessingException
      */
     public static void marshall(RequestAbstractType requestType, OutputStream os) throws ProcessingException {
-        SpidSAMLRequestWriter SpidSAMLRequestWriter = new SpidSAMLRequestWriter(StaxUtil.getXMLStreamWriter(os));
+        SpidSAMLRequestWriter samlRequestWriter = new SpidSAMLRequestWriter(StaxUtil.getXMLStreamWriter(os));
         if (requestType instanceof AuthnRequestType) {
-            SpidSAMLRequestWriter.write((AuthnRequestType) requestType);
+            samlRequestWriter.write((AuthnRequestType) requestType);
         } else if (requestType instanceof LogoutRequestType) {
-            SpidSAMLRequestWriter.write((LogoutRequestType) requestType);
+            samlRequestWriter.write((LogoutRequestType) requestType);
         } else
             throw logger.unsupportedType(requestType.getClass().getName());
     }
@@ -314,14 +346,15 @@ public class SpidSAML2Request {
      *
      * @param requestType
      * @param writer
+     *
      * @throws ProcessingException
      */
     public static void marshall(RequestAbstractType requestType, Writer writer) throws ProcessingException {
-        SpidSAMLRequestWriter SpidSAMLRequestWriter = new SpidSAMLRequestWriter(StaxUtil.getXMLStreamWriter(writer));
+        SpidSAMLRequestWriter samlRequestWriter = new SpidSAMLRequestWriter(StaxUtil.getXMLStreamWriter(writer));
         if (requestType instanceof AuthnRequestType) {
-            SpidSAMLRequestWriter.write((AuthnRequestType) requestType);
+            samlRequestWriter.write((AuthnRequestType) requestType);
         } else if (requestType instanceof LogoutRequestType) {
-            SpidSAMLRequestWriter.write((LogoutRequestType) requestType);
+            samlRequestWriter.write((LogoutRequestType) requestType);
         } else
             throw logger.unsupportedType(requestType.getClass().getName());
     }

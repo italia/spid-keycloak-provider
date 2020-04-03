@@ -39,7 +39,6 @@ import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
-
 import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
 
 import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.ASSERTION_NSURI;
@@ -61,6 +60,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
      * Write a {@code AuthnRequestType } to stream
      *
      * @param request
+     *
      * @throws org.keycloak.saml.common.exceptions.ProcessingException
      */
     public void write(AuthnRequestType request) throws ProcessingException {
@@ -70,16 +70,12 @@ public class SpidSAMLRequestWriter extends BaseWriter {
 
         // Attributes
         StaxUtil.writeAttribute(writer, JBossSAMLConstants.ID.get(), request.getID());
-
         StaxUtil.writeAttribute(writer, JBossSAMLConstants.VERSION.get(), request.getVersion());
-
-
         StaxUtil.writeAttribute(writer, JBossSAMLConstants.ISSUE_INSTANT.get(), request.getIssueInstant().toString());
 
         URI destination = request.getDestination();
 
         StaxUtil.writeAttribute(writer, "AttributeConsumingServiceIndex", "1");
-
 
         if (destination != null)
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.DESTINATION.get(), destination.toASCIIString());
@@ -102,7 +98,8 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         Boolean isPassive = request.isIsPassive();
         if (isPassive != null) {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.IS_PASSIVE.get(), isPassive.toString());
-        }      */
+        }
+		*/
 
         URI protocolBinding = request.getProtocolBinding();
         if (protocolBinding != null) {
@@ -143,7 +140,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         }
 
         ExtensionsType extensions = request.getExtensions();
-        if (extensions != null && !extensions.getAny().isEmpty()) {
+        if (extensions != null && ! extensions.getAny().isEmpty()) {
             write(extensions);
         }
 
@@ -171,6 +168,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
      * Write a {@code LogoutRequestType} to stream
      *
      * @param logOutRequest
+     *
      * @throws ProcessingException
      */
     public void write(LogoutRequestType logOutRequest) throws ProcessingException {
@@ -202,7 +200,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         }
 
         ExtensionsType extensions = logOutRequest.getExtensions();
-        if (extensions != null && !extensions.getAny().isEmpty()) {
+        if (extensions != null && ! extensions.getAny().isEmpty()) {
             write(extensions);
         }
 
@@ -230,6 +228,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
      * Write a {@code NameIDPolicyType} to stream
      *
      * @param nameIDPolicy
+     *
      * @throws ProcessingException
      */
     public void write(NameIDPolicyType nameIDPolicy) throws ProcessingException {
@@ -259,6 +258,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
      * Write a {@code RequestedAuthnContextType} to stream
      *
      * @param requestedAuthnContextType
+     *
      * @throws ProcessingException
      */
     public void write(RequestedAuthnContextType requestedAuthnContextType) throws ProcessingException {
@@ -313,7 +313,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
             StaxUtil.writeDOMElement(writer, sig);
         }
         ExtensionsType extensions = request.getExtensions();
-        if (extensions != null && !extensions.getAny().isEmpty()) {
+        if (extensions != null && ! extensions.getAny().isEmpty()) {
             write(extensions);
         }
 
@@ -350,14 +350,12 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         if (issuer != null) {
             write(issuer, new QName(ASSERTION_NSURI.get(), JBossSAMLConstants.ISSUER.get(), ASSERTION_PREFIX));
         }
-
-
         Element sig = request.getSignature();
         if (sig != null) {
             StaxUtil.writeDOMElement(writer, sig);
         }
         ExtensionsType extensions = request.getExtensions();
-        if (extensions != null && !extensions.getAny().isEmpty()) {
+        if (extensions != null && ! extensions.getAny().isEmpty()) {
             write(extensions);
         }
         SubjectType subject = request.getSubject();
