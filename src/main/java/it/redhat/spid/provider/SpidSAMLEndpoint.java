@@ -19,12 +19,18 @@ package it.redhat.spid.provider;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
+
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProvider;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.VerificationException;
-import org.keycloak.dom.saml.v2.assertion.*;
+import org.keycloak.dom.saml.v2.assertion.AssertionType;
+import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
+import org.keycloak.dom.saml.v2.assertion.AttributeType;
+import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
+import org.keycloak.dom.saml.v2.assertion.NameIDType;
+import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
@@ -40,8 +46,8 @@ import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlProtocolUtils;
-import org.keycloak.rotation.HardcodedKeyLocator;
-import org.keycloak.rotation.KeyLocator;
+import org.keycloak.protocol.saml.SamlSessionUtils;
+import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
 import org.keycloak.saml.SAML2LogoutResponseBuilder;
 import org.keycloak.saml.SAMLRequestParser;
 import org.keycloak.saml.common.constants.GeneralConstants;
@@ -53,27 +59,47 @@ import org.keycloak.saml.common.util.DocumentUtil;
 import org.keycloak.saml.processing.core.saml.v2.common.SAMLDocumentHolder;
 import org.keycloak.saml.processing.core.saml.v2.constants.X500SAMLProfileConstants;
 import org.keycloak.saml.processing.core.saml.v2.util.AssertionUtil;
-import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.processing.core.util.XMLSignatureUtil;
 import org.keycloak.saml.processing.web.util.PostBindingUtil;
-import org.keycloak.saml.validators.ConditionsValidator;
-import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.messages.Messages;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import javax.xml.crypto.dsig.XMLSignature;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import javax.xml.namespace.QName;
 import java.io.IOException;
-import java.net.URI;
 import java.security.Key;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.function.Predicate;
+
+import org.keycloak.protocol.saml.SamlPrincipalType;
+import org.keycloak.rotation.HardcodedKeyLocator;
+import org.keycloak.rotation.KeyLocator;
+import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
+import org.keycloak.saml.validators.ConditionsValidator;
+import org.keycloak.saml.validators.DestinationValidator;
+import java.net.URI;
+import java.security.cert.CertificateException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 import java.util.*;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.xml.crypto.dsig.XMLSignature;
+import org.w3c.dom.NodeList;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -82,8 +108,11 @@ import java.util.*;
 public class SpidSAMLEndpoint {
     protected static final Logger logger = Logger.getLogger(SpidSAMLEndpoint.class);
     public static final String SAML_FEDERATED_SESSION_INDEX = "SAML_FEDERATED_SESSION_INDEX";
+    @Deprecated // in favor of SAML_FEDERATED_SUBJECT_NAMEID
     public static final String SAML_FEDERATED_SUBJECT = "SAML_FEDERATED_SUBJECT";
+    @Deprecated // in favor of SAML_FEDERATED_SUBJECT_NAMEID
     public static final String SAML_FEDERATED_SUBJECT_NAMEFORMAT = "SAML_FEDERATED_SUBJECT_NAMEFORMAT";
+    public static final String SAML_FEDERATED_SUBJECT_NAMEID = "SAML_FEDERATED_SUBJECT_NAME_ID";
     public static final String SAML_LOGIN_RESPONSE = "SAML_LOGIN_RESPONSE";
     public static final String SAML_ASSERTION = "SAML_ASSERTION";
     public static final String SAML_IDP_INITIATED_CLIENT_ID = "SAML_IDP_INITIATED_CLIENT_ID";
@@ -123,7 +152,7 @@ public class SpidSAMLEndpoint {
     @GET
     public Response redirectBinding(@QueryParam(GeneralConstants.SAML_REQUEST_KEY) String samlRequest,
                                     @QueryParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse,
-                                    @QueryParam(GeneralConstants.RELAY_STATE) String relayState) {
+                                    @QueryParam(GeneralConstants.RELAY_STATE) String relayState)  {
         return new RedirectBinding().execute(samlRequest, samlResponse, relayState, null);
     }
 
@@ -143,7 +172,7 @@ public class SpidSAMLEndpoint {
     public Response redirectBinding(@QueryParam(GeneralConstants.SAML_REQUEST_KEY) String samlRequest,
                                     @QueryParam(GeneralConstants.SAML_RESPONSE_KEY) String samlResponse,
                                     @QueryParam(GeneralConstants.RELAY_STATE) String relayState,
-                                    @PathParam("client_id") String clientId) {
+                                    @PathParam("client_id") String clientId)  {
         return new RedirectBinding().execute(samlRequest, samlResponse, relayState, clientId);
     }
 
@@ -191,11 +220,9 @@ public class SpidSAMLEndpoint {
         }
 
         protected abstract String getBindingType();
-
+        protected abstract boolean containsUnencryptedSignature(SAMLDocumentHolder documentHolder);
         protected abstract void verifySignature(String key, SAMLDocumentHolder documentHolder) throws VerificationException;
-
         protected abstract SAMLDocumentHolder extractRequestDocument(String samlRequest);
-
         protected abstract SAMLDocumentHolder extractResponseDocument(String response);
 
         protected KeyLocator getIDPKeyLocator() {
@@ -229,7 +256,7 @@ public class SpidSAMLEndpoint {
             SAMLDocumentHolder holder = extractRequestDocument(samlRequest);
             RequestAbstractType requestAbstractType = (RequestAbstractType) holder.getSamlObject();
             // validate destination
-            if (!destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), requestAbstractType.getDestination())) {
+            if (! destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), requestAbstractType.getDestination())) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                 event.detail(Details.REASON, "invalid_destination");
                 event.error(Errors.INVALID_SAML_RESPONSE);
@@ -267,6 +294,11 @@ public class SpidSAMLEndpoint {
                     if (userSession.getState() == UserSessionModel.State.LOGGING_OUT || userSession.getState() == UserSessionModel.State.LOGGED_OUT) {
                         continue;
                     }
+
+                    for(Iterator<SamlAuthenticationPreprocessor> it = SamlSessionUtils.getSamlAuthenticationPreprocessorIterator(session); it.hasNext();) {
+                        request = it.next().beforeProcessingLogoutRequest(request, userSession, null);
+                    }
+
                     try {
                         AuthenticationManager.backchannelLogout(session, realm, userSession, session.getContext().getUri(), clientConnection, headers, false);
                     } catch (Exception e) {
@@ -274,7 +306,7 @@ public class SpidSAMLEndpoint {
                     }
                 }
 
-            } else {
+            }  else {
                 for (String sessionIndex : request.getSessionIndex()) {
                     String brokerSessionId = brokerUserId + "." + sessionIndex;
                     UserSessionModel userSession = session.sessions().getUserSessionByBrokerSessionId(realm, brokerSessionId);
@@ -282,6 +314,11 @@ public class SpidSAMLEndpoint {
                         if (userSession.getState() == UserSessionModel.State.LOGGING_OUT || userSession.getState() == UserSessionModel.State.LOGGED_OUT) {
                             continue;
                         }
+
+                        for(Iterator<SamlAuthenticationPreprocessor> it = SamlSessionUtils.getSamlAuthenticationPreprocessorIterator(session); it.hasNext();) {
+                            request = it.next().beforeProcessingLogoutRequest(request, userSession, null);
+                        }
+
                         try {
                             AuthenticationManager.backchannelLogout(session, realm, userSession, session.getContext().getUri(), clientConnection, headers, false);
                         } catch (Exception e) {
@@ -297,7 +334,7 @@ public class SpidSAMLEndpoint {
             builder.destination(config.getSingleLogoutServiceUrl());
             builder.issuer(issuerURL);
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
-                    .relayState(relayState);
+                        .relayState(relayState);
             boolean postBinding = config.isPostBindingLogout();
             if (config.isWantAuthnRequestsSigned()) {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
@@ -305,7 +342,7 @@ public class SpidSAMLEndpoint {
                 binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())
                         .signatureAlgorithm(provider.getSignatureAlgorithm())
                         .signDocument();
-                if (!postBinding && config.isAddExtensionsElementWithKeyInfo()) {    // Only include extension if REDIRECT binding and signing whole SAML protocol message
+                if (! postBinding && config.isAddExtensionsElementWithKeyInfo()) {    // Only include extension if REDIRECT binding and signing whole SAML protocol message
                     builder.addExtension(new KeycloakKeySamlExtensionGenerator(keyName));
                 }
             }
@@ -333,7 +370,7 @@ public class SpidSAMLEndpoint {
 
             try {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
-                if (!isSuccessfulSamlResponse(responseType)) {
+                if (! isSuccessfulSamlResponse(responseType)) {
                     String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
                     return callback.error(relayState, statusMessage);
                 }
@@ -362,8 +399,11 @@ public class SpidSAMLEndpoint {
                 }
 
                 boolean signed = AssertionUtil.isSignedElement(assertionElement);
-                if ((config.isWantAssertionsSigned() && !signed)
-                        || (signed && config.isValidateSignature() && !AssertionUtil.isSignatureValid(assertionElement, getIDPKeyLocator()))) {
+                final boolean assertionSignatureNotExistsWhenRequired = config.isWantAssertionsSigned() && !signed;
+                final boolean signatureNotValid = signed && config.isValidateSignature() && !AssertionUtil.isSignatureValid(assertionElement, getIDPKeyLocator());
+                final boolean hasNoSignatureWhenRequired = ! signed && config.isValidateSignature() && ! containsUnencryptedSignature(holder);
+
+                if (assertionSignatureNotExistsWhenRequired || signatureNotValid || hasNoSignatureWhenRequired) {
                     logger.error("validation failed");
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SIGNATURE);
@@ -375,11 +415,20 @@ public class SpidSAMLEndpoint {
                 SubjectType subject = assertion.getSubject();
                 SubjectType.STSubType subType = subject.getSubType();
                 NameIDType subjectNameID = (NameIDType) subType.getBaseID();
+                String principal = getPrincipal(assertion);
+
+                if (principal == null) {
+                    logger.errorf("no principal in assertion; expected: %s", expectedPrincipalType());
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
+                }
+
                 //Map<String, String> notes = new HashMap<>();
                 BrokeredIdentityContext identity = new BrokeredIdentityContext(subjectNameID.getValue());
                 identity.getContextData().put(SAML_LOGIN_RESPONSE, responseType);
                 identity.getContextData().put(SAML_ASSERTION, assertion);
-                if (clientId != null && !clientId.trim().isEmpty()) {
+                if (clientId != null && ! clientId.trim().isEmpty()) {
                     identity.getContextData().put(SAML_IDP_INITIATED_CLIENT_ID, clientId);
                 }
 
@@ -407,8 +456,6 @@ public class SpidSAMLEndpoint {
                 identity.setFirstName("First Name");
                 identity.setLastName("Last Name");
 
-
-
                 //SAML Spec 2.2.2 Format is optional
                 if (subjectNameID.getFormat() != null && subjectNameID.getFormat().toString().equals(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get())) {
                     identity.setEmail(subjectNameID.getValue());
@@ -418,7 +465,8 @@ public class SpidSAMLEndpoint {
                     identity.setToken(samlResponse);
                 }
 
-                ConditionsValidator.Builder cvb = new ConditionsValidator.Builder(assertion.getID(), assertion.getConditions(), destinationValidator);
+                ConditionsValidator.Builder cvb = new ConditionsValidator.Builder(assertion.getID(), assertion.getConditions(), destinationValidator)
+                        .clockSkewInMillis(1000 * config.getAllowedClockSkew());
                 try {
                     String issuerURL = getEntityId(session.getContext().getUri(), realm);
                     cvb.addAllowedAudience(URI.create(issuerURL));
@@ -429,7 +477,7 @@ public class SpidSAMLEndpoint {
                 } catch (IllegalArgumentException ex) {
                     // warning has been already emitted in DeploymentBuilder
                 }
-                if (!cvb.build().isValid()) {
+                if (! cvb.build().isValid()) {
                     logger.error("Assertion expired.");
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
@@ -439,32 +487,24 @@ public class SpidSAMLEndpoint {
                 AuthnStatementType authn = null;
                 for (Object statement : assertion.getStatements()) {
                     if (statement instanceof AuthnStatementType) {
-                        authn = (AuthnStatementType) statement;
+                        authn = (AuthnStatementType)statement;
                         identity.getContextData().put(SAML_AUTHN_STATEMENT, authn);
                         break;
                     }
                 }
-                if (assertion.getAttributeStatements() != null) {
-                    for (AttributeStatementType attrStatement : assertion.getAttributeStatements()) {
-                        for (AttributeStatementType.ASTChoiceType choice : attrStatement.getAttributes()) {
-                            AttributeType attribute = choice.getAttribute();
-                            if (X500SAMLProfileConstants.EMAIL.getFriendlyName().equals(attribute.getFriendlyName())
-                                    || X500SAMLProfileConstants.EMAIL.get().equals(attribute.getName())) {
-                                if (!attribute.getAttributeValue().isEmpty())
-                                    identity.setEmail(attribute.getAttributeValue().get(0).toString());
-                            }
-                        }
-
-                    }
-
+                if (assertion.getAttributeStatements() != null ) {
+                    String email = getX500Attribute(assertion, X500SAMLProfileConstants.EMAIL);
+                    if (email != null)
+                        identity.setEmail(email);
                 }
+
                 String brokerUserId = config.getAlias() + "." + subjectNameID.getValue();
                 identity.setBrokerUserId(brokerUserId);
                 identity.setIdpConfig(config);
                 identity.setIdp(provider);
                 if (authn != null && authn.getSessionIndex() != null) {
                     identity.setBrokerSessionId(identity.getBrokerUserId() + "." + authn.getSessionIndex());
-                }
+                 }
                 identity.setCode(relayState);
 
 
@@ -479,18 +519,24 @@ public class SpidSAMLEndpoint {
 
         private boolean isSuccessfulSamlResponse(ResponseType responseType) {
             return responseType != null
-                    && responseType.getStatus() != null
-                    && responseType.getStatus().getStatusCode() != null
-                    && responseType.getStatus().getStatusCode().getValue() != null
-                    && Objects.equals(responseType.getStatus().getStatusCode().getValue().toString(), JBossSAMLURIConstants.STATUS_SUCCESS.get());
+              && responseType.getStatus() != null
+              && responseType.getStatus().getStatusCode() != null
+              && responseType.getStatus().getStatusCode().getValue() != null
+              && Objects.equals(responseType.getStatus().getStatusCode().getValue().toString(), JBossSAMLURIConstants.STATUS_SUCCESS.get());
         }
 
 
         public Response handleSamlResponse(String samlResponse, String relayState, String clientId) {
             SAMLDocumentHolder holder = extractResponseDocument(samlResponse);
-            StatusResponseType statusResponse = (StatusResponseType) holder.getSamlObject();
+            if (holder == null) {
+                event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                event.detail(Details.REASON, "invalid_saml_document");
+                event.error(Errors.INVALID_SAML_RESPONSE);
+                return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_FEDERATED_IDENTITY_ACTION);
+            }
+            StatusResponseType statusResponse = (StatusResponseType)holder.getSamlObject();
             // validate destination
-            if (!destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), statusResponse.getDestination())) {
+            if (! destinationValidator.validate(session.getContext().getUri().getAbsolutePath(), statusResponse.getDestination())) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                 event.detail(Details.REASON, "invalid_destination");
                 event.error(Errors.INVALID_SAML_RESPONSE);
@@ -507,7 +553,7 @@ public class SpidSAMLEndpoint {
                 }
             }
             if (statusResponse instanceof ResponseType) {
-                return handleLoginResponse(samlResponse, holder, (ResponseType) statusResponse, relayState, clientId);
+                return handleLoginResponse(samlResponse, holder, (ResponseType)statusResponse, relayState, clientId);
 
             } else {
                 // todo need to check that it is actually a LogoutResponse
@@ -541,17 +587,24 @@ public class SpidSAMLEndpoint {
         }
 
 
+
+
+
     }
 
     protected class PostBinding extends Binding {
         @Override
-        protected void verifySignature(String key, SAMLDocumentHolder documentHolder) throws VerificationException {
+        protected boolean containsUnencryptedSignature(SAMLDocumentHolder documentHolder) {
             NodeList nl = documentHolder.getSamlDocument().getElementsByTagNameNS(XMLSignature.XMLNS, "Signature");
-            boolean anyElementSigned = (nl != null && nl.getLength() > 0);
-            if ((!anyElementSigned) && (documentHolder.getSamlObject() instanceof ResponseType)) {
+            return (nl != null && nl.getLength() > 0);
+        }
+
+        @Override
+        protected void verifySignature(String key, SAMLDocumentHolder documentHolder) throws VerificationException {
+            if ((! containsUnencryptedSignature(documentHolder)) && (documentHolder.getSamlObject() instanceof ResponseType)) {
                 ResponseType responseType = (ResponseType) documentHolder.getSamlObject();
                 List<ResponseType.RTChoiceType> assertions = responseType.getAssertions();
-                if (!assertions.isEmpty()) {
+                if (! assertions.isEmpty() ) {
                     // Only relax verification if the response is an authnresponse and contains (encrypted/plaintext) assertion.
                     // In that case, signature is validated on assertion element
                     return;
@@ -564,7 +617,6 @@ public class SpidSAMLEndpoint {
         protected SAMLDocumentHolder extractRequestDocument(String samlRequest) {
             return SAMLRequestParser.parseRequestPostBinding(samlRequest);
         }
-
         @Override
         protected SAMLDocumentHolder extractResponseDocument(String response) {
             byte[] samlBytes = PostBindingUtil.base64Decode(response);
@@ -579,10 +631,19 @@ public class SpidSAMLEndpoint {
 
     protected class RedirectBinding extends Binding {
         @Override
+        protected boolean containsUnencryptedSignature(SAMLDocumentHolder documentHolder) {
+            MultivaluedMap<String, String> encodedParams = session.getContext().getUri().getQueryParameters(false);
+            String algorithm = encodedParams.getFirst(GeneralConstants.SAML_SIG_ALG_REQUEST_KEY);
+            String signature = encodedParams.getFirst(GeneralConstants.SAML_SIGNATURE_REQUEST_KEY);
+            return algorithm != null && signature != null;
+        }
+
+        @Override
         protected void verifySignature(String key, SAMLDocumentHolder documentHolder) throws VerificationException {
             KeyLocator locator = getIDPKeyLocator();
             SamlProtocolUtils.verifyRedirectSignature(documentHolder, locator, session.getContext().getUri(), key);
         }
+
 
 
         @Override
@@ -600,6 +661,61 @@ public class SpidSAMLEndpoint {
             return SamlProtocol.SAML_REDIRECT_BINDING;
         }
 
+    }
+
+    private String getX500Attribute(AssertionType assertion, X500SAMLProfileConstants attribute) {
+        return getFirstMatchingAttribute(assertion, attribute::correspondsTo);
+    }
+
+    private String getAttributeByName(AssertionType assertion, String name) {
+        return getFirstMatchingAttribute(assertion, attribute -> Objects.equals(attribute.getName(), name));
+    }
+
+    private String getAttributeByFriendlyName(AssertionType assertion, String friendlyName) {
+        return getFirstMatchingAttribute(assertion, attribute -> Objects.equals(attribute.getFriendlyName(), friendlyName));
+    }
+
+    private String getPrincipal(AssertionType assertion) {
+
+        SamlPrincipalType principalType = config.getPrincipalType();
+
+        if (principalType == null || principalType.equals(SamlPrincipalType.SUBJECT)) {
+            SubjectType subject = assertion.getSubject();
+            SubjectType.STSubType subType = subject.getSubType();
+            NameIDType subjectNameID = (NameIDType) subType.getBaseID();
+            return subjectNameID.getValue();
+        } else if (principalType.equals(SamlPrincipalType.ATTRIBUTE)) {
+            return getAttributeByName(assertion, config.getPrincipalAttribute());
+        } else {
+            return getAttributeByFriendlyName(assertion, config.getPrincipalAttribute());
+        }
+
+    }
+
+    private String getFirstMatchingAttribute(AssertionType assertion, Predicate<AttributeType> predicate) {
+        return assertion.getAttributeStatements().stream()
+                .map(AttributeStatementType::getAttributes)
+                .flatMap(Collection::stream)
+                .map(AttributeStatementType.ASTChoiceType::getAttribute)
+                .filter(predicate)
+                .map(AttributeType::getAttributeValue)
+                .flatMap(Collection::stream)
+                .findFirst()
+                .map(Object::toString)
+                .orElse(null);
+    }
+
+    private String expectedPrincipalType() {
+        SamlPrincipalType principalType = config.getPrincipalType();
+        switch (principalType) {
+            case SUBJECT:
+                return principalType.name();
+            case ATTRIBUTE:
+            case FRIENDLY_ATTRIBUTE:
+                return String.format("%s(%s)", principalType.name(), config.getPrincipalAttribute());
+            default:
+                return null;
+        }
     }
 
 }
