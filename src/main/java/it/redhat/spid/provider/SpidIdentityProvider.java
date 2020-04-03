@@ -50,7 +50,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
-import java.security.KeyPair;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.TreeSet;
@@ -107,12 +106,10 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
             if (getConfig().isWantAuthnRequestsSigned()) {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
 
-                KeyPair keypair = new KeyPair(keys.getPublicKey(), keys.getPrivateKey());
-
                 String keyName = getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(keys.getKid(), keys.getCertificate());
-                binding.signWith(keyName, keypair);
-                binding.signatureAlgorithm(getSignatureAlgorithm());
-                binding.signDocument();
+                binding.signWith(keyName, keys.getPrivateKey(), keys.getPublicKey(), keys.getCertificate())
+                        .signatureAlgorithm(getSignatureAlgorithm())
+                        .signDocument();
                 if (! postBinding && getConfig().isAddExtensionsElementWithKeyInfo()) {    // Only include extension if REDIRECT binding and signing whole SAML protocol message
                     authnRequestBuilder.addExtension(new KeycloakKeySamlExtensionGenerator(keyName));
                 }
