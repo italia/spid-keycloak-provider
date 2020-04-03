@@ -98,33 +98,38 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
     public Document toDocument() {
         try {
-            
-            AuthnRequestType authnRequestType = this.authnRequestType;
-
-            NameIDType nameIDType = new NameIDType();
-
-            nameIDType.setValue(this.issuer);
-
-            authnRequestType.setIssuer(nameIDType);
-
-            String hostDestination = getDestinationHost(this.destination);
-            
-            authnRequestType.setDestination(URI.create(hostDestination));
-            
-
-            if (!this.extensions.isEmpty()) {
-                ExtensionsType extensionsType = new ExtensionsType();
-                for (NodeGenerator extension : this.extensions) {
-                    extensionsType.addExtension(extension);
-                }
-                authnRequestType.setExtensions(extensionsType);
-            }
+            AuthnRequestType authnRequestType = createAuthnRequest();
 
             return new SpidSAML2Request().convert(authnRequestType);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("Could not convert " + authnRequestType + " to a document.", e);
         }
+    }
+         
+    public AuthnRequestType createAuthnRequest() {
+        AuthnRequestType res = this.authnRequestType;
+
+        NameIDType nameIDType = new NameIDType();
+
+        nameIDType.setValue(this.issuer);
+
+        res.setIssuer(nameIDType);
+
+        String hostDestination = getDestinationHost(this.destination);
+            
+        res.setDestination(URI.create(hostDestination));
+            
+
+        if (!this.extensions.isEmpty()) {
+            ExtensionsType extensionsType = new ExtensionsType();
+            for (NodeGenerator extension : this.extensions) {
+                extensionsType.addExtension(extension);
+            }
+            res.setExtensions(extensionsType);
+        }
+
+        return res;
     }
 
     private String getDestinationHost(String destination) {

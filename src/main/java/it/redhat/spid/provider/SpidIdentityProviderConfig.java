@@ -1,16 +1,32 @@
+/*
+ * Copyright 2016 Red Hat, Inc. and/or its affiliates
+ * and other contributors as indicated by the @author tags.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package it.redhat.spid.provider;
 
+import static org.keycloak.common.util.UriUtils.checkUrl;
+
+import org.keycloak.common.enums.SslRequired;
 import org.keycloak.models.IdentityProviderModel;
+
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 
 public class SpidIdentityProviderConfig extends IdentityProviderModel {
-
-    public SpidIdentityProviderConfig(){
-    }
-
-    public SpidIdentityProviderConfig(IdentityProviderModel identityProviderModel) {
-        super(identityProviderModel);
-    }
 
     public static final XmlKeyInfoKeyNameTransformer DEFAULT_XML_KEY_INFO_KEY_NAME_TRANSFORMER = XmlKeyInfoKeyNameTransformer.NONE;
 
@@ -27,10 +43,19 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String SINGLE_LOGOUT_SERVICE_URL = "singleLogoutServiceUrl";
     public static final String SINGLE_SIGN_ON_SERVICE_URL = "singleSignOnServiceUrl";
     public static final String VALIDATE_SIGNATURE = "validateSignature";
+    public static final String PRINCIPAL_TYPE = "principalType";
+    public static final String PRINCIPAL_ATTRIBUTE = "principalAttribute";
     public static final String WANT_ASSERTIONS_ENCRYPTED = "wantAssertionsEncrypted";
     public static final String WANT_ASSERTIONS_SIGNED = "wantAssertionsSigned";
     public static final String WANT_AUTHN_REQUESTS_SIGNED = "wantAuthnRequestsSigned";
     public static final String XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER = "xmlSigKeyInfoKeyNameTransformer";
+
+    public SpidIdentityProviderConfig(){
+    }
+
+    public SpidIdentityProviderConfig(IdentityProviderModel identityProviderModel) {
+        super(identityProviderModel);
+    }
 
     public String getSingleSignOnServiceUrl() {
         return getConfig().get(SINGLE_SIGN_ON_SERVICE_URL);
@@ -207,8 +232,59 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
 
     public void setXmlSigKeyInfoKeyNameTransformer(XmlKeyInfoKeyNameTransformer xmlSigKeyInfoKeyNameTransformer) {
         getConfig().put(XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER,
-                xmlSigKeyInfoKeyNameTransformer == null
-                        ? null
-                        : xmlSigKeyInfoKeyNameTransformer.name());
+          xmlSigKeyInfoKeyNameTransformer == null
+            ? null
+            : xmlSigKeyInfoKeyNameTransformer.name());
+    }
+
+    public int getAllowedClockSkew() {
+        int result = 0;
+        String allowedClockSkew = getConfig().get(ALLOWED_CLOCK_SKEW);
+        if (allowedClockSkew != null && !allowedClockSkew.isEmpty()) {
+            try {
+                result = Integer.parseInt(allowedClockSkew);
+                if (result < 0) {
+                    result = 0;
+                }
+            } catch (NumberFormatException e) {
+                // ignore it and use 0
+            }
+        }
+        return result;
+    }
+
+    public void setAllowedClockSkew(int allowedClockSkew) {
+        if (allowedClockSkew < 0) {
+            getConfig().remove(ALLOWED_CLOCK_SKEW);
+        } else {
+            getConfig().put(ALLOWED_CLOCK_SKEW, String.valueOf(allowedClockSkew));
+        }
+    }
+
+    public SamlPrincipalType getPrincipalType() {
+        return SamlPrincipalType.from(getConfig().get(PRINCIPAL_TYPE), SamlPrincipalType.SUBJECT);
+    }
+
+    public void setPrincipalType(SamlPrincipalType principalType) {
+        getConfig().put(PRINCIPAL_TYPE,
+            principalType == null
+                ? null
+                : principalType.name());
+    }
+
+    public String getPrincipalAttribute() {
+        return getConfig().get(PRINCIPAL_ATTRIBUTE);
+    }
+
+    public void setPrincipalAttribute(String principalAttribute) {
+        getConfig().put(PRINCIPAL_ATTRIBUTE, principalAttribute);
+    }
+
+    @Override
+    public void validate(RealmModel realm) {
+        SslRequired sslRequired = realm.getSslRequired();
+
+        checkUrl(sslRequired, getSingleLogoutServiceUrl(), SINGLE_LOGOUT_SERVICE_URL);
+        checkUrl(sslRequired, getSingleSignOnServiceUrl(), SINGLE_SIGN_ON_SERVICE_URL);
     }
 }
