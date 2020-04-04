@@ -94,12 +94,11 @@ public class SpidSAMLRequestWriter extends BaseWriter {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.FORCE_AUTHN.get(), forceAuthn.toString());
         }
 
-        /*
+        // SPID: The IsPassive attribute isn't supported and shouldn't be in the assertion
         Boolean isPassive = request.isIsPassive();
-        if (isPassive != null) {
+        if (isPassive != null && isPassive == true) {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.IS_PASSIVE.get(), isPassive.toString());
         }
-		*/
 
         URI protocolBinding = request.getProtocolBinding();
         if (protocolBinding != null) {
@@ -123,14 +122,6 @@ public class SpidSAMLRequestWriter extends BaseWriter {
 
         NameIDType issuer = request.getIssuer();
         if (issuer != null) {
-            //@spid: attributes for Spid Auth
-            try {
-                issuer.setFormat(new URI("urn:oasis:names:tc:SAML:2.0:nameid-format:entity"));
-                issuer.setNameQualifier("http://rhsso.test.spid.it");
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-                throw new ProcessingException(e);
-            }
             write(issuer, new QName(ASSERTION_NSURI.get(), JBossSAMLConstants.ISSUER.get(), ASSERTION_PREFIX));
         }
 
