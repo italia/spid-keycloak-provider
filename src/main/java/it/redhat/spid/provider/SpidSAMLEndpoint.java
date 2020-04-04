@@ -434,28 +434,6 @@ public class SpidSAMLEndpoint {
 
                 identity.setUsername(subjectNameID.getValue());
 
-                //@spid: set username with spidCode
-                Set<AttributeStatementType> attributeStatements = assertion.getAttributeStatements();
-                for (AttributeStatementType next : attributeStatements) {
-                    List<AttributeStatementType.ASTChoiceType> attributes = next.getAttributes();
-                    for (AttributeStatementType.ASTChoiceType astChoiceType : attributes) {
-                        String name = astChoiceType.getAttribute().getName();
-                        if (name.equals("spidCode")) {
-                            //identity.setUsername(astChoiceType.getAttribute().getAttributeValue().get(0).toString());
-                        }
-
-                        if (name.equals("email")) {
-                            identity.setEmail(astChoiceType.getAttribute().getAttributeValue().get(0).toString());
-                        }
-                        
-                    }
-                }
-
-                //@spid: Static set for flawless login
-                identity.setName("Name");
-                identity.setFirstName("First Name");
-                identity.setLastName("Last Name");
-
                 //SAML Spec 2.2.2 Format is optional
                 if (subjectNameID.getFormat() != null && subjectNameID.getFormat().toString().equals(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get())) {
                     identity.setEmail(subjectNameID.getValue());
