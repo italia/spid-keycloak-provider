@@ -80,11 +80,10 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return this;
     }
 
-    /*
     public SpidSAML2AuthnRequestBuilder isPassive(boolean isPassive) {
         this.authnRequestType.setIsPassive(isPassive);
         return this;
-    }*/
+    }
 
     public SpidSAML2AuthnRequestBuilder nameIdPolicy(SAML2NameIDPolicyBuilder nameIDPolicy) {
         this.authnRequestType.setNameIDPolicy(nameIDPolicy.build());
@@ -113,6 +112,12 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         NameIDType nameIDType = new NameIDType();
 
         nameIDType.setValue(this.issuer);
+
+        // SPID: Aggiungi l'attributo NameQualifier all'elemento Issuer
+        nameIDType.setNameQualifier(this.issuer);
+
+        // SPID: Aggiungi l'attributo Format all'elemento Issuer
+        nameIDType.setFormat(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.getUri());
 
         res.setIssuer(nameIDType);
 
