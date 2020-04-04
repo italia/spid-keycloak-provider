@@ -209,6 +209,17 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                 .userPrincipal(userSession.getNote(SpidSAMLEndpoint.SAML_FEDERATED_SUBJECT), userSession.getNote(SpidSAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEFORMAT))
                 .destination(singleLogoutServiceUrl);
         LogoutRequestType logoutRequest = logoutBuilder.createLogoutRequest();
+
+        // SPID: Aggiungi l'attributo NameQualifier all'elemento Issuer
+		String entityId = getEntityId(uriInfo, realm);
+        logoutRequest.getIssuer().setNameQualifier(entityId);
+
+        // SPID: Aggiungi l'attributo Format all'elemento Issuer
+        logoutRequest.getIssuer().setFormat(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.getUri());
+
+        // SPID: Aggiungi l'attributo NameQualifier all'elemento NameID
+        logoutRequest.getNameID().setNameQualifier(entityId);
+
         for (NodeGenerator extension : extensions) {
             logoutBuilder.addExtension(extension);
         }
