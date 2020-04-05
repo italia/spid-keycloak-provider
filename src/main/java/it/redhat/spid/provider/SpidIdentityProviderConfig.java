@@ -27,7 +27,6 @@ import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 
 public class SpidIdentityProviderConfig extends IdentityProviderModel {
-
     public static final XmlKeyInfoKeyNameTransformer DEFAULT_XML_KEY_INFO_KEY_NAME_TRANSFORMER = XmlKeyInfoKeyNameTransformer.NONE;
 
     public static final String ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO = "addExtensionsElementWithKeyInfo";
@@ -49,6 +48,7 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String WANT_ASSERTIONS_SIGNED = "wantAssertionsSigned";
     public static final String WANT_AUTHN_REQUESTS_SIGNED = "wantAuthnRequestsSigned";
     public static final String XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER = "xmlSigKeyInfoKeyNameTransformer";
+    public static final String AUTHN_CONTEXT_CLASS_REF = "authnContextClassRef";
 
     public SpidIdentityProviderConfig(){
     }
@@ -278,6 +278,14 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
 
     public void setPrincipalAttribute(String principalAttribute) {
         getConfig().put(PRINCIPAL_ATTRIBUTE, principalAttribute);
+    }
+
+    public String getAuthnContextClassRef() {
+        return getConfig().get(AUTHN_CONTEXT_CLASS_REF);
+    }
+
+    public void setAuthnContextClassRef(String authnContextClassRef) {
+        getConfig().put(AUTHN_CONTEXT_CLASS_REF, authnContextClassRef);
     }
 
     @Override

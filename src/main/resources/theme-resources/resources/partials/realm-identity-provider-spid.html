@@ -253,6 +253,25 @@
                 <kc-tooltip>{{:: 'identity-provider.allowed-clock-skew.tooltip' | translate}}</kc-tooltip>
             </div>
          </fieldset>
+        <fieldset>
+            <legend uncollapsed><span class="text">{{:: 'identity-provider.spid' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.spid.tooltip' | translate}}</kc-tooltip></legend>
+
+            <div class="form-group clearfix">
+                <label class="col-md-2 control-label" for="authnContextClassRef"><span class="required">*</span> {{:: 'identity-provider.spid.level' | translate}}</label>
+                <div class="col-md-6">
+                    <div>
+                        <select class="form-control" id="authnContextClassRef"
+                                ng-init="identityProvider.config.authnContextClassRef = identityProvider.config.authnContextClassRef || 'https://www.spid.gov.it/SpidL2'"
+                                ng-model="identityProvider.config.authnContextClassRef">
+                            <option value="https://www.spid.gov.it/SpidL1">{{:: 'identity-provider.spid.level.level1' | translate}}</option>
+                            <option value="https://www.spid.gov.it/SpidL2">{{:: 'identity-provider.spid.level.level2' | translate}}</option>
+                            <option value="https://www.spid.gov.it/SpidL3">{{:: 'identity-provider.spid.level.level3' | translate}}</option>
+                        </select>
+                    </div>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.level.tooltip' | translate}}</kc-tooltip>
+            </div>
+        </fieldset>
         <fieldset data-ng-show="newIdentityProvider">
             <legend uncollapsed><span class="text">{{:: 'import-external-idp-config' | translate}}</span> <kc-tooltip>{{:: 'import-external-idp-config.tooltip' | translate}}</kc-tooltip></legend>
             <div class="form-group" data-ng-show="newIdentityProvider">

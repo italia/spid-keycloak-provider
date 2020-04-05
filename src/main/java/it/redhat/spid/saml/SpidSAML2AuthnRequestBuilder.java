@@ -18,9 +18,11 @@ package it.redhat.spid.saml;
 
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
-import org.keycloak.saml.SAML2AuthnRequestBuilder;
+import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
+import org.keycloak.dom.saml.v2.protocol.RequestedAuthnContextType;
 import org.keycloak.saml.SAML2NameIDPolicyBuilder;
 import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
+import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
 import org.keycloak.saml.processing.core.saml.v2.common.IDGenerator;
 import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
@@ -85,6 +87,13 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return this;
     }
 
+    public SpidSAML2AuthnRequestBuilder requestedAuthnContext(String requestedAuthnContext, AuthnContextComparisonType authnContextComparisonType) {
+        this.authnRequestType.setRequestedAuthnContext(new RequestedAuthnContextType());
+        this.authnRequestType.getRequestedAuthnContext().addAuthnContextClassRef(requestedAuthnContext);
+        this.authnRequestType.getRequestedAuthnContext().setComparison(authnContextComparisonType);
+        return this;
+    }
+
     public SpidSAML2AuthnRequestBuilder nameIdPolicy(SAML2NameIDPolicyBuilder nameIDPolicy) {
         this.authnRequestType.setNameIDPolicy(nameIDPolicy.build());
         return this;
@@ -105,12 +114,10 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
             throw new RuntimeException("Could not convert " + authnRequestType + " to a document.", e);
         }
     }
-         
+
     public AuthnRequestType createAuthnRequest() {
         AuthnRequestType res = this.authnRequestType;
-
         NameIDType nameIDType = new NameIDType();
-
         nameIDType.setValue(this.issuer);
 
         // SPID: Aggiungi l'attributo NameQualifier all'elemento Issuer
@@ -118,7 +125,7 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
         // SPID: Aggiungi l'attributo Format all'elemento Issuer
         nameIDType.setFormat(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.getUri());
-
+ 
         res.setIssuer(nameIDType);
 
         String hostDestination = getDestinationHost(this.destination);

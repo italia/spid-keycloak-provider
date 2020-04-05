@@ -141,14 +141,8 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         }
 
         RequestedAuthnContextType requestedAuthnContext = request.getRequestedAuthnContext();
-        //@spid: field for spid
         if (requestedAuthnContext != null) {
             write(requestedAuthnContext);
-        } else {
-            request.setRequestedAuthnContext(new RequestedAuthnContextType());
-            request.getRequestedAuthnContext().addAuthnContextClassRef("https://www.spid.gov.it/SpidL2");
-            request.getRequestedAuthnContext().setComparison(AuthnContextComparisonType.MINIMUM);
-            write(request.getRequestedAuthnContext());
         }
 
         StaxUtil.writeEndElement(writer);
