@@ -42,6 +42,7 @@ import java.util.List;
 import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
 
 import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.ASSERTION_NSURI;
+import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT;
 import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.PROTOCOL_NSURI;
 
 /**
@@ -227,12 +228,11 @@ public class SpidSAMLRequestWriter extends BaseWriter {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.SP_NAME_QUALIFIER.get(), spNameQualifier);
         }
         
-        /* @spid: disabled for spid compatibility
         Boolean allowCreate = nameIDPolicy.isAllowCreate();
-        if (allowCreate != null) {
+        if (allowCreate != null && (format == null || !NAMEID_FORMAT_TRANSIENT.get().equals(format.toASCIIString()))) {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.ALLOW_CREATE.get(), allowCreate.toString());
         }
-              */
+
         StaxUtil.writeEndElement(writer);
         StaxUtil.flush(writer);
     }
