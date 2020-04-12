@@ -125,7 +125,10 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
         // SPID: Aggiungi l'attributo Format all'elemento Issuer
         nameIDType.setFormat(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.getUri());
- 
+
+        // SPID: Aggiungi l'attributo AttributeConsumingServiceIndex
+        res.setAttributeConsumingServiceIndex(1);
+
         res.setIssuer(nameIDType);
 
         res.setDestination(URI.create(this.destination));
