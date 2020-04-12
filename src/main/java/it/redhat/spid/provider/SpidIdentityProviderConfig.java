@@ -26,6 +26,8 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 
+import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT;
+
 public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final XmlKeyInfoKeyNameTransformer DEFAULT_XML_KEY_INFO_KEY_NAME_TRANSFORMER = XmlKeyInfoKeyNameTransformer.NONE;
 
@@ -127,13 +129,11 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     }
 
     public String getNameIDPolicyFormat() {
-        return "urn:oasis:names:tc:SAML:2.0:nameid-format:transient";
-        //return getConfig().get(NAME_ID_POLICY_FORMAT);
+        return getConfig().get(NAME_ID_POLICY_FORMAT);
     }
 
     public void setNameIDPolicyFormat(String nameIDPolicyFormat) {
-        //getConfig().put(NAME_ID_POLICY_FORMAT, nameIDPolicyFormat);
-        getConfig().put(NAME_ID_POLICY_FORMAT, "urn:oasis:names:tc:SAML:2.0:nameid-format:transient");
+        getConfig().put(NAME_ID_POLICY_FORMAT, nameIDPolicyFormat);
     }
 
     public boolean isWantAuthnRequestsSigned() {

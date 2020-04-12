@@ -135,10 +135,7 @@
             <div class="form-group clearfix">
                 <label class="col-md-2 control-label" for="nameIDPolicyFormat">{{:: 'nameid-policy-format' | translate}}</label>
                 <div class="col-md-6">
-                    <select id="nameIDPolicyFormat" ng-model="identityProvider.config.nameIDPolicyFormat"
-                            ng-options="nameFormat.format as nameFormat.name for nameFormat in nameIdFormats">
-                     </select>
-                    <!-- <input class="form-control" id="nameIDPolicyFormat" type="text" ng-model="identityProvider.config.nameIDPolicyFormat"> -->
+                    <input class="form-control" id="nameIDPolicyFormat" type="text" ng-model="identityProvider.config.nameIDPolicyFormat">
                 </div>
                 <kc-tooltip>{{:: 'nameid-policy-format.tooltip' | translate}}</kc-tooltip>
             </div>
