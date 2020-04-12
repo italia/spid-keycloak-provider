@@ -82,7 +82,7 @@ public class SpidSAML2AuthnRequestBuilderTest {
 
         Node request_destination = doc.getFirstChild().getAttributes().getNamedItem("Destination");
 
-        Assert.assertEquals("http://test.server.mock:8088", request_destination.getTextContent());
+        Assert.assertEquals("http://test.server.mock:8088/sso", request_destination.getTextContent());
     }
 
     @Test
@@ -97,7 +97,7 @@ public class SpidSAML2AuthnRequestBuilderTest {
 
         Node request_destination = doc.getFirstChild().getAttributes().getNamedItem("Destination");
 
-        Assert.assertEquals("https://test.server.mock:8488", request_destination.getTextContent());
+        Assert.assertEquals("https://test.server.mock:8488/sso", request_destination.getTextContent());
     }
 
     @Test
@@ -112,7 +112,7 @@ public class SpidSAML2AuthnRequestBuilderTest {
 
         Node request_destination = doc.getFirstChild().getAttributes().getNamedItem("Destination");
 
-        Assert.assertEquals("http://test.server.mock", request_destination.getTextContent());
+        Assert.assertEquals("http://test.server.mock/sso", request_destination.getTextContent());
     }
 
     @Test
@@ -127,6 +127,6 @@ public class SpidSAML2AuthnRequestBuilderTest {
 
         Node request_destination = doc.getFirstChild().getAttributes().getNamedItem("Destination");
 
-        Assert.assertEquals("https://test.server.mock", request_destination.getTextContent());
+        Assert.assertEquals("https://test.server.mock/sso", request_destination.getTextContent());
     }
 }

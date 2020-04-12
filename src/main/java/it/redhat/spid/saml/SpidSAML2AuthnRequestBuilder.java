@@ -128,10 +128,7 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
  
         res.setIssuer(nameIDType);
 
-        String hostDestination = getDestinationHost(this.destination);
-            
-        res.setDestination(URI.create(hostDestination));
-            
+        res.setDestination(URI.create(this.destination));
 
         if (!this.extensions.isEmpty()) {
             ExtensionsType extensionsType = new ExtensionsType();
@@ -142,25 +139,5 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         }
 
         return res;
-    }
-
-    private String getDestinationHost(String destination) {
-
-        try {
-            URL url = new URL(destination);
-            String hostAndProtocol = url.getProtocol() + "://" + url.getHost();
-
-            if (url.getPort() > 0) {
-                return hostAndProtocol + ":" + url.getPort();
-            }
-
-            return hostAndProtocol;
-
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-
-        }
-
-        return destination;
     }
 }
