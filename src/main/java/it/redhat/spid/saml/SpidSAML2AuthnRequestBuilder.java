@@ -94,8 +94,8 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return this;
     }
 
-    public SpidSAML2AuthnRequestBuilder nameIdPolicy(SAML2NameIDPolicyBuilder nameIDPolicy) {
-        this.authnRequestType.setNameIDPolicy(nameIDPolicy.build());
+    public SpidSAML2AuthnRequestBuilder nameIdPolicy(SAML2NameIDPolicyBuilder nameIDPolicyBuilder) {
+        this.authnRequestType.setNameIDPolicy(nameIDPolicyBuilder.build());
         return this;
     }
 
