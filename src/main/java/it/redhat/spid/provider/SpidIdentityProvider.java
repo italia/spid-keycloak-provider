@@ -17,6 +17,7 @@
 package it.redhat.spid.provider;
 
 import it.redhat.spid.saml.SpidSAML2AuthnRequestBuilder;
+import it.redhat.spid.saml.SpidSAML2NameIDPolicyBuilder;
 import org.jboss.logging.Logger;
 import org.keycloak.broker.provider.*;
 import org.keycloak.broker.provider.util.SimpleHttp;
@@ -99,7 +100,9 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                     .issuer(issuerURL)
                     .forceAuthn(getConfig().isForceAuthn())
                     .protocolBinding(protocolBinding)
-                    .nameIdPolicy(SAML2NameIDPolicyBuilder.format(nameIDPolicyFormat))
+                    .nameIdPolicy(SpidSAML2NameIDPolicyBuilder
+                        .format(nameIDPolicyFormat)
+                        .setSPNameQualifier(issuerURL))
                     .requestedAuthnContext(getConfig().getAuthnContextClassRef(), AuthnContextComparisonType.MINIMUM);
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
                     .relayState(request.getState().getEncoded());
