@@ -424,15 +424,17 @@ public class SpidSAMLEndpoint {
                     return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
                 }
 
+				principal = subjectNameID.getValue();
+
                 //Map<String, String> notes = new HashMap<>();
-                BrokeredIdentityContext identity = new BrokeredIdentityContext(subjectNameID.getValue());
+                BrokeredIdentityContext identity = new BrokeredIdentityContext(principal);
                 identity.getContextData().put(SAML_LOGIN_RESPONSE, responseType);
                 identity.getContextData().put(SAML_ASSERTION, assertion);
                 if (clientId != null && ! clientId.trim().isEmpty()) {
                     identity.getContextData().put(SAML_IDP_INITIATED_CLIENT_ID, clientId);
                 }
 
-                identity.setUsername(subjectNameID.getValue());
+                identity.setUsername(principal);
 
                 //SAML Spec 2.2.2 Format is optional
                 if (subjectNameID.getFormat() != null && subjectNameID.getFormat().toString().equals(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get())) {
@@ -476,7 +478,7 @@ public class SpidSAMLEndpoint {
                         identity.setEmail(email);
                 }
 
-                String brokerUserId = config.getAlias() + "." + subjectNameID.getValue();
+                String brokerUserId = config.getAlias() + "." + principal;
                 identity.setBrokerUserId(brokerUserId);
                 identity.setIdpConfig(config);
                 identity.setIdp(provider);
