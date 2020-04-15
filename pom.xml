@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>it.redhat.spid</groupId>
     <artifactId>keycloak-identity-provider</artifactId>
-    <version>1.0</version>
+    <version>1.0.1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>SPID Service Provider</name>
@@ -24,6 +24,10 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <scm>
+        <developerConnection>scm:git:https://github.com/lscorcia/keycloak-spid-provider.git</developerConnection>
+    </scm>
 
     <dependencies>
         <dependency>
@@ -101,6 +105,16 @@
                                 <include>${project.build.finalName}.jar</include>
                             </resource>
                         </resources>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-release-plugin</artifactId>
+                    <version>3.0.0-M1</version>
+                    <configuration>
+                        <autoVersionSubmodules>true</autoVersionSubmodules>
+                        <tagNameFormat>@{project.version}</tagNameFormat>
+                        <releaseProfiles>release</releaseProfiles>
                     </configuration>
                 </plugin>
             </plugins>
