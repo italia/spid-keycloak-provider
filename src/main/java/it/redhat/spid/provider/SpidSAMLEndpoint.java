@@ -424,8 +424,6 @@ public class SpidSAMLEndpoint {
                     return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
                 }
 
-				principal = subjectNameID.getValue();
-
                 //Map<String, String> notes = new HashMap<>();
                 BrokeredIdentityContext identity = new BrokeredIdentityContext(principal);
                 identity.getContextData().put(SAML_LOGIN_RESPONSE, responseType);
