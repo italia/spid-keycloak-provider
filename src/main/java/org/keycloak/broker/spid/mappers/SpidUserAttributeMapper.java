@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 
-package it.redhat.spid.saml.mappers;
+package org.keycloak.broker.spid.mappers;
 
-import it.redhat.spid.provider.SpidIdentityProviderFactory;
 import org.keycloak.broker.saml.mappers.UserAttributeMapper;
+import org.keycloak.broker.spid.SpidIdentityProviderFactory;
 
 public class SpidUserAttributeMapper extends UserAttributeMapper {
 

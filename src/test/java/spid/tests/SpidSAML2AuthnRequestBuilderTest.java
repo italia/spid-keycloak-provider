@@ -1,6 +1,6 @@
 package spid.tests;
 
-import it.redhat.spid.saml.SpidSAML2AuthnRequestBuilder;
+import org.keycloak.broker.spid.SpidSAML2AuthnRequestBuilder;
 import org.junit.Assert;
 import org.junit.Test;
 import org.w3c.dom.Document;

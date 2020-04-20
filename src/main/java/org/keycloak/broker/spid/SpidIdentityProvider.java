@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package it.redhat.spid.provider;
+package org.keycloak.broker.spid;
 
-import it.redhat.spid.saml.SpidSAML2AuthnRequestBuilder;
-import it.redhat.spid.saml.SpidSAML2NameIDPolicyBuilder;
 import org.jboss.logging.Logger;
 import org.keycloak.broker.provider.*;
 import org.keycloak.broker.provider.util.SimpleHttp;
+import org.keycloak.broker.saml.SAMLDataMarshaller;
+import org.keycloak.broker.spid.SpidSAML2AuthnRequestBuilder;
+import org.keycloak.broker.spid.SpidSAML2NameIDPolicyBuilder;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.crypto.KeyStatus;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -306,6 +307,6 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
 
     @Override
     public IdentityProviderDataMarshaller getMarshaller() {
-        return new SpidSAMLDataMarshaller();
+        return new SAMLDataMarshaller();
     }
 }

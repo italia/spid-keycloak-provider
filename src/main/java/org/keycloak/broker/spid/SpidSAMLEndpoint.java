@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package it.redhat.spid.provider;
+package org.keycloak.broker.spid;
 
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
