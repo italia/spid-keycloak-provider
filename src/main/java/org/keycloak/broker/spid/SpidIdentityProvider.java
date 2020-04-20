@@ -20,8 +20,6 @@ import org.jboss.logging.Logger;
 import org.keycloak.broker.provider.*;
 import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.broker.saml.SAMLDataMarshaller;
-import org.keycloak.broker.spid.SpidSAML2AuthnRequestBuilder;
-import org.keycloak.broker.spid.SpidSAML2NameIDPolicyBuilder;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.crypto.KeyStatus;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
