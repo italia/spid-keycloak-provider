@@ -1,4 +1,4 @@
-package spid.tests;
+package org.keycloak.broker.spid.tests;
 
 import org.keycloak.broker.spid.SpidSAML2AuthnRequestBuilder;
 import org.junit.Assert;

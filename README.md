@@ -12,9 +12,10 @@ with existing applications by leveraging Keycloak identity brokering features.
 Keycloak is a nice product, but still lacking on some aspects of SAML2 compatibility,
 and the SPID specifications deviate from the SAML2 standard in some key aspects.
 
-The main issue to overcome is that Keycloak still does not support transient identities,
-and some of the SP behaviors are hardcoded to work with simple IdPs only (i.e. the
-SP metadata generation is severely lacking).
+Apart from the SPID-SAML2 protocol differences the main issue that this project works around 
+is Keycloak lack of support for transient identities. Also, some of the SP behaviors 
+are hardcoded to work with simple IdPs only (i.e. the SP metadata generation is 
+severely lacking).
 
 I plan to document a reference configuration for SPID and the workarounds required 
 in the project wiki (https://github.com/lscorcia/keycloak-spid-provider/wiki).
@@ -24,11 +25,14 @@ This project is still at an alpha stage. It is currently under development
 and things may change quickly.  
 Also, as far as I know it has not been used in Production in any environment yet.  
 
-It builds, and successfully allows login to the SPID-TestEnv2 test IdP 
-(https://github.com/italia/spid-testenv2). Single Logout isn't fully working yet.
+It builds and successfully allows login/backchannel logout to the SPID-TestEnv2 test IdP 
+(https://github.com/italia/spid-testenv2) and to the online SPID tester 
+(https://idptest.spid.gov.it).  
+Front Channel Logout isn't fully working yet (SPID requires a shared LogoutService for 
+all IdPs, but Keycloak sets up an endpoint for each IdP).
 
-Until the project gets to a stable release, it will be targeting the latest release 
-of Keycloak published on the website (see property `version.keycloak` in file `pom.xml`).
+Until the project gets to a stable release, it will be targeting a reasonably recent release 
+of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
 
 ## Build requirements
 * JDK8+
@@ -56,6 +60,6 @@ If everything went fine you will find a new provider type called `SPID` in the
 The basic idea behind this project came from the experimental SPID integration
 for older Keycloak versions developed by redhat-italy at 
 https://github.com/redhat-italy/keycloak-spid-provider.  
-At the moment the two project still share the same package namespace definitions,
-but if it'll ever get to a usable and tested stage I'll take care of clearly
-separating the two works.
+
+This project is released under the Apache License 2.0, same as the main Keycloak
+package.
