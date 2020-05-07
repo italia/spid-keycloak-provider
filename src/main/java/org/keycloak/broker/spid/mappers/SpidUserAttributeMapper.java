@@ -37,11 +37,6 @@ public class SpidUserAttributeMapper extends UserAttributeMapper {
     }
 
     @Override
-    public String getDisplayCategory() {
-        return "Attribute Importer";
-    }
-
-    @Override
     public String getDisplayType() {
         return "SPID Attribute Importer";
     }

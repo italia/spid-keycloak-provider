@@ -75,7 +75,6 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         StaxUtil.writeAttribute(writer, JBossSAMLConstants.ISSUE_INSTANT.get(), request.getIssueInstant().toString());
 
         URI destination = request.getDestination();
-
         if (destination != null)
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.DESTINATION.get(), destination.toASCIIString());
 
@@ -227,7 +226,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         if (StringUtil.isNotNull(spNameQualifier)) {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.SP_NAME_QUALIFIER.get(), spNameQualifier);
         }
-        
+
         Boolean allowCreate = nameIDPolicy.isAllowCreate();
         if (allowCreate != null && (format == null || !NAMEID_FORMAT_TRANSIENT.get().equals(format.toASCIIString()))) {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.ALLOW_CREATE.get(), allowCreate.toString());

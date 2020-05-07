@@ -133,7 +133,7 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
         res.setDestination(URI.create(this.destination));
 
-        if (!this.extensions.isEmpty()) {
+        if (! this.extensions.isEmpty()) {
             ExtensionsType extensionsType = new ExtensionsType();
             for (NodeGenerator extension : this.extensions) {
                 extensionsType.addExtension(extension);

@@ -37,11 +37,6 @@ public class SpidUsernameTemplateMapper extends UsernameTemplateMapper  {
     }
 
     @Override
-    public String getDisplayCategory() {
-        return "Preprocessor";
-    }
-
-    @Override
     public String getDisplayType() {
         return "SPID Username Template Importer";
     }
