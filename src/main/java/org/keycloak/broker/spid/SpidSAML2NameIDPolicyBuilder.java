@@ -51,7 +51,7 @@ public class SpidSAML2NameIDPolicyBuilder {
         if (this.allowCreate != null)
             this.policyType.setAllowCreate(this.allowCreate);
 
-        if (spNameQualifier != null)
+        if (this.spNameQualifier != null)
             this.policyType.setSPNameQualifier(this.spNameQualifier);
 
         return this.policyType;

@@ -35,9 +35,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamWriter;
-import java.net.ProtocolException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
 

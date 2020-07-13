@@ -83,6 +83,8 @@ import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.security.Key;
 import java.security.cert.X509Certificate;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.function.Predicate;
 
 import org.keycloak.protocol.saml.SamlPrincipalType;
@@ -93,7 +95,6 @@ import org.keycloak.saml.validators.ConditionsValidator;
 import org.keycloak.saml.validators.DestinationValidator;
 import java.net.URI;
 import java.security.cert.CertificateException;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import java.util.*;
@@ -440,7 +441,7 @@ public class SpidSAMLEndpoint {
                 identity.setUsername(principal);
 
                 //SAML Spec 2.2.2 Format is optional
-                if (subjectNameID.getFormat() != null && subjectNameID.getFormat().toString().equals(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get())) {
+                if (subjectNameID != null && subjectNameID.getFormat() != null && subjectNameID.getFormat().toString().equals(JBossSAMLURIConstants.NAMEID_FORMAT_EMAIL.get())) {
                     identity.setEmail(subjectNameID.getValue());
                 }
 

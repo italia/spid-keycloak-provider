@@ -50,7 +50,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 
 /**
