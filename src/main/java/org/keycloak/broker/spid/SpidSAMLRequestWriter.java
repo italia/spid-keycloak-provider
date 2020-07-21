@@ -90,8 +90,10 @@ public class SpidSAMLRequestWriter extends BaseWriter {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.FORCE_AUTHN.get(), forceAuthn.toString());
         }
 
-        // SPID: The IsPassive attribute isn't supported and shouldn't be in the assertion
         Boolean isPassive = request.isIsPassive();
+        // The AuthnRequest IsPassive attribute is optional and if omitted its default value is false. 
+        // Some IdPs refuse requests if the IsPassive attribute is present and set to false, so to 
+        // maximize compatibility we emit it only if it is set to true
         if (isPassive != null && isPassive == true) {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.IS_PASSIVE.get(), isPassive.toString());
         }
@@ -226,6 +228,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         }
 
         Boolean allowCreate = nameIDPolicy.isAllowCreate();
+        // The NameID AllowCreate attribute must not be used when using the transient NameID format.
         if (allowCreate != null && (format == null || !NAMEID_FORMAT_TRANSIENT.get().equals(format.toASCIIString()))) {
             StaxUtil.writeAttribute(writer, JBossSAMLConstants.ALLOW_CREATE.get(), allowCreate.toString());
         }
