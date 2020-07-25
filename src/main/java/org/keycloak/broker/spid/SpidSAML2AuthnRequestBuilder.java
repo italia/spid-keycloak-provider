@@ -17,8 +17,10 @@
 package org.keycloak.broker.spid;
 
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
+import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
+import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
 import org.keycloak.saml.processing.core.saml.v2.common.IDGenerator;
@@ -98,6 +100,25 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
     public SpidSAML2AuthnRequestBuilder requestedAuthnContext(SpidSAML2RequestedAuthnContextBuilder requestedAuthnContextBuilder) {
         this.authnRequestType.setRequestedAuthnContext(requestedAuthnContextBuilder.build());
         return this;
+    }
+
+    public SpidSAML2AuthnRequestBuilder subject(String subject) {
+        String sanitizedSubject = subject != null ? subject.trim() : null;
+        if (sanitizedSubject != null && !sanitizedSubject.isEmpty()) {
+            this.authnRequestType.setSubject(createSubject(sanitizedSubject));
+        }
+        return this;
+    }
+
+    private SubjectType createSubject(String value) {
+        NameIDType nameId = new NameIDType();
+        nameId.setValue(value);
+        nameId.setFormat(this.authnRequestType.getNameIDPolicy() != null ? this.authnRequestType.getNameIDPolicy().getFormat() : null);
+        SubjectType subject = new SubjectType();
+        SubjectType.STSubType subType = new SubjectType.STSubType();
+        subType.addBaseID(nameId);
+        subject.setSubType(subType);
+        return subject;
     }
 
     public Document toDocument() {

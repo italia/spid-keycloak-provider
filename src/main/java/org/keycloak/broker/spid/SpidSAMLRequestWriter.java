@@ -121,7 +121,12 @@ public class SpidSAMLRequestWriter extends BaseWriter {
 
         NameIDType issuer = request.getIssuer();
         if (issuer != null) {
-            write(issuer, new QName(ASSERTION_NSURI.get(), JBossSAMLConstants.ISSUER.get(), ASSERTION_PREFIX));
+            write(issuer, new QName(ASSERTION_NSURI.get(), JBossSAMLConstants.ISSUER.get(), ASSERTION_PREFIX), false);
+        }
+
+        SubjectType subject = request.getSubject();
+        if (subject != null) {
+            write(subject);
         }
 
         Element sig = request.getSignature();

@@ -33,6 +33,7 @@ import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.keys.RsaKeyMetadata;
 import org.keycloak.models.*;
+import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
 import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
@@ -110,6 +111,7 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
 
             Integer attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex();
 
+            String loginHint = getConfig().isLoginHint() ? request.getAuthenticationSession().getClientNote(OIDCLoginProtocol.LOGIN_HINT_PARAM) : null;
             SpidSAML2AuthnRequestBuilder authnRequestBuilder = new SpidSAML2AuthnRequestBuilder()
                     .assertionConsumerUrl(assertionConsumerServiceUrl)
                     .attributeConsumingServiceIndex(attributeConsumingServiceIndex)
@@ -120,6 +122,7 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                     .nameIdPolicy(SpidSAML2NameIDPolicyBuilder
                         .format(nameIDPolicyFormat)
                         .setSPNameQualifier(issuerURL))
+                    .subject(loginHint)
                     .requestedAuthnContext(requestedAuthnContext);
 
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
@@ -141,6 +144,10 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
             AuthnRequestType authnRequest = authnRequestBuilder.createAuthnRequest();
             for(Iterator<SamlAuthenticationPreprocessor> it = SamlSessionUtils.getSamlAuthenticationPreprocessorIterator(session); it.hasNext(); ) {
                 authnRequest = it.next().beforeSendingLoginRequest(authnRequest, request.getAuthenticationSession());
+            }
+
+            if (authnRequest.getDestination() != null) {
+                destinationUrl = authnRequest.getDestination().toString();
             }
 
             if (postBinding) {
@@ -230,6 +237,9 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
         JaxrsSAML2BindingBuilder binding = buildLogoutBinding(session, userSession, realm);
         try {
             LogoutRequestType logoutRequest = buildLogoutRequest(userSession, uriInfo, realm, singleLogoutServiceUrl);
+            if (logoutRequest.getDestination() != null) {
+                singleLogoutServiceUrl = logoutRequest.getDestination().toString();
+            }
             int status = SimpleHttp.doPost(singleLogoutServiceUrl, session)
                     .param(GeneralConstants.SAML_REQUEST_KEY, binding.postBinding(SAML2Request.convert(logoutRequest)).encoded())
                     .param(GeneralConstants.RELAY_STATE, userSession.getId()).asStatus();
@@ -254,6 +264,9 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
        } else {
             try {
                 LogoutRequestType logoutRequest = buildLogoutRequest(userSession, uriInfo, realm, singleLogoutServiceUrl);
+                if (logoutRequest.getDestination() != null) {
+                    singleLogoutServiceUrl = logoutRequest.getDestination().toString();
+                }
                 JaxrsSAML2BindingBuilder binding = buildLogoutBinding(session, userSession, realm);
                 if (getConfig().isPostBindingLogout()) {
                     return binding.postBinding(SAML2Request.convert(logoutRequest)).request(singleLogoutServiceUrl);
