@@ -119,7 +119,7 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                     .issuer(issuerURL)
                     .forceAuthn(getConfig().isForceAuthn())
                     .protocolBinding(protocolBinding)
-                    .nameIdPolicy(SpidSAML2NameIDPolicyBuilder
+                    .nameIdPolicy(SAML2NameIDPolicyBuilder
                         .format(nameIDPolicyFormat)
                         .setSPNameQualifier(issuerURL))
                     .subject(loginHint)

@@ -20,12 +20,13 @@ import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
-import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
+import org.keycloak.dom.saml.v2.protocol.RequestedAuthnContextType;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
 import org.keycloak.saml.processing.core.saml.v2.common.IDGenerator;
 import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
 import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
+import org.keycloak.saml.SAML2NameIDPolicyBuilder;
 import org.w3c.dom.Document;
 
 import java.net.URI;
@@ -87,7 +88,7 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return this;
     }
 
-    public SpidSAML2AuthnRequestBuilder nameIdPolicy(SpidSAML2NameIDPolicyBuilder nameIDPolicyBuilder) {
+    public SpidSAML2AuthnRequestBuilder nameIdPolicy(SAML2NameIDPolicyBuilder nameIDPolicyBuilder) {
         this.authnRequestType.setNameIDPolicy(nameIDPolicyBuilder.build());
         return this;
     }
