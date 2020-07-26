@@ -307,7 +307,7 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
 
     public Integer getAttributeConsumingServiceIndex() {
         Integer result = null;
-        String strAttributeConsumingServiceIndex = getConfig().get(ALLOWED_CLOCK_SKEW);
+        String strAttributeConsumingServiceIndex = getConfig().get(ATTRIBUTE_CONSUMING_SERVICE_INDEX);
         if (strAttributeConsumingServiceIndex != null && !strAttributeConsumingServiceIndex.isEmpty()) {
             try {
                 result = Integer.parseInt(strAttributeConsumingServiceIndex);
