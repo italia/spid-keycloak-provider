@@ -19,14 +19,12 @@ package org.keycloak.broker.spid;
 import static org.keycloak.common.util.UriUtils.checkUrl;
 
 import org.keycloak.common.enums.SslRequired;
+import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.models.IdentityProviderModel;
-
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
-
-import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT;
 
 public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final XmlKeyInfoKeyNameTransformer DEFAULT_XML_KEY_INFO_KEY_NAME_TRANSFORMER = XmlKeyInfoKeyNameTransformer.NONE;
@@ -50,7 +48,10 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String WANT_ASSERTIONS_SIGNED = "wantAssertionsSigned";
     public static final String WANT_AUTHN_REQUESTS_SIGNED = "wantAuthnRequestsSigned";
     public static final String XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER = "xmlSigKeyInfoKeyNameTransformer";
-    public static final String AUTHN_CONTEXT_CLASS_REF = "authnContextClassRef";
+    public static final String AUTHN_CONTEXT_COMPARISON_TYPE = "authnContextComparisonType";
+    public static final String AUTHN_CONTEXT_CLASS_REFS = "authnContextClassRefs";
+    public static final String AUTHN_CONTEXT_DECL_REFS = "authnContextDeclRefs";
+    public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attributeConsumingServiceIndex";
 
     public SpidIdentityProviderConfig(){
     }
@@ -280,12 +281,52 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
         getConfig().put(PRINCIPAL_ATTRIBUTE, principalAttribute);
     }
 
-    public String getAuthnContextClassRef() {
-        return getConfig().get(AUTHN_CONTEXT_CLASS_REF);
+    public AuthnContextComparisonType getAuthnContextComparisonType() {
+        return AuthnContextComparisonType.fromValue(getConfig().getOrDefault(AUTHN_CONTEXT_COMPARISON_TYPE, AuthnContextComparisonType.EXACT.value()));
     }
 
-    public void setAuthnContextClassRef(String authnContextClassRef) {
-        getConfig().put(AUTHN_CONTEXT_CLASS_REF, authnContextClassRef);
+    public void setAuthnContextComparisonType(AuthnContextComparisonType authnContextComparisonType) {
+        getConfig().put(AUTHN_CONTEXT_COMPARISON_TYPE, authnContextComparisonType.value());
+    }
+
+    public String getAuthnContextClassRefs() {
+        return getConfig().get(AUTHN_CONTEXT_CLASS_REFS);
+    }
+
+    public void setAuthnContextClassRefs(String authnContextClassRefs) {
+        getConfig().put(AUTHN_CONTEXT_CLASS_REFS, authnContextClassRefs);
+    }
+
+    public String getAuthnContextDeclRefs() {
+        return getConfig().get(AUTHN_CONTEXT_DECL_REFS);
+    }
+
+    public void setAuthnContextDeclRefs(String authnContextDeclRefs) {
+        getConfig().put(AUTHN_CONTEXT_DECL_REFS, authnContextDeclRefs);
+    }
+
+    public Integer getAttributeConsumingServiceIndex() {
+        Integer result = null;
+        String strAttributeConsumingServiceIndex = getConfig().get(ALLOWED_CLOCK_SKEW);
+        if (strAttributeConsumingServiceIndex != null && !strAttributeConsumingServiceIndex.isEmpty()) {
+            try {
+                result = Integer.parseInt(strAttributeConsumingServiceIndex);
+                if (result < 0) {
+                    result = null;
+                }
+            } catch (NumberFormatException e) {
+                // ignore it and use null
+            }
+        }
+        return result;
+    }
+
+    public void setAttributeConsumingServiceIndex(Integer attributeConsumingServiceIndex) {
+        if (attributeConsumingServiceIndex < 0) {
+            getConfig().remove(ATTRIBUTE_CONSUMING_SERVICE_INDEX);
+        } else {
+            getConfig().put(ATTRIBUTE_CONSUMING_SERVICE_INDEX, String.valueOf(attributeConsumingServiceIndex));
+        }
     }
 
     @Override

@@ -28,7 +28,6 @@ import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
-import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.events.EventBuilder;
@@ -98,8 +97,23 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                 protocolBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
             }
 
+            SpidSAML2RequestedAuthnContextBuilder requestedAuthnContext =
+                new SpidSAML2RequestedAuthnContextBuilder()
+                    .setComparison(getConfig().getAuthnContextComparisonType());
+
+            if (getConfig().getAuthnContextClassRefs() != null && getConfig().getAuthnContextClassRefs().length() > 0)
+                for (String authnContextClassRef : getConfig().getAuthnContextClassRefs().split(","))
+                    requestedAuthnContext.addAuthnContextClassRef(authnContextClassRef);
+
+            if (getConfig().getAuthnContextDeclRefs() != null && getConfig().getAuthnContextDeclRefs().length() > 0)
+                for (String authnContextDeclRef : getConfig().getAuthnContextDeclRefs().split(","))
+                    requestedAuthnContext.addAuthnContextDeclRef(authnContextDeclRef);
+
+            Integer attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex();
+
             SpidSAML2AuthnRequestBuilder authnRequestBuilder = new SpidSAML2AuthnRequestBuilder()
                     .assertionConsumerUrl(assertionConsumerServiceUrl)
+                    .attributeConsumingServiceIndex(attributeConsumingServiceIndex)
                     .destination(destinationUrl)
                     .issuer(issuerURL)
                     .forceAuthn(getConfig().isForceAuthn())
@@ -107,7 +121,8 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                     .nameIdPolicy(SpidSAML2NameIDPolicyBuilder
                         .format(nameIDPolicyFormat)
                         .setSPNameQualifier(issuerURL))
-                    .requestedAuthnContext(getConfig().getAuthnContextClassRef(), AuthnContextComparisonType.MINIMUM);
+                    .requestedAuthnContext(requestedAuthnContext);
+
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
                     .relayState(request.getState().getEncoded());
             boolean postBinding = getConfig().isPostBindingAuthnRequest();

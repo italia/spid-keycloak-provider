@@ -18,23 +18,17 @@ package org.keycloak.broker.spid;
 
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
-import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
-import org.keycloak.dom.saml.v2.protocol.RequestedAuthnContextType;
-import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
+import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
 import org.keycloak.saml.processing.core.saml.v2.common.IDGenerator;
 import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
+import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
 import org.w3c.dom.Document;
 
-import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Logger;
-
-import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
 
 /**
  * @author pedroigor
@@ -76,6 +70,11 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return this;
     }
 
+    public SpidSAML2AuthnRequestBuilder attributeConsumingServiceIndex(Integer attributeConsumingServiceIndex) {
+        this.authnRequestType.setAttributeConsumingServiceIndex(attributeConsumingServiceIndex);
+        return this;
+    }
+
     public SpidSAML2AuthnRequestBuilder forceAuthn(boolean forceAuthn) {
         this.authnRequestType.setForceAuthn(forceAuthn);
         return this;
@@ -86,13 +85,6 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return this;
     }
 
-    public SpidSAML2AuthnRequestBuilder requestedAuthnContext(String requestedAuthnContext, AuthnContextComparisonType authnContextComparisonType) {
-        this.authnRequestType.setRequestedAuthnContext(new RequestedAuthnContextType());
-        this.authnRequestType.getRequestedAuthnContext().addAuthnContextClassRef(requestedAuthnContext);
-        this.authnRequestType.getRequestedAuthnContext().setComparison(authnContextComparisonType);
-        return this;
-    }
-
     public SpidSAML2AuthnRequestBuilder nameIdPolicy(SpidSAML2NameIDPolicyBuilder nameIDPolicyBuilder) {
         this.authnRequestType.setNameIDPolicy(nameIDPolicyBuilder.build());
         return this;
@@ -100,6 +92,11 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
     public SpidSAML2AuthnRequestBuilder protocolBinding(String protocolBinding) {
         this.authnRequestType.setProtocolBinding(URI.create(protocolBinding));
+        return this;
+    }
+
+    public SpidSAML2AuthnRequestBuilder requestedAuthnContext(SpidSAML2RequestedAuthnContextBuilder requestedAuthnContextBuilder) {
+        this.authnRequestType.setRequestedAuthnContext(requestedAuthnContextBuilder.build());
         return this;
     }
 
@@ -127,7 +124,7 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
         // SPID: Aggiungi l'attributo AttributeConsumingServiceIndex con valore 1 
 		// (deve essere lo stesso valore che SPMetadataDescriptor.getSPDescriptor assegna nel metadata)
-        res.setAttributeConsumingServiceIndex(1);
+        // res.setAttributeConsumingServiceIndex(1);
 
         res.setIssuer(nameIDType);
 
