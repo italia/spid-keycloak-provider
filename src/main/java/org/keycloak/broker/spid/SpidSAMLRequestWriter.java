@@ -65,6 +65,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
     public void write(AuthnRequestType request) throws ProcessingException {
         StaxUtil.writeStartElement(writer, PROTOCOL_PREFIX, JBossSAMLConstants.AUTHN_REQUEST.get(), PROTOCOL_NSURI.get());
         StaxUtil.writeNameSpace(writer, PROTOCOL_PREFIX, PROTOCOL_NSURI.get());
+        StaxUtil.writeNameSpace(writer, ASSERTION_PREFIX, ASSERTION_NSURI.get());
         StaxUtil.writeDefaultNameSpace(writer, ASSERTION_NSURI.get());
 
         // Attributes
@@ -158,6 +159,7 @@ public class SpidSAMLRequestWriter extends BaseWriter {
         StaxUtil.writeStartElement(writer, PROTOCOL_PREFIX, JBossSAMLConstants.LOGOUT_REQUEST.get(), PROTOCOL_NSURI.get());
 
         StaxUtil.writeNameSpace(writer, PROTOCOL_PREFIX, PROTOCOL_NSURI.get());
+        StaxUtil.writeNameSpace(writer, ASSERTION_PREFIX, ASSERTION_NSURI.get());
         StaxUtil.writeDefaultNameSpace(writer, ASSERTION_NSURI.get());
 
         // Attributes
