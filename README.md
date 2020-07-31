@@ -33,6 +33,23 @@ all IdPs, but Keycloak sets up an endpoint for each IdP).
 
 Until the project gets to a stable release, it will be targeting a reasonably recent release 
 of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
+Currently it is targeting Keycloak 11.0.0, which has a couple of huge regressions impacting
+SAML identity brokering, but these have already been fixed in the latest snapshot.  
+At the moment, I suggest you to test this package by building the latest Keycloak 12.0.0-SNAPSHOT
+yourself and grabbing a couple of extra patches:
+
+```
+git clone https://github.com/keycloak/keycloak.git
+cd keycloak
+git fetch origin pull/7307/head pull/7294/head
+git pull --no-commit origin pull/7307/head pull/7294/head
+mvn -DskipTests -Pdistribution install
+```
+
+Please refer to the Keycloak documentation for build prerequisites and additional details.  
+At the end of the build process you will need to deploy the archive 
+`./distribution/server-dist/target/KEYCLOAK-12.0.0-SNAPSHOT.zip` and load the 
+provider according to the [Deployment](#deployment) section.
 
 ## Build requirements
 * JDK8+
