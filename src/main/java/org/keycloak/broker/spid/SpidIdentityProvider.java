@@ -45,6 +45,7 @@ import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.sessions.AuthenticationSessionModel;
+import org.keycloak.util.JsonSerialization;
 
 import org.w3c.dom.Element;
 
@@ -101,13 +102,11 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                 new SpidSAML2RequestedAuthnContextBuilder()
                     .setComparison(getConfig().getAuthnContextComparisonType());
 
-            if (getConfig().getAuthnContextClassRefs() != null && getConfig().getAuthnContextClassRefs().length() > 0)
-                for (String authnContextClassRef : getConfig().getAuthnContextClassRefs().split(","))
-                    requestedAuthnContext.addAuthnContextClassRef(authnContextClassRef);
+            for (String authnContextClassRef : getAuthnContextClassRefUris())
+                requestedAuthnContext.addAuthnContextClassRef(authnContextClassRef);
 
-            if (getConfig().getAuthnContextDeclRefs() != null && getConfig().getAuthnContextDeclRefs().length() > 0)
-                for (String authnContextDeclRef : getConfig().getAuthnContextDeclRefs().split(","))
-                    requestedAuthnContext.addAuthnContextDeclRef(authnContextDeclRef);
+            for (String authnContextDeclRef : getAuthnContextDeclRefUris())
+                requestedAuthnContext.addAuthnContextDeclRef(authnContextDeclRef);
 
             Integer attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex();
 
@@ -156,6 +155,52 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
 
     private String getEntityId(UriInfo uriInfo, RealmModel realm) {
         return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
+    }
+
+    static class AuthnContextClassRefJsonObject {
+        public String uri;
+    }
+
+    private List<String> getAuthnContextClassRefUris() {
+        ArrayList<String> output = new ArrayList<String>();
+
+        String authnContextClassRefs = getConfig().getAuthnContextClassRefs();
+        if (authnContextClassRefs == null || authnContextClassRefs.length() == 0)
+            return output;
+
+        try {
+            AuthnContextClassRefJsonObject[] jsonObjects = JsonSerialization.readValue(authnContextClassRefs, AuthnContextClassRefJsonObject[].class);
+
+            for (AuthnContextClassRefJsonObject jsonObject: jsonObjects)
+                output.add(jsonObject.uri);
+        } catch (Exception e) {
+            logger.warn("Could not json-deserialize AuthContextClassRefs config entry: " + authnContextClassRefs, e);
+        }
+
+        return output;
+    }
+
+    static class AuthnContextDeclRefJsonObject {
+        public String uri;
+    }
+
+    private List<String> getAuthnContextDeclRefUris() {
+        ArrayList<String> output = new ArrayList<String>();
+
+        String authnContextDeclRefs = getConfig().getAuthnContextDeclRefs();
+        if (authnContextDeclRefs == null || authnContextDeclRefs.length() == 0)
+            return output;
+
+        try {
+            AuthnContextDeclRefJsonObject[] jsonObjects = JsonSerialization.readValue(authnContextDeclRefs, AuthnContextDeclRefJsonObject[].class);
+
+            for (AuthnContextDeclRefJsonObject jsonObject: jsonObjects)
+                output.add(jsonObject.uri);
+        } catch (Exception e) {
+            logger.warn("Could not json-deserialize AuthContextDeclRefs config entry: " + authnContextDeclRefs, e);
+        }
+
+        return output;
     }
 
     @Override

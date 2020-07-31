@@ -280,7 +280,7 @@
             </div>
         </fieldset>
         <fieldset>
-            <legend uncollapsed><span class="text">{{:: 'identity-provider.saml.requested-authncontext' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.saml.requested-authncontext.tooltip' | translate}}</kc-tooltip></legend>
+            <legend collapsed><span class="text">{{:: 'identity-provider.saml.requested-authncontext' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.saml.requested-authncontext.tooltip' | translate}}</kc-tooltip></legend>
 
             <div class="form-group clearfix">
                 <label class="col-md-2 control-label" for="authnContextComparisonType">{{:: 'identity-provider.saml.authncontext-comparison-type' | translate}}</label>
@@ -302,7 +302,7 @@
                 <label for="type" class="col-md-2 control-label">{{:: 'identity-provider.saml.authncontext-class-ref' | translate}}</label>
                 <div class="col-sm-4">
                     <div class="input-group" ng-repeat="(i, authnContextClassRef) in authnContextClassRefs track by $index">
-                        <input class="form-control" ng-model="authnContextClassRefs[i]">
+                        <input class="form-control" ng-model="authnContextClassRefs[i].uri">
                         <div class="input-group-btn">
                             <button class="btn btn-default" type="button" data-ng-click="deleteAuthnContextClassRef($index)">
                                 <span class="fa fa-minus"></span>
@@ -324,7 +324,7 @@
                 <label for="type" class="col-md-2 control-label">{{:: 'identity-provider.saml.authncontext-decl-ref' | translate}}</label>
                 <div class="col-sm-4">
                     <div class="input-group" ng-repeat="(i, authnContextDeclRef) in authnContextDeclRefs track by $index">
-                        <input class="form-control" ng-model="authnContextDeclRefs[i]">
+                        <input class="form-control" ng-model="authnContextDeclRefs[i].uri">
                         <div class="input-group-btn">
                             <button class="btn btn-default" type="button" data-ng-click="deleteAuthnContextDeclRef($index)">
                                 <span class="fa fa-minus"></span>
