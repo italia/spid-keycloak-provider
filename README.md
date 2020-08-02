@@ -17,41 +17,32 @@ is Keycloak lack of support for transient identities. Also, some of the SP behav
 are hardcoded to work with simple IdPs only (i.e. the SP metadata generation is 
 severely lacking).
 
-I plan to document a reference configuration for SPID and the workarounds required 
+I have documented a reference configuration for SPID and the workarounds required 
 in the project wiki (https://github.com/lscorcia/keycloak-spid-provider/wiki).
+
+Please make sure to read it and understand the config steps and the open issues and
+limitations before planning your Production environment.
 
 ## Status
 This project is still at an alpha stage. It is currently under development 
 and things may change quickly.  
 Also, as far as I know it has not been used in Production in any environment yet.  
 
-It builds and successfully allows login/backchannel logout to the SPID-TestEnv2 test IdP 
+It builds and successfully allows login/logout to the SPID-TestEnv2 test IdP 
 (https://github.com/italia/spid-testenv2) and to the online SPID tester 
 (https://idptest.spid.gov.it).  
-Front Channel Logout isn't fully working yet (SPID requires a shared LogoutService for 
-all IdPs, but Keycloak sets up an endpoint for each IdP).
 
 Until the project gets to a stable release, it will be targeting a reasonably recent release 
 of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
-Currently it is targeting Keycloak 11.0.0, which has a couple of huge regressions impacting
-SAML identity brokering, but these have already been fixed in the latest snapshot.  
-At the moment, I suggest you to test this package by building the latest Keycloak 12.0.0-SNAPSHOT
-yourself and grabbing a couple of extra patches:
-
-```
-git clone https://github.com/keycloak/keycloak.git
-cd keycloak
-git fetch origin pull/7307/head pull/7294/head
-git pull --no-commit origin pull/7307/head pull/7294/head
-mvn -DskipTests -Pdistribution install
-```
-
-Please refer to the Keycloak documentation for build prerequisites and additional details.  
-At the end of the build process you will need to deploy the archive 
-`./distribution/server-dist/target/KEYCLOAK-12.0.0-SNAPSHOT.zip` and load the 
-provider according to the [Deployment](#deployment) section.
+Currently the main branch is targeting Keycloak 11.0.0, which unfortunately has a couple of 
+important regressions impacting SAML identity brokering, however a point release fixing them
+is coming soon.  
+At the moment, I suggest you to test this package by building the latest available sources 
+for Keycloak yourself and grabbing a couple of extra patches. Detailed instructions are
+available in the project wiki (https://github.com/lscorcia/keycloak-spid-provider/wiki/Installing-the-SPID-provider).
 
 ## Build requirements
+* git
 * JDK8+
 * Maven
 
@@ -70,8 +61,13 @@ mvn clean package && \
 sudo install -C -o keycloak -g keycloak target/spid-provider.jar /opt/keycloak/standalone/deployments/
 ```
 
-If everything went fine you will find a new provider type called `SPID` in the
-'Add Provider' drop down list in the Identity Provider configuration screen.
+If successful you will find a new provider type called `SPID` in the
+`Add Provider` drop down list in the Identity Provider configuration screen.
+
+## Open issues and limitations
+Please read the appropriate page on the project wiki 
+(https://github.com/lscorcia/keycloak-spid-provider/wiki/Open-issues). If your problem
+is not mentioned there, feel free to open an issue on GitHub.
 
 ## Acknowledgements
 The basic idea behind this project came from the experimental SPID integration
