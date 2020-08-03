@@ -66,8 +66,8 @@ If successful you will find a new provider type called `SPID` in the
 
 ## Open issues and limitations
 Please read the appropriate page on the project wiki 
-(https://github.com/lscorcia/keycloak-spid-provider/wiki/Open-issues). If your problem
-is not mentioned there, feel free to open an issue on GitHub.
+(https://github.com/lscorcia/keycloak-spid-provider/wiki/Open-issues-and-limitations). 
+If your problem is not mentioned there, feel free to open an issue on GitHub.
 
 ## Acknowledgements
 The basic idea behind this project came from the experimental SPID integration
