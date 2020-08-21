@@ -168,14 +168,7 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
         if (authnContextClassRefs == null || authnContextClassRefs.length() == 0)
             return output;
 
-        try {
-            AuthnContextClassRefJsonObject[] jsonObjects = JsonSerialization.readValue(authnContextClassRefs, AuthnContextClassRefJsonObject[].class);
-
-            for (AuthnContextClassRefJsonObject jsonObject: jsonObjects)
-                output.add(jsonObject.uri);
-        } catch (Exception e) {
-            logger.warn("Could not json-deserialize AuthContextClassRefs config entry: " + authnContextClassRefs, e);
-        }
+        output.add(authnContextClassRefs);
 
         return output;
     }
