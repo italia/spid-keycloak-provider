@@ -16,7 +16,7 @@
     <url>https://github.com/lscorcia/keycloak-spid-provider</url>
 
     <properties>
-        <version.keycloak>11.0.0</version.keycloak>
+        <version.keycloak>11.0.1</version.keycloak>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <failOnMissingWebXml>false</failOnMissingWebXml>
@@ -25,8 +25,8 @@
 
     <scm>
         <developerConnection>scm:git:https://github.com/lscorcia/keycloak-spid-provider.git</developerConnection>
-      <tag>HEAD</tag>
-  </scm>
+        <tag>HEAD</tag>
+    </scm>
 
     <dependencies>
         <dependency>
@@ -74,7 +74,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.30</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/junit/junit -->
         <dependency>
