@@ -56,6 +56,8 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -122,8 +124,8 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                     .nameIdPolicy(SAML2NameIDPolicyBuilder
                         .format(nameIDPolicyFormat)
                         .setSPNameQualifier(issuerURL))
-                    .subject(loginHint)
-                    .requestedAuthnContext(requestedAuthnContext);
+                    .requestedAuthnContext(requestedAuthnContext)
+                    .subject(loginHint);
 
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
                     .relayState(request.getState().getEncoded());
@@ -164,50 +166,30 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
         return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
     }
 
-    static class AuthnContextClassRefJsonObject {
-        public String uri;
-    }
-
     private List<String> getAuthnContextClassRefUris() {
-        ArrayList<String> output = new ArrayList<String>();
-
         String authnContextClassRefs = getConfig().getAuthnContextClassRefs();
-        if (authnContextClassRefs == null || authnContextClassRefs.length() == 0)
-            return output;
+        if (authnContextClassRefs == null || authnContextClassRefs.isEmpty())
+            return new LinkedList<String>();
 
         try {
-            AuthnContextClassRefJsonObject[] jsonObjects = JsonSerialization.readValue(authnContextClassRefs, AuthnContextClassRefJsonObject[].class);
-
-            for (AuthnContextClassRefJsonObject jsonObject: jsonObjects)
-                output.add(jsonObject.uri);
+            return Arrays.asList(JsonSerialization.readValue(authnContextClassRefs, String[].class));
         } catch (Exception e) {
             logger.warn("Could not json-deserialize AuthContextClassRefs config entry: " + authnContextClassRefs, e);
+            return new LinkedList<String>();
         }
-
-        return output;
-    }
-
-    static class AuthnContextDeclRefJsonObject {
-        public String uri;
     }
 
     private List<String> getAuthnContextDeclRefUris() {
-        ArrayList<String> output = new ArrayList<String>();
-
         String authnContextDeclRefs = getConfig().getAuthnContextDeclRefs();
-        if (authnContextDeclRefs == null || authnContextDeclRefs.length() == 0)
-            return output;
+        if (authnContextDeclRefs == null || authnContextDeclRefs.isEmpty())
+            return new LinkedList<String>();
 
         try {
-            AuthnContextDeclRefJsonObject[] jsonObjects = JsonSerialization.readValue(authnContextDeclRefs, AuthnContextDeclRefJsonObject[].class);
-
-            for (AuthnContextDeclRefJsonObject jsonObject: jsonObjects)
-                output.add(jsonObject.uri);
+            return Arrays.asList(JsonSerialization.readValue(authnContextDeclRefs, String[].class));
         } catch (Exception e) {
             logger.warn("Could not json-deserialize AuthContextDeclRefs config entry: " + authnContextDeclRefs, e);
+            return new LinkedList<String>();
         }
-
-        return output;
     }
 
     @Override
@@ -216,8 +198,10 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
         AssertionType assertion = (AssertionType)context.getContextData().get(SpidSAMLEndpoint.SAML_ASSERTION);
         SubjectType subject = assertion.getSubject();
         SubjectType.STSubType subType = subject.getSubType();
-        NameIDType subjectNameID = (NameIDType) subType.getBaseID();
-        authSession.setUserSessionNote(SpidSAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID, subjectNameID.serializeAsString());
+        if (subType != null) {
+            NameIDType subjectNameID = (NameIDType) subType.getBaseID();
+        	authSession.setUserSessionNote(SpidSAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID, subjectNameID.serializeAsString());
+        }
         AuthnStatementType authn =  (AuthnStatementType)context.getContextData().get(SpidSAMLEndpoint.SAML_AUTHN_STATEMENT);
         if (authn != null && authn.getSessionIndex() != null) {
             authSession.setUserSessionNote(SpidSAMLEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());

@@ -19,7 +19,7 @@ package org.keycloak.broker.spid;
 import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.dom.saml.v2.protocol.RequestedAuthnContextType;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class SpidSAML2RequestedAuthnContextBuilder {
@@ -30,8 +30,8 @@ public class SpidSAML2RequestedAuthnContextBuilder {
 
     public SpidSAML2RequestedAuthnContextBuilder() {
         this.requestedAuthnContextType = new RequestedAuthnContextType();
-        this.requestedAuthnContextClassRefList = new ArrayList<String>();
-        this.requestedAuthnContextDeclRefList = new ArrayList<String>();
+        this.requestedAuthnContextClassRefList = new LinkedList<String>();
+        this.requestedAuthnContextDeclRefList = new LinkedList<String>();
     }
 
     public SpidSAML2RequestedAuthnContextBuilder setComparison(AuthnContextComparisonType comparison) {
@@ -54,11 +54,11 @@ public class SpidSAML2RequestedAuthnContextBuilder {
             this.requestedAuthnContextType.setComparison(this.comparison);
 
         for (String requestedAuthnContextClassRef: this.requestedAuthnContextClassRefList)
-            if (requestedAuthnContextClassRef != null && requestedAuthnContextClassRef.length() > 0)
+            if (requestedAuthnContextClassRef != null && !requestedAuthnContextClassRef.isEmpty())
                 this.requestedAuthnContextType.addAuthnContextClassRef(requestedAuthnContextClassRef);
 
         for (String requestedAuthnContextDeclRef: this.requestedAuthnContextDeclRefList)
-            if (requestedAuthnContextDeclRef != null && requestedAuthnContextDeclRef.length() > 0)
+            if (requestedAuthnContextDeclRef != null && !requestedAuthnContextDeclRef.isEmpty())
                 this.requestedAuthnContextType.addAuthnContextDeclRef(requestedAuthnContextDeclRef);
 
         return this.requestedAuthnContextType;

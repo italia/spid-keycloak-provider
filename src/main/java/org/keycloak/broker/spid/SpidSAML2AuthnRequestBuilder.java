@@ -98,11 +98,6 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return this;
     }
 
-    public SpidSAML2AuthnRequestBuilder requestedAuthnContext(SpidSAML2RequestedAuthnContextBuilder requestedAuthnContextBuilder) {
-        this.authnRequestType.setRequestedAuthnContext(requestedAuthnContextBuilder.build());
-        return this;
-    }
-
     public SpidSAML2AuthnRequestBuilder subject(String subject) {
         String sanitizedSubject = subject != null ? subject.trim() : null;
         if (sanitizedSubject != null && !sanitizedSubject.isEmpty()) {
@@ -122,13 +117,23 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return subject;
     }
 
+    public SpidSAML2AuthnRequestBuilder requestedAuthnContext(SpidSAML2RequestedAuthnContextBuilder requestedAuthnContextBuilder) {
+        RequestedAuthnContextType requestedAuthnContext = requestedAuthnContextBuilder.build();
+
+        // Only emit the RequestedAuthnContext element if at least a ClassRef or a DeclRef is present
+        if (!requestedAuthnContext.getAuthnContextClassRef().isEmpty() ||
+            !requestedAuthnContext.getAuthnContextDeclRef().isEmpty())
+            this.authnRequestType.setRequestedAuthnContext(requestedAuthnContext);
+
+        return this;
+    }
+
     public Document toDocument() {
         try {
             AuthnRequestType authnRequestType = createAuthnRequest();
 
             return new SpidSAML2Request().convert(authnRequestType);
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException("Could not convert " + authnRequestType + " to a document.", e);
         }
     }
