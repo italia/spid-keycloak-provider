@@ -68,6 +68,7 @@ import java.util.TreeSet;
  */
 public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityProviderConfig> {
     protected static final Logger logger = Logger.getLogger(SpidIdentityProvider.class);
+
     private final DestinationValidator destinationValidator;
 
     public SpidIdentityProvider(KeycloakSession session, SpidIdentityProviderConfig config, DestinationValidator destinationValidator) {
@@ -101,8 +102,8 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                 protocolBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.get();
             }
 
-            SpidSAML2RequestedAuthnContextBuilder requestedAuthnContext =
-                new SpidSAML2RequestedAuthnContextBuilder()
+            SAML2RequestedAuthnContextBuilder requestedAuthnContext =
+                new SAML2RequestedAuthnContextBuilder()
                     .setComparison(getConfig().getAuthnContextComparisonType());
 
             for (String authnContextClassRef : getAuthnContextClassRefUris())
@@ -116,14 +117,15 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
             String loginHint = getConfig().isLoginHint() ? request.getAuthenticationSession().getClientNote(OIDCLoginProtocol.LOGIN_HINT_PARAM) : null;
             SpidSAML2AuthnRequestBuilder authnRequestBuilder = new SpidSAML2AuthnRequestBuilder()
                     .assertionConsumerUrl(assertionConsumerServiceUrl)
-                    .attributeConsumingServiceIndex(attributeConsumingServiceIndex)
                     .destination(destinationUrl)
                     .issuer(issuerURL)
                     .forceAuthn(getConfig().isForceAuthn())
                     .protocolBinding(protocolBinding)
                     .nameIdPolicy(SAML2NameIDPolicyBuilder
                         .format(nameIDPolicyFormat)
+                        .setAllowCreate(Boolean.TRUE)
                         .setSPNameQualifier(issuerURL))
+                    .attributeConsumingServiceIndex(attributeConsumingServiceIndex)
                     .requestedAuthnContext(requestedAuthnContext)
                     .subject(loginHint);
 

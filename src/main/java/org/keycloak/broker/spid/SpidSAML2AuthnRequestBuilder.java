@@ -25,8 +25,9 @@ import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
 import org.keycloak.saml.processing.core.saml.v2.common.IDGenerator;
 import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
-import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
 import org.keycloak.saml.SAML2NameIDPolicyBuilder;
+import org.keycloak.saml.SAML2RequestedAuthnContextBuilder;
+import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
 import org.w3c.dom.Document;
 
 import java.net.URI;
@@ -117,7 +118,7 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return subject;
     }
 
-    public SpidSAML2AuthnRequestBuilder requestedAuthnContext(SpidSAML2RequestedAuthnContextBuilder requestedAuthnContextBuilder) {
+    public SpidSAML2AuthnRequestBuilder requestedAuthnContext(SAML2RequestedAuthnContextBuilder requestedAuthnContextBuilder) {
         RequestedAuthnContextType requestedAuthnContext = requestedAuthnContextBuilder.build();
 
         // Only emit the RequestedAuthnContext element if at least a ClassRef or a DeclRef is present
@@ -132,7 +133,7 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         try {
             AuthnRequestType authnRequestType = createAuthnRequest();
 
-            return new SpidSAML2Request().convert(authnRequestType);
+            return new SAML2Request().convert(authnRequestType);
         } catch (Exception e) {
             throw new RuntimeException("Could not convert " + authnRequestType + " to a document.", e);
         }

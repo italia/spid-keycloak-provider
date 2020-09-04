@@ -27,6 +27,7 @@ import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 
 public class SpidIdentityProviderConfig extends IdentityProviderModel {
+
     public static final XmlKeyInfoKeyNameTransformer DEFAULT_XML_KEY_INFO_KEY_NAME_TRANSFORMER = XmlKeyInfoKeyNameTransformer.NONE;
 
     public static final String ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO = "addExtensionsElementWithKeyInfo";
@@ -48,6 +49,7 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String WANT_ASSERTIONS_SIGNED = "wantAssertionsSigned";
     public static final String WANT_AUTHN_REQUESTS_SIGNED = "wantAuthnRequestsSigned";
     public static final String XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER = "xmlSigKeyInfoKeyNameTransformer";
+    public static final String ENABLED_FROM_METADATA  = "enabledFromMetadata";
     public static final String AUTHN_CONTEXT_COMPARISON_TYPE = "authnContextComparisonType";
     public static final String AUTHN_CONTEXT_CLASS_REFS = "authnContextClassRefs";
     public static final String AUTHN_CONTEXT_DECL_REFS = "authnContextDeclRefs";
@@ -279,6 +281,14 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
 
     public void setPrincipalAttribute(String principalAttribute) {
         getConfig().put(PRINCIPAL_ATTRIBUTE, principalAttribute);
+    }
+
+    public boolean isEnabledFromMetadata() {
+        return Boolean.valueOf(getConfig().get(ENABLED_FROM_METADATA ));
+    }
+
+    public void setEnabledFromMetadata(boolean enabled) {
+        getConfig().put(ENABLED_FROM_METADATA , String.valueOf(enabled));
     }
 
     public AuthnContextComparisonType getAuthnContextComparisonType() {
