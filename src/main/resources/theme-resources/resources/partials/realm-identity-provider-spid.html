@@ -285,6 +285,34 @@
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-index.tooltip' | translate}}</kc-tooltip>
             </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="attributeConsumingServiceNames">{{:: 'identity-provider.saml.attribute-consuming-service-names' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="attributeConsumingServiceNames" type="text" ng-model="identityProvider.config.attributeConsumingServiceNames"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-names.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="organizationNames">{{:: 'identity-provider.saml.organization-names' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="organizationNames" type="text" ng-model="identityProvider.config.organizationNames"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.organization-names.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="organizationDisplayNames">{{:: 'identity-provider.saml.organization-display-names' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="organizationDisplayNames" type="text" ng-model="identityProvider.config.organizationDisplayNames"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.organization-display-names.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="organizationUrls">{{:: 'identity-provider.saml.organization-urls' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="organizationUrls" type="text" ng-model="identityProvider.config.organizationUrls"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.organization-urls.tooltip' | translate}}</kc-tooltip>
+            </div>
         </fieldset>
         <fieldset>
             <legend collapsed><span class="text">{{:: 'identity-provider.saml.requested-authncontext' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.saml.requested-authncontext.tooltip' | translate}}</kc-tooltip></legend>

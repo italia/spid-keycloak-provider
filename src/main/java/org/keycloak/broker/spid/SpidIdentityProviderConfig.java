@@ -54,6 +54,10 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String AUTHN_CONTEXT_CLASS_REFS = "authnContextClassRefs";
     public static final String AUTHN_CONTEXT_DECL_REFS = "authnContextDeclRefs";
     public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attributeConsumingServiceIndex";
+    public static final String ATTRIBUTE_CONSUMING_SERVICE_NAMES = "attributeConsumingServiceNames";
+    public static final String ORGANIZATION_NAMES = "organizationNames";
+    public static final String ORGANIZATION_DISPLAY_NAMES = "organizationDisplayNames";
+    public static final String ORGANIZATION_URLS = "organizationUrls";
 
     public SpidIdentityProviderConfig(){
     }
@@ -337,6 +341,38 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
         } else {
             getConfig().put(ATTRIBUTE_CONSUMING_SERVICE_INDEX, String.valueOf(attributeConsumingServiceIndex));
         }
+    }
+
+    public String getAttributeConsumingServiceNames() {
+        return getConfig().get(ATTRIBUTE_CONSUMING_SERVICE_NAMES);
+    }
+
+    public void setAttributeConsumingServiceNames(String attributeConsumingServiceNames) {
+        getConfig().put(ATTRIBUTE_CONSUMING_SERVICE_NAMES, attributeConsumingServiceNames);
+    }
+
+    public String getOrganizationNames() {
+        return getConfig().get(ORGANIZATION_NAMES);
+    }
+
+    public void setOrganizationNames(String organizationNames) {
+        getConfig().put(ORGANIZATION_NAMES, organizationNames);
+    }
+
+    public String getOrganizationDisplayNames() {
+        return getConfig().get(ORGANIZATION_DISPLAY_NAMES);
+    }
+
+    public void setOrganizationDisplayNames(String organizationDisplayNames) {
+        getConfig().put(ORGANIZATION_DISPLAY_NAMES, organizationDisplayNames);
+    }
+
+    public String getOrganizationUrls() {
+        return getConfig().get(ORGANIZATION_URLS);
+    }
+
+    public void setOrganizationUrls(String organizationUrls) {
+        getConfig().put(ORGANIZATION_URLS, organizationUrls);
     }
 
     @Override
