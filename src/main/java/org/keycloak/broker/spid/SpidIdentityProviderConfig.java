@@ -53,6 +53,7 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String AUTHN_CONTEXT_COMPARISON_TYPE = "authnContextComparisonType";
     public static final String AUTHN_CONTEXT_CLASS_REFS = "authnContextClassRefs";
     public static final String AUTHN_CONTEXT_DECL_REFS = "authnContextDeclRefs";
+    public static final String SIGN_SP_METADATA = "signSpMetadata";
     public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attributeConsumingServiceIndex";
     public static final String ATTRIBUTE_CONSUMING_SERVICE_NAMES = "attributeConsumingServiceNames";
     public static final String ORGANIZATION_NAMES = "organizationNames";
@@ -317,6 +318,14 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
 
     public void setAuthnContextDeclRefs(String authnContextDeclRefs) {
         getConfig().put(AUTHN_CONTEXT_DECL_REFS, authnContextDeclRefs);
+    }
+
+    public boolean isSignSpMetadata() {
+        return Boolean.valueOf(getConfig().get(SIGN_SP_METADATA));
+    }
+
+    public void setSignSpMetadata(boolean signSpMetadata) {
+        getConfig().put(SIGN_SP_METADATA, String.valueOf(signSpMetadata));
     }
 
     public Integer getAttributeConsumingServiceIndex() {

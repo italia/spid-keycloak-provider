@@ -184,7 +184,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
               attributeConsumingServiceIndex, attributeConsumingServiceNames, requestedAttributeNames,
               organizationNames, organizationDisplayNames, organizationUrls);
 
-            if (true) {
+            if (firstSpidProvider.getConfig().isSignSpMetadata()) {
                 KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
                 String keyName = firstSpidProvider.getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(), activeKey.getCertificate());
                 KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
