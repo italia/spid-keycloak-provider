@@ -59,6 +59,7 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String ORGANIZATION_NAMES = "organizationNames";
     public static final String ORGANIZATION_DISPLAY_NAMES = "organizationDisplayNames";
     public static final String ORGANIZATION_URLS = "organizationUrls";
+    public static final String ENTITY_ID = "entityId";
 
     public SpidIdentityProviderConfig(){
     }
@@ -382,6 +383,14 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
 
     public void setOrganizationUrls(String organizationUrls) {
         getConfig().put(ORGANIZATION_URLS, organizationUrls);
+    }
+
+    public String getEntityId() {
+        return getConfig().get(ENTITY_ID);
+    }
+
+    public void setEntityId(String entityId) {
+        getConfig().put(ENTITY_ID, entityId);
     }
 
     @Override

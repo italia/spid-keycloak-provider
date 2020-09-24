@@ -141,7 +141,8 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             boolean wantAuthnRequestsSigned = firstSpidProvider.getConfig().isWantAuthnRequestsSigned();
             boolean wantAssertionsSigned = firstSpidProvider.getConfig().isWantAssertionsSigned();
             boolean wantAssertionsEncrypted = firstSpidProvider.getConfig().isWantAssertionsEncrypted();
-            String entityId = getEntityId(uriInfo, realm);
+            String configEntityId = firstSpidProvider.getConfig().getEntityId();
+            String entityId = getEntityId(configEntityId, uriInfo, realm);
             String nameIDPolicyFormat = firstSpidProvider.getConfig().getNameIDPolicyFormat();
 
             List<Element> signingKeys = new ArrayList<Element>();
@@ -209,8 +210,11 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
         }
     }
 
-    private String getEntityId(UriInfo uriInfo, RealmModel realm) {
-        return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
+    private String getEntityId(String configEntityId, UriInfo uriInfo, RealmModel realm) {
+        if (configEntityId == null || configEntityId.isEmpty())
+            return UriBuilder.fromUri(uriInfo.getBaseUri()).path("realms").path(realm.getName()).build().toString();
+        else
+            return configEntityId;
     }
 
     private static String getSPDescriptor(URI binding, List<URI> assertionEndpoints, URI logoutEndpoint,
