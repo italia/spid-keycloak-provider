@@ -52,6 +52,7 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String AUTHN_CONTEXT_CLASS_REFS = "authnContextClassRefs";
     public static final String AUTHN_CONTEXT_DECL_REFS = "authnContextDeclRefs";
     public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attributeConsumingServiceIndex";
+    public static final String ENTITY_ID = "entityId";
 
     public SpidIdentityProviderConfig(){
     }
@@ -327,6 +328,14 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
         } else {
             getConfig().put(ATTRIBUTE_CONSUMING_SERVICE_INDEX, String.valueOf(attributeConsumingServiceIndex));
         }
+    }
+
+    public String getEntityId() {
+        return getConfig().get(ENTITY_ID);
+    }
+
+    public void setEntityId(String entityId) {
+        getConfig().put(ENTITY_ID, entityId);
     }
 
     @Override
