@@ -64,8 +64,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import javax.xml.crypto.dsig.CanonicalizationMethod;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -80,7 +78,6 @@ import org.keycloak.broker.spid.mappers.SpidUserAttributeMapper;
 
 import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.ATTRIBUTE_FORMAT_BASIC;
 import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.PROTOCOL_NSURI;
-import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.XMLDSIG_NSURI;
 
 public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
     protected static final Logger logger = Logger.getLogger(SpidSpMetadataResourceProvider.class);
@@ -131,12 +128,13 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
                         .path("endpoint")
                     .build()).collect(Collectors.toList());
 
-            URI logoutEndpoint = uriInfo.getBaseUriBuilder()
+            List<URI> logoutEndpoints = lstSpidIdentityProviders.stream()
+                .map(t -> uriInfo.getBaseUriBuilder()
                     .path("realms").path(realm.getName())
                     .path("broker")
-                    .path(firstSpidProvider.getConfig().getAlias())
+                    .path(t.getAlias())
                     .path("endpoint")
-                    .build();
+                    .build()).collect(Collectors.toList());
 
             boolean wantAuthnRequestsSigned = firstSpidProvider.getConfig().isWantAuthnRequestsSigned();
             boolean wantAssertionsSigned = firstSpidProvider.getConfig().isWantAssertionsSigned();
@@ -179,7 +177,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             String strOrganizationUrls = firstSpidProvider.getConfig().getOrganizationUrls();
             String[] organizationUrls = strOrganizationUrls != null ? strOrganizationUrls.split(","): null;
 
-            String descriptor = getSPDescriptor(authnBinding, assertionEndpoints, logoutEndpoint,
+            String descriptor = getSPDescriptor(authnBinding, assertionEndpoints, logoutEndpoints,
               wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
               entityId, nameIDPolicyFormat, signingKeys, encryptionKeys,
               attributeConsumingServiceIndex, attributeConsumingServiceNames, requestedAttributeNames,
@@ -217,7 +215,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             return configEntityId;
     }
 
-    private static String getSPDescriptor(URI binding, List<URI> assertionEndpoints, URI logoutEndpoint,
+    private static String getSPDescriptor(URI binding, List<URI> assertionEndpoints, List<URI> logoutEndpoints,
         boolean wantAuthnRequestsSigned, boolean wantAssertionsSigned, boolean wantAssertionsEncrypted,
         String entityId, String nameIDPolicyFormat, List<Element> signingCerts, List<Element> encryptionCerts,
         Integer attributeConsumingServiceIndex, String[] attributeConsumingServiceNames, List<String> requestedAttributeNames,
@@ -235,7 +233,6 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
         spSSODescriptor.setAuthnRequestsSigned(wantAuthnRequestsSigned);
         spSSODescriptor.setWantAssertionsSigned(wantAssertionsSigned);
         spSSODescriptor.addNameIDFormat(nameIDPolicyFormat);
-        spSSODescriptor.addSingleLogoutService(new EndpointType(binding, logoutEndpoint));
 
         if (wantAuthnRequestsSigned && signingCerts != null) {
             for (Element key: signingCerts)
@@ -257,6 +254,11 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             }
         }
 
+        // SingleLogoutService
+        for (URI logoutEndpoint: logoutEndpoints)
+            spSSODescriptor.addSingleLogoutService(new EndpointType(binding, logoutEndpoint));
+
+        // AssertionConsumerService
         int assertionEndpointIndex = 0;
         for (URI assertionEndpoint: assertionEndpoints)
         {
