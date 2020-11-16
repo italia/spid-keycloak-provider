@@ -17,28 +17,43 @@
 package org.keycloak.broker.spid;
 
 import org.jboss.logging.Logger;
-import org.keycloak.broker.provider.*;
+import org.keycloak.broker.provider.AbstractIdentityProvider;
+import org.keycloak.broker.provider.AuthenticationRequest;
+import org.keycloak.broker.provider.BrokeredIdentityContext;
+import org.keycloak.broker.provider.IdentityBrokerException;
+import org.keycloak.broker.provider.IdentityProviderDataMarshaller;
 import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.broker.saml.SAMLDataMarshaller;
 import org.keycloak.common.util.PemUtils;
+import org.keycloak.crypto.Algorithm;
 import org.keycloak.crypto.KeyStatus;
+import org.keycloak.crypto.KeyUse;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
-import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.events.EventBuilder;
-import org.keycloak.keys.RsaKeyMetadata;
-import org.keycloak.models.*;
+import org.keycloak.models.FederatedIdentityModel;
+import org.keycloak.models.KeyManager;
+import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
+import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
-import org.keycloak.saml.*;
+import org.keycloak.saml.SAML2AuthnRequestBuilder;
+import org.keycloak.saml.SAML2LogoutRequestBuilder;
+import org.keycloak.saml.SAML2NameIDBuilder;
+import org.keycloak.saml.SAML2NameIDPolicyBuilder;
+import org.keycloak.saml.SAML2RequestedAuthnContextBuilder;
+import org.keycloak.saml.SPMetadataDescriptor;
 import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder.NodeGenerator;
+import org.keycloak.saml.SignatureAlgorithm;
 import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
@@ -59,15 +74,14 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.parsers.ParserConfigurationException;
 import java.net.URI;
 import java.security.KeyPair;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Objects;
 
 /**
  * @author Pedro Igor
@@ -124,7 +138,12 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
             SpidSAML2AuthnRequestBuilder authnRequestBuilder = new SpidSAML2AuthnRequestBuilder()
                     .assertionConsumerUrl(assertionConsumerServiceUrl)
                     .destination(destinationUrl)
-                    .issuer(issuerURL)
+                    .issuer(SAML2NameIDBuilder.value(issuerURL)
+                        // SPID: Aggiungi l'attributo NameQualifier all'elemento Issuer
+                        .setNameQualifier(issuerURL)
+                        // SPID: Aggiungi l'attributo Format all'elemento Issuer
+                        .setFormat(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.get())
+                        .build())
                     .forceAuthn(getConfig().isForceAuthn())
                     .protocolBinding(protocolBinding)
                     .nameIdPolicy(SAML2NameIDPolicyBuilder
@@ -277,20 +296,21 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
     }
 
     protected LogoutRequestType buildLogoutRequest(UserSessionModel userSession, UriInfo uriInfo, RealmModel realm, String singleLogoutServiceUrl, NodeGenerator... extensions) throws ConfigurationException {
+        String entityId = getEntityId(uriInfo, realm);
+
         SAML2LogoutRequestBuilder logoutBuilder = new SAML2LogoutRequestBuilder()
                 .assertionExpiration(realm.getAccessCodeLifespan())
-                .issuer(getEntityId(uriInfo, realm))
+                .issuer(SAML2NameIDBuilder.value(entityId)
+                    // SPID: Aggiungi l'attributo NameQualifier all'elemento Issuer
+                    .setNameQualifier(entityId)
+                    // SPID: Aggiungi l'attributo Format all'elemento Issuer
+                    .setFormat(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.get())
+                    .build()
+                )
                 .sessionIndex(userSession.getNote(SpidSAMLEndpoint.SAML_FEDERATED_SESSION_INDEX))
                 .nameId(NameIDType.deserializeFromString(userSession.getNote(SpidSAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID)))
                 .destination(singleLogoutServiceUrl);
         LogoutRequestType logoutRequest = logoutBuilder.createLogoutRequest();
-
-        // SPID: Aggiungi l'attributo NameQualifier all'elemento Issuer
-        String entityId = getEntityId(uriInfo, realm);
-        logoutRequest.getIssuer().setNameQualifier(entityId);
-
-        // SPID: Aggiungi l'attributo Format all'elemento Issuer
-        logoutRequest.getIssuer().setFormat(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.getUri());
 
         // SPID: Aggiungi l'attributo NameQualifier all'elemento NameID
         logoutRequest.getNameID().setNameQualifier(entityId);
@@ -341,21 +361,28 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
             String entityId = getEntityId(uriInfo, realm);
             String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
 
-            List<Element> signingKeys = new ArrayList<Element>();
-            List<Element> encryptionKeys = new ArrayList<Element>();
+            List<Element> signingKeys = new LinkedList<>();
+            List<Element> encryptionKeys = new LinkedList<>();
 
-            Set<RsaKeyMetadata> keys = new TreeSet<>((o1, o2) -> o1.getStatus() == o2.getStatus() // Status can be only PASSIVE OR ACTIVE, push PASSIVE to end of list
-              ? (int) (o2.getProviderPriority() - o1.getProviderPriority())
-              : (o1.getStatus() == KeyStatus.PASSIVE ? 1 : -1));
-            keys.addAll(session.keys().getRsaKeys(realm));
-            for (RsaKeyMetadata key : keys) {
-                if (key == null || key.getCertificate() == null) continue;
+            session.keys().getKeysStream(realm, KeyUse.SIG, Algorithm.RS256)
+                    .filter(Objects::nonNull)
+                    .filter(key -> key.getCertificate() != null)
+                    .sorted(SamlService::compareKeys)
+                    .forEach(key -> {
+                        try {
+                            Element element = SPMetadataDescriptor
+                                    .buildKeyInfoElement(key.getKid(), PemUtils.encodeCertificate(key.getCertificate()));
+                            signingKeys.add(element);
 
-                signingKeys.add(SPMetadataDescriptor.buildKeyInfoElement(key.getKid(), PemUtils.encodeCertificate(key.getCertificate())));
+                            if (key.getStatus() == KeyStatus.ACTIVE) {
+                                encryptionKeys.add(element);
+                            }
+                        } catch (ParserConfigurationException e) {
+                            logger.warn("Failed to export SAML SP Metadata!", e);
+                            throw new RuntimeException(e);
+                        }
+                    });
 
-                if (key.getStatus() == KeyStatus.ACTIVE)
-                    encryptionKeys.add(SPMetadataDescriptor.buildKeyInfoElement(key.getKid(), PemUtils.encodeCertificate(key.getCertificate())));
-            }
             String descriptor = SPMetadataDescriptor.getSPDescriptor(authnBinding, endpoint, endpoint,
               wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
               entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);

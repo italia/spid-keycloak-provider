@@ -21,13 +21,13 @@ import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.ExtensionsType;
 import org.keycloak.dom.saml.v2.protocol.RequestedAuthnContextType;
-import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
-import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
-import org.keycloak.saml.processing.core.saml.v2.common.IDGenerator;
-import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
+import org.keycloak.saml.SAML2NameIDBuilder;
 import org.keycloak.saml.SAML2NameIDPolicyBuilder;
 import org.keycloak.saml.SAML2RequestedAuthnContextBuilder;
 import org.keycloak.saml.SamlProtocolExtensionsAwareBuilder;
+import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
+import org.keycloak.saml.processing.core.saml.v2.common.IDGenerator;
+import org.keycloak.saml.processing.core.saml.v2.util.XMLTimeUtil;
 import org.w3c.dom.Document;
 
 import java.net.URI;
@@ -41,7 +41,7 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
     private final AuthnRequestType authnRequestType;
     protected String destination;
-    protected String issuer;
+    protected NameIDType issuer;
     protected final List<NodeGenerator> extensions = new LinkedList<>();
 
     public SpidSAML2AuthnRequestBuilder destination(String destination) {
@@ -49,9 +49,13 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         return this;
     }
 
-    public SpidSAML2AuthnRequestBuilder issuer(String issuer) {
+    public SpidSAML2AuthnRequestBuilder issuer(NameIDType issuer) {
         this.issuer = issuer;
         return this;
+    }
+
+    public SpidSAML2AuthnRequestBuilder issuer(String issuer) {
+        return issuer(SAML2NameIDBuilder.value(issuer).build());
     }
 
     @Override
@@ -141,21 +145,8 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
 
     public AuthnRequestType createAuthnRequest() {
         AuthnRequestType res = this.authnRequestType;
-        NameIDType nameIDType = new NameIDType();
-        nameIDType.setValue(this.issuer);
 
-        // SPID: Aggiungi l'attributo NameQualifier all'elemento Issuer
-        nameIDType.setNameQualifier(this.issuer);
-
-        // SPID: Aggiungi l'attributo Format all'elemento Issuer
-        nameIDType.setFormat(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.getUri());
-
-        // SPID: Aggiungi l'attributo AttributeConsumingServiceIndex con valore 1 
-        // (deve essere lo stesso valore che SPMetadataDescriptor.getSPDescriptor assegna nel metadata)
-        // res.setAttributeConsumingServiceIndex(1);
-
-        res.setIssuer(nameIDType);
-
+        res.setIssuer(issuer);
         res.setDestination(URI.create(this.destination));
 
         if (! this.extensions.isEmpty()) {
