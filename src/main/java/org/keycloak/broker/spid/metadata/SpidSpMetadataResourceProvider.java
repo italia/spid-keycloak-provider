@@ -290,6 +290,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
         for (String requestedAttributeName: requestedAttributeNames) {
             RequestedAttributeType requestedAttribute = new RequestedAttributeType(requestedAttributeName);
             requestedAttribute.setNameFormat(ATTRIBUTE_FORMAT_BASIC.get());
+            requestedAttribute.setIsRequired(null);
 
             attributeConsumingService.addRequestedAttribute(requestedAttribute);
         }
