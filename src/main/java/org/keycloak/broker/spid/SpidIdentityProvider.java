@@ -148,6 +148,7 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                     .protocolBinding(protocolBinding)
                     .nameIdPolicy(SAML2NameIDPolicyBuilder
                         .format(nameIDPolicyFormat)
+                        // SPID: Aggiungi l'attributo SPNameQualifier all'elemento NameIDPolicy
                         .setSPNameQualifier(issuerURL)
                         .setAllowCreate(Boolean.TRUE))
                     .attributeConsumingServiceIndex(attributeConsumingServiceIndex)
@@ -311,10 +312,6 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                 .nameId(NameIDType.deserializeFromString(userSession.getNote(SpidSAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEID)))
                 .destination(singleLogoutServiceUrl);
         LogoutRequestType logoutRequest = logoutBuilder.createLogoutRequest();
-
-        // SPID: Aggiungi l'attributo NameQualifier all'elemento NameID
-        logoutRequest.getNameID().setNameQualifier(entityId);
-
         for (NodeGenerator extension : extensions) {
             logoutBuilder.addExtension(extension);
         }
