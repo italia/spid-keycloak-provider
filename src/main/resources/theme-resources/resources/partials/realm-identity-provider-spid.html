@@ -138,7 +138,7 @@
                 <div class="col-md-6">
                     <input kc-no-reserved-chars class="form-control" id="entityId" type="text" ng-model="identityProvider.config.entityId" required>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.config.entity-id.tooltip' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.saml.entity-id.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group clearfix">
                 <label class="col-md-2 control-label" for="singleSignOnServiceUrl"><span class="required">*</span> {{:: 'single-signon-service-url' | translate}}</label>
@@ -272,6 +272,20 @@
                 <kc-tooltip>{{:: 'validating-x509-certificate.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
+                <label class="col-md-2 control-label" for="signSpMetadata">{{:: 'identity-provider.saml.sign-sp-metadata' | translate}}</label>
+                <div class="col-md-6">
+                    <input ng-model="identityProvider.config.signSpMetadata" id="signSpMetadata" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.sign-sp-metadata.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-2 control-label" for="loginHint">{{:: 'saml.loginHint' | translate}}</label>
+                <div class="col-sm-4">
+                    <input ng-model="identityProvider.config.loginHint" id="loginHint" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+                </div>
+                <kc-tooltip>{{:: 'saml.loginHint.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
                 <label class="col-md-2 control-label" for="allowedClockSkew">{{:: 'allowed-clock-skew' | translate}}</label>
                 <div class="col-md-6 time-selector">
                     <input class="form-control" string-to-number type="number" min="0" max="2147483" step="1" ng-model="identityProvider.config.allowedClockSkew" id="allowedClockSkew"/>
@@ -284,6 +298,34 @@
                     <input class="form-control" string-to-number type="number" min="0" max="2147483" step="1" ng-model="identityProvider.config.attributeConsumingServiceIndex" id="attributeConsumingServiceIndex"/>
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-index.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="attributeConsumingServiceNames">{{:: 'identity-provider.saml.attribute-consuming-service-names' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="attributeConsumingServiceNames" type="text" ng-model="identityProvider.config.attributeConsumingServiceNames"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-names.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="organizationNames">{{:: 'identity-provider.saml.organization-names' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="organizationNames" type="text" ng-model="identityProvider.config.organizationNames"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.organization-names.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="organizationDisplayNames">{{:: 'identity-provider.saml.organization-display-names' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="organizationDisplayNames" type="text" ng-model="identityProvider.config.organizationDisplayNames"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.organization-display-names.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="organizationUrls">{{:: 'identity-provider.saml.organization-urls' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="organizationUrls" type="text" ng-model="identityProvider.config.organizationUrls"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.organization-urls.tooltip' | translate}}</kc-tooltip>
             </div>
         </fieldset>
         <fieldset>
@@ -306,11 +348,48 @@
                 <kc-tooltip>{{:: 'identity-provider.saml.authncontext-comparison-type.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
-                <label for="type" class="col-md-2 control-label" for="authncontextClassref">{{:: 'identity-provider.saml.authncontext-class-ref' | translate}}</label>
+                <label for="type" class="col-md-2 control-label">{{:: 'identity-provider.saml.authncontext-class-ref' | translate}}</label>
                 <div class="col-sm-4">
-                    <input class="form-control" id="authncontextClassref" ng-model="identityProvider.config.authnContextClassRefs" />
+                    <div class="input-group" ng-repeat="(i, authnContextClassRef) in authnContextClassRefs track by $index">
+                        <input class="form-control" ng-model="authnContextClassRefs[i]">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="button" data-ng-click="deleteAuthnContextClassRef($index)">
+                                <span class="fa fa-minus"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class = "input-group">
+                        <input class="form-control" ng-model="newAuthnContextClassRef" id="newAuthnContextClassRef">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="button" data-ng-click="newAuthnContextClassRef.length > 0 && addAuthnContextClassRef()">
+                                <span class="fa fa-plus"></span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.saml.authncontext-class-ref.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label for="type" class="col-md-2 control-label">{{:: 'identity-provider.saml.authncontext-decl-ref' | translate}}</label>
+                <div class="col-sm-4">
+                    <div class="input-group" ng-repeat="(i, authnContextDeclRef) in authnContextDeclRefs track by $index">
+                        <input class="form-control" ng-model="authnContextDeclRefs[i]">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="button" data-ng-click="deleteAuthnContextDeclRef($index)">
+                                <span class="fa fa-minus"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class = "input-group">
+                        <input class="form-control" ng-model="newAuthnContextDeclRef" id="newAuthnContextDeclRef">
+                        <div class="input-group-btn">
+                            <button class="btn btn-default" type="button" data-ng-click="newAuthnContextDeclRef.length > 0 && addAuthnContextDeclRef()">
+                                <span class="fa fa-plus"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.authncontext-decl-ref.tooltip' | translate}}</kc-tooltip>
             </div>
         </fieldset>
         <fieldset data-ng-show="newIdentityProvider">

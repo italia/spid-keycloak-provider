@@ -36,7 +36,7 @@ Currently the main branch is targeting Keycloak 11.0.1. **Do not use this provid
 versions of Keycloak, it won't work!**  
 
 If you are evaluating this solution, my suggestion is to test the provider by compiling Keycloak
-yourself using the latest available sources, and grabbing a couple of extra patches. Detailed instructions are
+yourself using the latest available sources. Detailed instructions are
 available in the project wiki (https://github.com/lscorcia/keycloak-spid-provider/wiki/Installing-the-SPID-provider).
 
 ## Build requirements

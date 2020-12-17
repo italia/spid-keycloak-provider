@@ -27,8 +27,10 @@ import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.saml.common.util.XmlKeyInfoKeyNameTransformer;
 
 public class SpidIdentityProviderConfig extends IdentityProviderModel {
+
     public static final XmlKeyInfoKeyNameTransformer DEFAULT_XML_KEY_INFO_KEY_NAME_TRANSFORMER = XmlKeyInfoKeyNameTransformer.NONE;
 
+    public static final String ENTITY_ID = "entityId";
     public static final String ADD_EXTENSIONS_ELEMENT_WITH_KEY_INFO = "addExtensionsElementWithKeyInfo";
     public static final String BACKCHANNEL_SUPPORTED = "backchannelSupported";
     public static final String ENCRYPTION_PUBLIC_KEY = "encryptionPublicKey";
@@ -48,17 +50,30 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String WANT_ASSERTIONS_SIGNED = "wantAssertionsSigned";
     public static final String WANT_AUTHN_REQUESTS_SIGNED = "wantAuthnRequestsSigned";
     public static final String XML_SIG_KEY_INFO_KEY_NAME_TRANSFORMER = "xmlSigKeyInfoKeyNameTransformer";
+    public static final String ENABLED_FROM_METADATA  = "enabledFromMetadata";
     public static final String AUTHN_CONTEXT_COMPARISON_TYPE = "authnContextComparisonType";
     public static final String AUTHN_CONTEXT_CLASS_REFS = "authnContextClassRefs";
     public static final String AUTHN_CONTEXT_DECL_REFS = "authnContextDeclRefs";
+    public static final String SIGN_SP_METADATA = "signSpMetadata";
     public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attributeConsumingServiceIndex";
-    public static final String ENTITY_ID = "entityId";
+    public static final String ATTRIBUTE_CONSUMING_SERVICE_NAMES = "attributeConsumingServiceNames";
+    public static final String ORGANIZATION_NAMES = "organizationNames";
+    public static final String ORGANIZATION_DISPLAY_NAMES = "organizationDisplayNames";
+    public static final String ORGANIZATION_URLS = "organizationUrls";
 
     public SpidIdentityProviderConfig(){
     }
 
     public SpidIdentityProviderConfig(IdentityProviderModel identityProviderModel) {
         super(identityProviderModel);
+    }
+
+    public String getEntityId() {
+        return getConfig().get(ENTITY_ID);
+    }
+
+    public void setEntityId(String entityId) {
+        getConfig().put(ENTITY_ID, entityId);
     }
 
     public String getSingleSignOnServiceUrl() {
@@ -282,6 +297,14 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
         getConfig().put(PRINCIPAL_ATTRIBUTE, principalAttribute);
     }
 
+    public boolean isEnabledFromMetadata() {
+        return Boolean.valueOf(getConfig().get(ENABLED_FROM_METADATA ));
+    }
+
+    public void setEnabledFromMetadata(boolean enabled) {
+        getConfig().put(ENABLED_FROM_METADATA , String.valueOf(enabled));
+    }
+
     public AuthnContextComparisonType getAuthnContextComparisonType() {
         return AuthnContextComparisonType.fromValue(getConfig().getOrDefault(AUTHN_CONTEXT_COMPARISON_TYPE, AuthnContextComparisonType.EXACT.value()));
     }
@@ -304,6 +327,14 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
 
     public void setAuthnContextDeclRefs(String authnContextDeclRefs) {
         getConfig().put(AUTHN_CONTEXT_DECL_REFS, authnContextDeclRefs);
+    }
+
+    public boolean isSignSpMetadata() {
+        return Boolean.valueOf(getConfig().get(SIGN_SP_METADATA));
+    }
+
+    public void setSignSpMetadata(boolean signSpMetadata) {
+        getConfig().put(SIGN_SP_METADATA, String.valueOf(signSpMetadata));
     }
 
     public Integer getAttributeConsumingServiceIndex() {
@@ -330,12 +361,36 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
         }
     }
 
-    public String getEntityId() {
-        return getConfig().get(ENTITY_ID);
+    public String getAttributeConsumingServiceNames() {
+        return getConfig().get(ATTRIBUTE_CONSUMING_SERVICE_NAMES);
     }
 
-    public void setEntityId(String entityId) {
-        getConfig().put(ENTITY_ID, entityId);
+    public void setAttributeConsumingServiceNames(String attributeConsumingServiceNames) {
+        getConfig().put(ATTRIBUTE_CONSUMING_SERVICE_NAMES, attributeConsumingServiceNames);
+    }
+
+    public String getOrganizationNames() {
+        return getConfig().get(ORGANIZATION_NAMES);
+    }
+
+    public void setOrganizationNames(String organizationNames) {
+        getConfig().put(ORGANIZATION_NAMES, organizationNames);
+    }
+
+    public String getOrganizationDisplayNames() {
+        return getConfig().get(ORGANIZATION_DISPLAY_NAMES);
+    }
+
+    public void setOrganizationDisplayNames(String organizationDisplayNames) {
+        getConfig().put(ORGANIZATION_DISPLAY_NAMES, organizationDisplayNames);
+    }
+
+    public String getOrganizationUrls() {
+        return getConfig().get(ORGANIZATION_URLS);
+    }
+
+    public void setOrganizationUrls(String organizationUrls) {
+        getConfig().put(ORGANIZATION_URLS, organizationUrls);
     }
 
     @Override
