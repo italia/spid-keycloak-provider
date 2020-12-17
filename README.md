@@ -32,7 +32,7 @@ As far as I know it has not been used in Production in any environment yet.
 
 Until the project gets to a stable release, it will be targeting the most recent release 
 of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
-Currently the main branch is targeting Keycloak 11.0.1. **Do not use this provider with previous 
+Currently the main branch is targeting Keycloak 12.0.0. **Do not use this provider with previous 
 versions of Keycloak, it won't work!**  
 
 If you are evaluating this solution, my suggestion is to test the provider by compiling Keycloak
