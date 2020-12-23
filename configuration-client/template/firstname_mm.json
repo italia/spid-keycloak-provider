@@ -1,0 +1,10 @@
+{
+    "name": "First Name",
+    "identityProviderAlias": "CHANGE-IT",
+    "identityProviderMapper": "spid-user-attribute-idp-mapper",
+    "config": {
+        "syncMode": "INHERIT",
+        "user.attribute": "firstName",
+        "attribute.name": "name"
+    }
+}

@@ -18,6 +18,7 @@ target
 .settings
 .project
 .classpath
+node_modules
 
 # OS generated files #
 ######################
@@ -37,3 +38,5 @@ activemq-data
 
 # Extra #
 #########
+.env
+*.log

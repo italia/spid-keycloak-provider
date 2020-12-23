@@ -1,0 +1,10 @@
+{
+    "name": "User Name",
+    "identityProviderAlias": "CHANGE-IT",
+    "identityProviderMapper": "spid-saml-username-idp-mapper",
+    "config": {
+        "template": "${ATTRIBUTE.fiscalNumber}",
+        "syncMode": "INHERIT",
+        "target": "BROKER_USERNAME"
+    }
+}
