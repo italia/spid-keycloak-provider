@@ -12,7 +12,6 @@ npm install
 
 copy .env-example into .env, configure it and wipe out the comments
 
-use:
 ```
 npm run create-realm 
 ```
