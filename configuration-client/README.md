@@ -16,22 +16,20 @@ use:
 ```
 npm run create-realm 
 ```
-to build a pre configured realm (with the right Authenticator)
+builds a pre configured realm (with the right Authenticator)
 
 ```
 npm run create-ips
 ```
-to download the metadata from the Official Url and build all the spid identity provides in keycloak. It creates also all the suggested mappers (see the main wiki).
+downloads the metadata from the Official Url and build all the spid identity providers in keycloak. It creates also all the suggested mappers (see the main wiki).
 
-If you have a spid test ip deployed somewhere, you can enable the configuration of the keycloak identity provider setting the properties
+If you have a spid test ip (https://github.com/italia/spid-testenv2) deployed somewhere, you can enable the configuration of the keycloak identity provider, setting the following .env file properties
 
 ```
 createSpidTestIp = true 
 spidTestIpAlias = spid-testenv2
 spidTestIpMetadataURL = http://localhost:8088/metadata
 ```
-
-in the .env file
 
 
 This project is released under the Apache License 2.0, same as the main Keycloak
