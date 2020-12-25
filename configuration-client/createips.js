@@ -12,7 +12,7 @@ const ipTemplate = JSON.parse(patchTemplateWithRealm('./template/ipmodel.json'))
 var getOfficialSpidipsMetadata$ = from(httpGrabIpsMetadata())
     .pipe(mergeMap(httpResponse => from(httpResponse.data.data)))
 
-if (config.createSpidTestIp) {
+if (config.createSpidTestIp === 'true') {
     let spidTestIpOfficialMetadata = {
         ipa_entity_code: config.spidTestIpAlias,
         entity_id: config.spidTestIpAlias,
