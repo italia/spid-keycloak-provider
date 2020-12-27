@@ -19,7 +19,7 @@ const tokenConfig = {
 };
 
 
-exports.httpGrabIpsMetadata = function () {
+exports.httpGrabIdPsMetadata = function () {
     return axios({
         method: 'get',
         url: config.spidMetadataOfficialURL,
@@ -40,9 +40,9 @@ const httpGrabKeycloaktoken = function () {
 
 exports.httpGrabKeycloaktoken = httpGrabKeycloaktoken
 
-exports.httpCallKeycloakImportConfig = function (ipsMetadataUrl) {
+exports.httpCallKeycloakImportConfig = function (idPsMetadataUrl) {
     return httpGrabKeycloaktoken().then(token => {
-        let data = JSON.stringify({ "providerId": "spid", "fromUrl": ipsMetadataUrl });
+        let data = JSON.stringify({ "providerId": "spid", "fromUrl": idPsMetadataUrl });
         let axiosConfig = {
             method: 'post',
             url: config.keycloakServerBaseURL + '/auth/admin/realms/' + config.realm + '/identity-provider/import-config',
@@ -62,9 +62,9 @@ exports.httpCallKeycloakImportConfig = function (ipsMetadataUrl) {
 
 
 
-exports.httpCallKeycloakCreateIp = function (ipModel) {
+exports.httpCallKeycloakCreateIdP = function (idPModel) {
     return httpGrabKeycloaktoken().then(token => {
-        let data = JSON.stringify(ipModel);
+        let data = JSON.stringify(idPModel);
         let axiosConfig = {
             method: 'post',
             url: config.keycloakServerBaseURL + '/auth/admin/realms/' + config.realm + '/identity-provider/instances',
@@ -82,11 +82,11 @@ exports.httpCallKeycloakCreateIp = function (ipModel) {
 }
 
 
-exports.httpCallKeycloakDeleteIp = function (ipAlias) {
+exports.httpCallKeycloakDeleteIdP = function (idPAlias) {
     return httpGrabKeycloaktoken().then(token => {
         let axiosConfig = {
             method: 'delete',
-            url: config.keycloakServerBaseURL + '/auth/admin/realms/' + config.realm + '/identity-provider/instances/' + ipAlias,
+            url: config.keycloakServerBaseURL + '/auth/admin/realms/' + config.realm + '/identity-provider/instances/' + idPAlias,
             headers: {
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
@@ -99,13 +99,13 @@ exports.httpCallKeycloakDeleteIp = function (ipAlias) {
     })
 }
 
-const httpCallKeycloakCreateMapper = function (ipAlias, mapperModel) {
+const httpCallKeycloakCreateMapper = function (idPAlias, mapperModel) {
     return httpGrabKeycloaktoken().then(token => {
-        mapperModel.identityProviderAlias = ipAlias
+        mapperModel.identityProviderAlias = idPAlias
         let data = JSON.stringify(mapperModel);
         let axiosConfig = {
             method: 'post',
-            url: config.keycloakServerBaseURL + '/auth/admin/realms/' + config.realm + '/identity-provider/instances/' + ipAlias + '/mappers',
+            url: config.keycloakServerBaseURL + '/auth/admin/realms/' + config.realm + '/identity-provider/instances/' + idPAlias + '/mappers',
             headers: {
                 'Authorization': 'Bearer ' + token,
                 'Content-Type': 'application/json'
@@ -119,12 +119,12 @@ const httpCallKeycloakCreateMapper = function (ipAlias, mapperModel) {
     })
 }
 
-exports.httpCallKeycloakCreateAllMappers = function (ipAlias) {
+exports.httpCallKeycloakCreateAllMappers = function (idPAlias) {
     return Promise.all([
-        httpCallKeycloakCreateMapper(ipAlias, usernameMapperTemplate),
-        httpCallKeycloakCreateMapper(ipAlias, lastnameMapperTemplate),
-        httpCallKeycloakCreateMapper(ipAlias, firstnameMapperTemplate),
-        httpCallKeycloakCreateMapper(ipAlias, emailMapperTemplate)
+        httpCallKeycloakCreateMapper(idPAlias, usernameMapperTemplate),
+        httpCallKeycloakCreateMapper(idPAlias, lastnameMapperTemplate),
+        httpCallKeycloakCreateMapper(idPAlias, firstnameMapperTemplate),
+        httpCallKeycloakCreateMapper(idPAlias, emailMapperTemplate)
     ])
 }
 
