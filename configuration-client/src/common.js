@@ -14,6 +14,6 @@ exports.emailMapperTemplate = require('../template/email_mm.json');
 
 
 exports.patchTemplateWithRealm = function (templateFilePath) {
-    return fs.readFileSync(templateFilePath).toString().replaceAll('%CHANGEIT%', config.realm)
+    return fs.readFileSync(templateFilePath).toString().replace(/%CHANGEIT%/g, config.realm)
 }
 
