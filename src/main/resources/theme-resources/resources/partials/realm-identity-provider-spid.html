@@ -327,6 +327,27 @@
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.saml.organization-urls.tooltip' | translate}}</kc-tooltip>
             </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="contactCompany">{{:: 'identity-provider.saml.contactCompanyName' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="contactCompany" type="text" ng-model="identityProvider.config.contactCompany"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.contactCompany.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="contactPhone">{{:: 'identity-provider.saml.contactPhone' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="contactPhone" type="text" ng-model="identityProvider.config.contactPhone"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.contactPhone.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="contactEmail">{{:: 'identity-provider.saml.contactEmail' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="contactEmail" type="text" ng-model="identityProvider.config.contactEmail"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.contactEmail.tooltip' | translate}}</kc-tooltip>
+            </div>
         </fieldset>
         <fieldset>
             <legend collapsed><span class="text">{{:: 'identity-provider.saml.requested-authncontext' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.saml.requested-authncontext.tooltip' | translate}}</kc-tooltip></legend>

@@ -60,6 +60,9 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String ORGANIZATION_NAMES = "organizationNames";
     public static final String ORGANIZATION_DISPLAY_NAMES = "organizationDisplayNames";
     public static final String ORGANIZATION_URLS = "organizationUrls";
+    public static final String CONTACT_COMPANY = "contactCompanyName";
+    public static final String CONTACT_PHONE = "contactPhone";
+    public static final String CONTACT_EMAIL = "contactEmail";
 
     public SpidIdentityProviderConfig(){
     }
@@ -399,5 +402,27 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
 
         checkUrl(sslRequired, getSingleLogoutServiceUrl(), SINGLE_LOGOUT_SERVICE_URL);
         checkUrl(sslRequired, getSingleSignOnServiceUrl(), SINGLE_SIGN_ON_SERVICE_URL);
+    }
+
+    public String getContactEmail() {
+        return getConfig().get(CONTACT_EMAIL);
+    }
+
+    public String getContactCompany() {
+        return getConfig().get(CONTACT_COMPANY);
+    }
+    public String getContactPhone() {
+        return getConfig().get(CONTACT_PHONE);
+    }
+
+    public void setContactEmail(String contactEmail) {
+        getConfig().put(CONTACT_EMAIL, contactEmail);
+    }
+
+    public void setContactCompany(String contactCompany) {
+        getConfig().put(CONTACT_COMPANY, contactCompany);
+    }
+    public void setContactPhone(String contactPhone) {
+        getConfig().put(CONTACT_PHONE, contactPhone);
     }
 }
