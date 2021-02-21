@@ -3,7 +3,7 @@ cache:
   directories:
   - "$HOME/.m2"
 jdk:
-- openjdk8
+- openjdk11
 deploy:
   provider: releases
   api_key:
@@ -11,5 +11,5 @@ deploy:
   file: target/spid-provider.jar
   skip_cleanup: true
   on:
-    repo: lscorcia/keycloak-spid-provider
+    repo: nicolabeghin/keycloak-spid-provider
     tags: true
