@@ -249,7 +249,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
     {
         StringWriter sw = new StringWriter();
         XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
-        SAMLMetadataWriter metadataWriter = new SAMLMetadataWriter(writer);
+        SpidSAMLMetadataWriter metadataWriter = new SpidSAMLMetadataWriter(writer);
 
         EntityDescriptorType entityDescriptor = new EntityDescriptorType(entityId);
         entityDescriptor.setID(IDGenerator.create("ID_"));
