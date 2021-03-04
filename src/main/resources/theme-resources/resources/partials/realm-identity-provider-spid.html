@@ -334,6 +334,34 @@
                 <kc-tooltip>{{:: 'identity-provider.spid.organization-urls.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
+                <label class="col-md-2 control-label" for="isSpPrivate">{{:: 'identity-provider.spid.is-sp-private' | translate}}</label>
+                <div class="col-md-6">
+                    <input ng-model="identityProvider.config.otherContactIsSpPrivate" id="isSpPrivate" name="isSpPrivate" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.is-sp-private.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'false'">
+                <label class="col-md-2 control-label" for="ipaCode">{{:: 'identity-provider.spid.ipaCode' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="ipaCode" type="text" ng-model="identityProvider.config.otherContactIpaCode"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.ipaCode.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
+                <label class="col-md-2 control-label" for="vatNumber">{{:: 'identity-provider.spid.vatNumber' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="vatNumber" type="text" ng-model="identityProvider.config.otherContactVatNumber"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.vatNumber.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
+                <label class="col-md-2 control-label" for="fiscalCode">{{:: 'identity-provider.spid.fiscalCode' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="fiscalCode" type="text" ng-model="identityProvider.config.otherContactFiscalCode"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.fiscalCode.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
                 <label class="col-md-2 control-label" for="otherContactCompany">{{:: 'identity-provider.spid.contactCompany.other' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="otherContactCompany" type="text" ng-model="identityProvider.config.otherContactCompany"/>

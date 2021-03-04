@@ -60,6 +60,10 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String ORGANIZATION_NAMES = "organizationNames";
     public static final String ORGANIZATION_DISPLAY_NAMES = "organizationDisplayNames";
     public static final String ORGANIZATION_URLS = "organizationUrls";
+    public static final String OTHER_CONTACT_SP_PRIVATE = "otherContactIsSpPrivate";
+    public static final String OTHER_CONTACT_IPA_CODE = "otherContactIpaCode";
+    public static final String OTHER_CONTACT_VAT_NUMBER = "otherContactVatNumber";
+    public static final String OTHER_CONTACT_FISCAL_CODE = "otherContactFiscalCode";
     public static final String OTHER_CONTACT_COMPANY = "otherContactCompany";
     public static final String OTHER_CONTACT_PHONE = "otherContactPhone";
     public static final String OTHER_CONTACT_EMAIL = "otherContactEmail";
@@ -405,6 +409,38 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
 
         checkUrl(sslRequired, getSingleLogoutServiceUrl(), SINGLE_LOGOUT_SERVICE_URL);
         checkUrl(sslRequired, getSingleSignOnServiceUrl(), SINGLE_SIGN_ON_SERVICE_URL);
+    }
+
+    public boolean isSpPrivate() {
+        return Boolean.valueOf(getConfig().get(OTHER_CONTACT_SP_PRIVATE));
+    }
+
+    public void setSpPrivate(boolean isPrivate) {
+        getConfig().put(OTHER_CONTACT_SP_PRIVATE, String.valueOf(isPrivate));
+    }
+
+    public String getIpaCode() {
+        return getConfig().get(OTHER_CONTACT_IPA_CODE);
+    }
+
+    public void setIpaCode(String ipaCode) {
+        getConfig().put(OTHER_CONTACT_IPA_CODE, ipaCode);
+    }
+
+    public String getVatNumber() {
+        return getConfig().get(OTHER_CONTACT_VAT_NUMBER);
+    }
+
+    public void setVatNumber(String vatNumber) {
+        getConfig().put(OTHER_CONTACT_VAT_NUMBER, vatNumber);
+    }
+
+    public String getFiscalCode() {
+        return getConfig().get(OTHER_CONTACT_FISCAL_CODE);
+    }
+
+    public void setFiscalCode(String fiscalCode) {
+        getConfig().put(OTHER_CONTACT_FISCAL_CODE, fiscalCode);
     }
 
     public String getOtherContactEmail() {
