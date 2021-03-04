@@ -60,9 +60,12 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String ORGANIZATION_NAMES = "organizationNames";
     public static final String ORGANIZATION_DISPLAY_NAMES = "organizationDisplayNames";
     public static final String ORGANIZATION_URLS = "organizationUrls";
-    public static final String CONTACT_COMPANY = "contactCompanyName";
-    public static final String CONTACT_PHONE = "contactPhone";
-    public static final String CONTACT_EMAIL = "contactEmail";
+    public static final String OTHER_CONTACT_COMPANY = "otherContactCompany";
+    public static final String OTHER_CONTACT_PHONE = "otherContactPhone";
+    public static final String OTHER_CONTACT_EMAIL = "otherContactEmail";
+    public static final String BILLING_CONTACT_COMPANY = "billingContactCompany";
+    public static final String BILLING_CONTACT_PHONE = "billingContactPhone";
+    public static final String BILLING_CONTACT_EMAIL = "billingContactEmail";
 
     public SpidIdentityProviderConfig(){
     }
@@ -404,25 +407,51 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
         checkUrl(sslRequired, getSingleSignOnServiceUrl(), SINGLE_SIGN_ON_SERVICE_URL);
     }
 
-    public String getContactEmail() {
-        return getConfig().get(CONTACT_EMAIL);
+    public String getOtherContactEmail() {
+        return getConfig().get(OTHER_CONTACT_EMAIL);
     }
 
-    public String getContactCompany() {
-        return getConfig().get(CONTACT_COMPANY);
-    }
-    public String getContactPhone() {
-        return getConfig().get(CONTACT_PHONE);
+    public String getOtherContactCompany() {
+        return getConfig().get(OTHER_CONTACT_COMPANY);
     }
 
-    public void setContactEmail(String contactEmail) {
-        getConfig().put(CONTACT_EMAIL, contactEmail);
+    public String getOtherContactPhone() {
+        return getConfig().get(OTHER_CONTACT_PHONE);
     }
 
-    public void setContactCompany(String contactCompany) {
-        getConfig().put(CONTACT_COMPANY, contactCompany);
+    public void setOtherContactEmail(String contactEmail) {
+        getConfig().put(OTHER_CONTACT_EMAIL, contactEmail);
     }
-    public void setContactPhone(String contactPhone) {
-        getConfig().put(CONTACT_PHONE, contactPhone);
+
+    public void setOtherContactCompany(String contactCompany) {
+        getConfig().put(OTHER_CONTACT_COMPANY, contactCompany);
+    }
+
+    public void setOtherContactPhone(String contactPhone) {
+        getConfig().put(OTHER_CONTACT_PHONE, contactPhone);
+    }
+
+    public String getBillingContactEmail() {
+        return getConfig().get(BILLING_CONTACT_EMAIL);
+    }
+
+    public String getBillingContactCompany() {
+        return getConfig().get(BILLING_CONTACT_COMPANY);
+    }
+
+    public String getBillingContactPhone() {
+        return getConfig().get(BILLING_CONTACT_PHONE);
+    }
+
+    public void setBillingContactEmail(String contactEmail) {
+        getConfig().put(BILLING_CONTACT_EMAIL, contactEmail);
+    }
+
+    public void setBillingContactCompany(String contactCompany) {
+        getConfig().put(BILLING_CONTACT_COMPANY, contactCompany);
+    }
+    
+    public void setBillingContactPhone(String contactPhone) {
+        getConfig().put(BILLING_CONTACT_PHONE, contactPhone);
     }
 }

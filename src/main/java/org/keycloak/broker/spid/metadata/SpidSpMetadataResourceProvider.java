@@ -19,6 +19,8 @@ import org.jboss.logging.Logger;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.crypto.KeyStatus;
 import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
+import org.keycloak.dom.saml.v2.metadata.ContactType;
+import org.keycloak.dom.saml.v2.metadata.ContactTypeType;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.IndexedEndpointType;
@@ -39,6 +41,7 @@ import org.keycloak.saml.SPMetadataDescriptor;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.keycloak.saml.common.util.StaxUtil;
+import org.keycloak.saml.common.util.StringUtil;
 import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.keycloak.saml.processing.core.saml.v2.common.IDGenerator;
 import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
@@ -177,11 +180,20 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             String strOrganizationUrls = firstSpidProvider.getConfig().getOrganizationUrls();
             String[] organizationUrls = strOrganizationUrls != null ? strOrganizationUrls.split(","): null;
 
+            String otherContactPersonCompany = firstSpidProvider.getConfig().getOtherContactCompany();
+            String otherContactPersonEmail = firstSpidProvider.getConfig().getOtherContactEmail();
+            String otherContactPersonPhone = firstSpidProvider.getConfig().getOtherContactPhone();
+            String billingContactPersonCompany = firstSpidProvider.getConfig().getBillingContactCompany();
+            String billingContactPersonEmail = firstSpidProvider.getConfig().getBillingContactEmail(); 
+            String billingContactPersonPhone = firstSpidProvider.getConfig().getBillingContactPhone();
+
             String descriptor = getSPDescriptor(authnBinding, assertionEndpoints, logoutEndpoints,
               wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
               entityId, nameIDPolicyFormat, signingKeys, encryptionKeys,
               attributeConsumingServiceIndex, attributeConsumingServiceNames, requestedAttributeNames,
-              organizationNames, organizationDisplayNames, organizationUrls);
+              organizationNames, organizationDisplayNames, organizationUrls,
+              otherContactPersonCompany, otherContactPersonEmail, otherContactPersonPhone,
+              billingContactPersonCompany, billingContactPersonEmail, billingContactPersonPhone);
 
             if (firstSpidProvider.getConfig().isSignSpMetadata()) {
                 KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
@@ -219,7 +231,9 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
         boolean wantAuthnRequestsSigned, boolean wantAssertionsSigned, boolean wantAssertionsEncrypted,
         String entityId, String nameIDPolicyFormat, List<Element> signingCerts, List<Element> encryptionCerts,
         Integer attributeConsumingServiceIndex, String[] attributeConsumingServiceNames, List<String> requestedAttributeNames,
-        String[] organizationNames, String[] organizationDisplayNames, String[] organizationUrls) 
+        String[] organizationNames, String[] organizationDisplayNames, String[] organizationUrls,
+        String otherContactPersonCompany, String otherContactPersonEmail, String otherContactPersonPhone,
+        String billingContactPersonCompany, String billingContactPersonEmail, String billingContactPersonPhone) 
         throws XMLStreamException, ProcessingException, ParserConfigurationException
     {
         StringWriter sw = new StringWriter();
@@ -342,6 +356,28 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
                     } catch (URISyntaxException e) { logger.error("Error creating URI for Organization URL"); continue; };
                     organizationType.addOrganizationURL(organizationUrl);
                 }
+            }
+
+            // ContactPerson type=OTHER
+            if (!StringUtil.isNullOrEmpty(otherContactPersonCompany) || !StringUtil.isNullOrEmpty(otherContactPersonEmail) || !StringUtil.isNullOrEmpty(otherContactPersonPhone)) {
+                ContactType otherContactPerson = new ContactType(ContactTypeType.OTHER);
+
+                if (!StringUtil.isNullOrEmpty(otherContactPersonCompany)) otherContactPerson.setCompany(otherContactPersonCompany);
+                if (!StringUtil.isNullOrEmpty(otherContactPersonEmail)) otherContactPerson.addEmailAddress(otherContactPersonEmail);
+                if (!StringUtil.isNullOrEmpty(otherContactPersonPhone)) otherContactPerson.addTelephone(otherContactPersonPhone);
+
+                entityDescriptor.addContactPerson(otherContactPerson);
+            }
+
+            // ContactPerson type=BILLING
+            if (!StringUtil.isNullOrEmpty(billingContactPersonCompany) || !StringUtil.isNullOrEmpty(billingContactPersonEmail) || !StringUtil.isNullOrEmpty(billingContactPersonPhone)) {
+                ContactType billingContactPerson = new ContactType(ContactTypeType.BILLING);
+
+                if (!StringUtil.isNullOrEmpty(billingContactPersonCompany)) billingContactPerson.setCompany(billingContactPersonCompany);
+                if (!StringUtil.isNullOrEmpty(billingContactPersonEmail)) billingContactPerson.addEmailAddress(billingContactPersonEmail);
+                if (!StringUtil.isNullOrEmpty(billingContactPersonPhone)) billingContactPerson.addTelephone(billingContactPersonPhone);
+
+                entityDescriptor.addContactPerson(billingContactPerson);
             }
 
             entityDescriptor.setOrganization(organizationType);

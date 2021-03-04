@@ -293,60 +293,81 @@
                 <kc-tooltip>{{:: 'identity-provider.allowed-clock-skew.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
-                <label class="col-md-2 control-label" for="attributeConsumingServiceIndex">{{:: 'identity-provider.saml.attribute-consuming-service-index' | translate}}</label>
+                <label class="col-md-2 control-label" for="attributeConsumingServiceIndex">{{:: 'identity-provider.spid.attribute-consuming-service-index' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" string-to-number type="number" min="0" max="2147483" step="1" ng-model="identityProvider.config.attributeConsumingServiceIndex" id="attributeConsumingServiceIndex"/>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-index.tooltip' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.spid.attribute-consuming-service-index.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
-                <label class="col-md-2 control-label" for="attributeConsumingServiceNames">{{:: 'identity-provider.saml.attribute-consuming-service-names' | translate}}</label>
+                <label class="col-md-2 control-label" for="attributeConsumingServiceNames">{{:: 'identity-provider.spid.attribute-consuming-service-names' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="attributeConsumingServiceNames" type="text" ng-model="identityProvider.config.attributeConsumingServiceNames"/>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-names.tooltip' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.spid.attribute-consuming-service-names.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
-                <label class="col-md-2 control-label" for="organizationNames">{{:: 'identity-provider.saml.organization-names' | translate}}</label>
+                <label class="col-md-2 control-label" for="organizationNames">{{:: 'identity-provider.spid.organization-names' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="organizationNames" type="text" ng-model="identityProvider.config.organizationNames"/>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.saml.organization-names.tooltip' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.spid.organization-names.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
-                <label class="col-md-2 control-label" for="organizationDisplayNames">{{:: 'identity-provider.saml.organization-display-names' | translate}}</label>
+                <label class="col-md-2 control-label" for="organizationDisplayNames">{{:: 'identity-provider.spid.organization-display-names' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="organizationDisplayNames" type="text" ng-model="identityProvider.config.organizationDisplayNames"/>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.saml.organization-display-names.tooltip' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.spid.organization-display-names.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
-                <label class="col-md-2 control-label" for="organizationUrls">{{:: 'identity-provider.saml.organization-urls' | translate}}</label>
+                <label class="col-md-2 control-label" for="organizationUrls">{{:: 'identity-provider.spid.organization-urls' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="organizationUrls" type="text" ng-model="identityProvider.config.organizationUrls"/>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.saml.organization-urls.tooltip' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.spid.organization-urls.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
-                <label class="col-md-2 control-label" for="contactCompany">{{:: 'identity-provider.saml.contactCompanyName' | translate}}</label>
+                <label class="col-md-2 control-label" for="otherContactCompany">{{:: 'identity-provider.spid.contactCompany.other' | translate}}</label>
                 <div class="col-md-6">
-                    <input class="form-control" id="contactCompany" type="text" ng-model="identityProvider.config.contactCompany"/>
+                    <input class="form-control" id="otherContactCompany" type="text" ng-model="identityProvider.config.otherContactCompany"/>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.saml.contactCompany.tooltip' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.spid.contactCompany.other.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
-                <label class="col-md-2 control-label" for="contactPhone">{{:: 'identity-provider.saml.contactPhone' | translate}}</label>
+                <label class="col-md-2 control-label" for="otherContactPhone">{{:: 'identity-provider.spid.contactPhone.other' | translate}}</label>
                 <div class="col-md-6">
-                    <input class="form-control" id="contactPhone" type="text" ng-model="identityProvider.config.contactPhone"/>
+                    <input class="form-control" id="otherContactPhone" type="text" ng-model="identityProvider.config.otherContactPhone"/>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.saml.contactPhone.tooltip' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.spid.contactPhone.other.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
-                <label class="col-md-2 control-label" for="contactEmail">{{:: 'identity-provider.saml.contactEmail' | translate}}</label>
+                <label class="col-md-2 control-label" for="otherContactEmail">{{:: 'identity-provider.spid.contactEmail.other' | translate}}</label>
                 <div class="col-md-6">
-                    <input class="form-control" id="contactEmail" type="text" ng-model="identityProvider.config.contactEmail"/>
+                    <input class="form-control" id="otherContactEmail" type="text" ng-model="identityProvider.config.otherContactEmail"/>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.saml.contactEmail.tooltip' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.spid.contactEmail.other.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="billingContactCompany">{{:: 'identity-provider.spid.contactCompany.billing' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="billingContactCompany" type="text" ng-model="identityProvider.config.billingContactCompany"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.contactCompany.billing.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="billingContactPhone">{{:: 'identity-provider.spid.contactPhone.billing' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="billingContactPhone" type="text" ng-model="identityProvider.config.billingContactPhone"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.contactPhone.billing.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="billingContactEmail">{{:: 'identity-provider.spid.contactEmail.billing' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="billingContactEmail" type="text" ng-model="identityProvider.config.billingContactEmail"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.contactEmail.billing.tooltip' | translate}}</kc-tooltip>
             </div>
         </fieldset>
         <fieldset>
