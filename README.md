@@ -62,10 +62,49 @@ sudo install -C -o keycloak -g keycloak target/spid-provider.jar /opt/keycloak/s
 If successful you will find a new provider type called `SPID` in the
 `Add Provider` drop down list in the Identity Provider configuration screen.
 
+## Upgrading from previous versions
+Upgrades are usually seamless, just repeat the deployment command.  
+Sometimes Keycloak caches don't get flushed when a new deployment occurs; in that case you will need
+to edit the file `{$KEYCLOAK_PATH}/standalone/configuration/standalone.xml`, find the following section
+```
+<theme>
+  <staticMaxAge>2592000</staticMaxAge>
+  <cacheThemes>true</cacheThemes>
+  <cacheTemplates>true</cacheTemplates>
+  <dir>${jboss.home.dir}/themes</dir>
+</theme>
+```
+and change it to:
+```
+<theme>
+  <staticMaxAge>-1</staticMaxAge>
+  <cacheThemes>false</cacheThemes>
+  <cacheTemplates>false</cacheTemplates>
+  <dir>${jboss.home.dir}/themes</dir>
+</theme>
+```
+
+Then restart Keycloak and it will reload the resources from the packages. Make sure you also clear 
+your browser caches or use incognito mode when verifying the correct deployment.
+After the first reload you can turn back on the caches and restart Keycloak again.
+
 ## Open issues and limitations
 Please read the appropriate page on the project wiki 
 (https://github.com/lscorcia/keycloak-spid-provider/wiki/Open-issues-and-limitations). 
 If your problem is not mentioned there, feel free to open an issue on GitHub.
+
+## Related projects
+If you are interested in Keycloak plugins for the various Italian national auth
+systems, you may be interested also in:
+
+* Keycloak SPID Provider - https://github.com/lscorcia/keycloak-spid-provider/  
+A Keycloak provider for the SPID federation
+
+* Keycloak CIE ID Provider - https://github.com/lscorcia/keycloak-cieid-provider/  
+A Keycloak provider for the CIE ID federation
+
+* Keycloak CNS Authenticator - https://github.com/lscorcia/keycloak-cns-authenticator/  
+A Keycloak authenticator to login using CNS tokens and smart cards
 
 ## Acknowledgements
 The basic idea behind this project came from the experimental SPID integration
