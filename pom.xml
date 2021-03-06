@@ -88,22 +88,6 @@
         <pluginManagement>
             <plugins>
                 <plugin>
-                    <groupId>com.spotify</groupId>
-                    <artifactId>docker-maven-plugin</artifactId>
-                    <version>0.4.13</version>
-                    <configuration>
-                        <imageName>keycloak-spid</imageName>
-                        <dockerDirectory>docker</dockerDirectory>
-                        <resources>
-                            <resource>
-                                <targetPath>/opt/jboss/keycloak/standalone/deployments</targetPath>
-                                <directory>${project.build.directory}</directory>
-                                <include>${project.build.finalName}.jar</include>
-                            </resource>
-                        </resources>
-                    </configuration>
-                </plugin>
-                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
                     <version>3.0.0-M1</version>
