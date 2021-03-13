@@ -31,10 +31,7 @@ import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
-import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
-import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
-import org.keycloak.dom.saml.v2.protocol.ResponseType;
-import org.keycloak.dom.saml.v2.protocol.StatusResponseType;
+import org.keycloak.dom.saml.v2.protocol.*;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
@@ -383,7 +380,7 @@ public class SpidSAMLEndpoint {
             try {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
                 if (! isSuccessfulSamlResponse(responseType)) {
-                    String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
+                    String statusMessage = parseSPIDStatusMessage(responseType.getStatus());
                     return callback.error(relayState, statusMessage);
                 }
                 if (responseType.getAssertions() == null || responseType.getAssertions().isEmpty()) {
@@ -503,6 +500,17 @@ public class SpidSAMLEndpoint {
             }
         }
 
+        /**
+         * Converts SPID StatusMessage SAML response to a localization-friendly format
+         * since SPID is not returning error codes but semi-human messages only
+         * ie. <samlp:StatusMessage>ErrorCode nr19</samlp:StatusMessage> to ErrorCode_nr19
+         *
+         * @url https://github.com/lscorcia/keycloak-spid-provider/issues/14
+         */
+        private String parseSPIDStatusMessage(StatusType responseType) {
+            if (responseType.getStatusMessage() == null) return Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR;
+            return responseType.getStatusMessage().replace(" ", "_").trim();
+        }
 
         private boolean isSuccessfulSamlResponse(ResponseType responseType) {
             return responseType != null
