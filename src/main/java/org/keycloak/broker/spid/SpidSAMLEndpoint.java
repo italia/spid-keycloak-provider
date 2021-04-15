@@ -423,15 +423,14 @@ public class SpidSAMLEndpoint {
                 NameIDType subjectNameID = getSubjectNameID(assertion);
                 String principal = getPrincipal(assertion);
                 String inResponseTo = responseType.getInResponseTo();
+
+                //checking if InResponseTo attribute is null or empty and send back with error. This prevents IDP-Initiated SSO.
                 if((inResponseTo == null) || inResponseTo.isEmpty()){
                     logger.error("InResponseTo Missing");
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
-                    String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
-                    statusMessage = parseSPIDStatusMessage(responseType.getStatus());
+                    String statusMessage = "ErrorCode_nr26";
                     return callback.error(relayState, statusMessage);
-                    //return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_FEDERATED_IDENTITY_ACTION);
-                    //return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, "Response does not contain InResponseTo attribute");
                 }
 
                 if (principal == null) {
