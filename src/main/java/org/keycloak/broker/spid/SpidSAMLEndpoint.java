@@ -422,6 +422,17 @@ public class SpidSAMLEndpoint {
                 AssertionType assertion = responseType.getAssertions().get(0).getAssertion();
                 NameIDType subjectNameID = getSubjectNameID(assertion);
                 String principal = getPrincipal(assertion);
+                String inResponseTo = responseType.getInResponseTo();
+                if((inResponseTo == null) || inResponseTo.isEmpty()){
+                    logger.error("InResponseTo Missing");
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
+                    statusMessage = parseSPIDStatusMessage(responseType.getStatus());
+                    return callback.error(relayState, statusMessage);
+                    //return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_FEDERATED_IDENTITY_ACTION);
+                    //return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, "Response does not contain InResponseTo attribute");
+                }
 
                 if (principal == null) {
                     logger.errorf("no principal in assertion; expected: %s", expectedPrincipalType());
@@ -530,6 +541,10 @@ public class SpidSAMLEndpoint {
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_FEDERATED_IDENTITY_ACTION);
             }
             StatusResponseType statusResponse = (StatusResponseType)holder.getSamlObject();
+
+
+
+
             // validate destination
             if (statusResponse.getDestination() == null && containsUnencryptedSignature(holder)) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
