@@ -61,6 +61,11 @@ import org.keycloak.saml.processing.web.util.PostBindingUtil;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.messages.Messages;
+import org.keycloak.broker.provider.util.IdentityBrokerState;
+import org.keycloak.sessions.AuthenticationSessionModel;
+import org.keycloak.services.managers.AuthenticationSessionManager;
+import org.keycloak.services.managers.AuthenticationManager;
+import org.keycloak.models.ClientModel;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -375,6 +380,15 @@ public class SpidSAMLEndpoint {
                 return configEntityId;
         }
 
+        private AuthenticationSessionModel getAuthenticationSession(String encodedCode) {
+            IdentityBrokerState state = IdentityBrokerState.encoded(encodedCode);
+            String clientId = state.getClientId();
+            String tabId = state.getTabId();
+            AuthenticationSessionManager authenticationSessionManager = new AuthenticationSessionManager(session);
+            ClientModel client = session.clients().getClientByClientId(realm, clientId);
+            return authenticationSessionManager.getCurrentAuthenticationSession(realm, client, tabId);
+        }
+
         protected Response handleLoginResponse(String samlResponse, SAMLDocumentHolder holder, ResponseType responseType, String relayState, String clientId) {
 
             try {
@@ -385,6 +399,30 @@ public class SpidSAMLEndpoint {
                 }
                 if (responseType.getAssertions() == null || responseType.getAssertions().isEmpty()) {
                     return callback.error(relayState, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+                }
+
+                AuthenticationSessionModel authenticationSession = getAuthenticationSession(relayState);
+                if (authenticationSession != null) {
+                    // SP-initiated SSO
+                    String requestID = authenticationSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
+                    String inResponseTo = responseType.getInResponseTo();
+                    logger.debug("Resolved RequestID from session: " + requestID);
+                    logger.debug("InResponseTo: " + inResponseTo);
+                    // InResponseTo could be also present in SubjectConfirmationData, see SAML Core 2.4.1.2
+                    // responseType.getAssertions().get(0).getAssertion().getSubject().getConfirmation().get(0).getSubjectConfirmationData().getInResponseTo();
+                    if (inResponseTo == null || inResponseTo.trim().isEmpty()){
+                        logger.error("InResponseTo is missing");
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        String statusMessage = "ErrorCode_nr26";
+                        return callback.error(relayState, statusMessage);
+                    } else if(!inResponseTo.equals(requestID)){
+                        logger.error("InResponseTo doesn't match RequestID");
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        String statusMessage = "ErrorCode_nr27";
+                        return callback.error(relayState, statusMessage);
+                    }
                 }
 
                 boolean assertionIsEncrypted = AssertionUtil.isAssertionEncrypted(responseType);
@@ -423,15 +461,6 @@ public class SpidSAMLEndpoint {
                 NameIDType subjectNameID = getSubjectNameID(assertion);
                 String principal = getPrincipal(assertion);
                 String inResponseTo = responseType.getInResponseTo();
-
-                //checking if InResponseTo attribute is null or empty and send back with error. This prevents IDP-Initiated SSO.
-                if((inResponseTo == null) || inResponseTo.isEmpty()){
-                    logger.error("InResponseTo Missing");
-                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                    event.error(Errors.INVALID_SAML_RESPONSE);
-                    String statusMessage = "ErrorCode_nr26";
-                    return callback.error(relayState, statusMessage);
-                }
 
                 if (principal == null) {
                     logger.errorf("no principal in assertion; expected: %s", expectedPrincipalType());
