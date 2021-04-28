@@ -36,13 +36,10 @@ import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.events.EventBuilder;
-import org.keycloak.models.FederatedIdentityModel;
-import org.keycloak.models.KeyManager;
-import org.keycloak.models.KeycloakSession;
-import org.keycloak.models.RealmModel;
-import org.keycloak.models.UserSessionModel;
+import org.keycloak.models.*;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
+import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
@@ -63,6 +60,7 @@ import org.keycloak.saml.processing.api.saml.v2.sig.SAML2Signature;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.sessions.AuthenticationSessionModel;
+import org.keycloak.sessions.AuthenticationSessionProvider;
 import org.keycloak.util.JsonSerialization;
 
 import org.w3c.dom.Document;
@@ -77,6 +75,7 @@ import javax.xml.crypto.dsig.CanonicalizationMethod;
 import javax.xml.parsers.ParserConfigurationException;
 import java.net.URI;
 import java.security.KeyPair;
+import java.time.Clock;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.Iterator;
@@ -155,6 +154,8 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                     .requestedAuthnContext(requestedAuthnContext)
                     .subject(loginHint);
 
+            //adding RequestID in Session to verify it with Response after Authentication
+            request.getAuthenticationSession().setClientNote(SamlProtocol.SAML_REQUEST_ID, authnRequestBuilder.getRequestID());
             JaxrsSAML2BindingBuilder binding = new JaxrsSAML2BindingBuilder(session)
                     .relayState(request.getState().getEncoded());
             boolean postBinding = getConfig().isPostBindingAuthnRequest();
