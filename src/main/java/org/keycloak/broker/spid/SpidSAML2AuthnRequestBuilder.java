@@ -68,6 +68,10 @@ public class SpidSAML2AuthnRequestBuilder implements SamlProtocolExtensionsAware
         this.authnRequestType = new AuthnRequestType(IDGenerator.create("ID_"), XMLTimeUtil.getIssueInstant());
     }
 
+    public String getRequestID() {
+        return this.authnRequestType.getID();
+    }
+
     public SpidSAML2AuthnRequestBuilder assertionConsumerUrl(String assertionConsumerUrl) {
         this.authnRequestType.setAssertionConsumerServiceURL(URI.create(assertionConsumerUrl));
         return this;
