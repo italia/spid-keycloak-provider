@@ -12,10 +12,9 @@ with existing applications by leveraging Keycloak identity brokering features.
 Keycloak is a nice product, but still lacking on some aspects of SAML2 compatibility,
 and the SPID specifications deviate from the SAML2 standard in some key aspects.
 
-Besides the SPID-SAML2 protocol differences, the main issue that this project works around 
-is Keycloak's lack of support for transient identities. Also, some of the SP behaviors 
-are hardcoded to work with simple IdPs only (i.e. the SP metadata generation is 
-severely lacking). Keycloak is slowly improving on this aspect, so over time this plugin 
+Besides the SPID-SAML2 protocol differences, some of the SP behaviors
+are hardcoded to work with simple IdPs only (i.e. there is no support for generating SP metadata
+that joins multiple SPs) . Keycloak is slowly improving on this aspect, so over time this plugin
 will become simpler and targeted on implementing only the specific changes required by SPID.
 
 I have documented a reference configuration for SPID and the workarounds required 
@@ -32,7 +31,7 @@ As far as I know it has not been used in Production in any environment yet.
 
 Until the project gets to a stable release, it will be targeting the most recent release 
 of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
-Currently the main branch is targeting Keycloak 12.0.0. **Do not use this provider with previous 
+Currently the main branch is targeting Keycloak 13.0.0. **Do not use this provider with previous
 versions of Keycloak, it won't work!**  
 
 If you are evaluating this solution, my suggestion is to test the provider by compiling Keycloak
