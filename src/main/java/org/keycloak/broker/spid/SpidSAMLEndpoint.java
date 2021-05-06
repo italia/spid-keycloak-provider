@@ -31,10 +31,7 @@ import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
-import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
-import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
-import org.keycloak.dom.saml.v2.protocol.ResponseType;
-import org.keycloak.dom.saml.v2.protocol.StatusResponseType;
+import org.keycloak.dom.saml.v2.protocol.*;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
 import org.keycloak.events.EventBuilder;
@@ -64,6 +61,11 @@ import org.keycloak.saml.processing.web.util.PostBindingUtil;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.messages.Messages;
+import org.keycloak.broker.provider.util.IdentityBrokerState;
+import org.keycloak.sessions.AuthenticationSessionModel;
+import org.keycloak.services.managers.AuthenticationSessionManager;
+import org.keycloak.services.managers.AuthenticationManager;
+import org.keycloak.models.ClientModel;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.FormParam;
@@ -378,16 +380,43 @@ public class SpidSAMLEndpoint {
                 return configEntityId;
         }
 
-        protected Response handleLoginResponse(String samlResponse, SAMLDocumentHolder holder, ResponseType responseType, String relayState, String clientId) {
+        private AuthenticationSessionModel getAuthenticationSession(String encodedCode) {
+            IdentityBrokerState state = IdentityBrokerState.encoded(encodedCode);
+            AuthenticationSessionManager authenticationSessionManager = new AuthenticationSessionManager(session);
+            ClientModel client = session.clients().getClientByClientId(realm, state.getClientId());
+            return authenticationSessionManager.getCurrentAuthenticationSession(realm, client, state.getTabId());
+        }
 
+        protected Response handleLoginResponse(String samlResponse, SAMLDocumentHolder holder, ResponseType responseType, String relayState, String clientId) {
+            String sessionRequestID = null;
             try {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
                 if (! isSuccessfulSamlResponse(responseType)) {
-                    String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
+                    String statusMessage = parseSPIDStatusMessage(responseType.getStatus());
                     return callback.error(relayState, statusMessage);
                 }
                 if (responseType.getAssertions() == null || responseType.getAssertions().isEmpty()) {
                     return callback.error(relayState, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+                }
+
+                AuthenticationSessionModel authenticationSession = getAuthenticationSession(relayState);
+                if (authenticationSession != null) {
+                    // SP-initiated SSO
+                    sessionRequestID = authenticationSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
+                    String inResponseTo = responseType.getInResponseTo();
+                    logger.debug("Resolved RequestID from session: " + sessionRequestID);
+                    logger.debug("InResponseTo: " + inResponseTo);
+                    if (inResponseTo == null || inResponseTo.trim().isEmpty()){
+                        logger.error("InResponseTo missing or empty");
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        return callback.error(relayState, "ErrorCode_nr16");
+                    } else if(!inResponseTo.equals(sessionRequestID)){
+                        logger.error("InResponseTo not matching RequestID");
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        return callback.error(relayState, "ErrorCode_nr18");
+                    }
                 }
 
                 boolean assertionIsEncrypted = AssertionUtil.isAssertionEncrypted(responseType);
@@ -431,6 +460,22 @@ public class SpidSAMLEndpoint {
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
                     return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
+                }
+
+                if (sessionRequestID != null && !assertion.getSubject().getConfirmation().isEmpty() && assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData()!=null) {
+                    String inResponseTo = assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData().getInResponseTo();
+                    logger.debug("SubjectConfirmationData.InResponseTo: " + inResponseTo);
+                    if (inResponseTo == null || inResponseTo.trim().isEmpty()){
+                        logger.error("SubjectConfirmationData.InResponseTo missing or empty");
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        return callback.error(relayState, "ErrorCode_nr60");
+                    } else if(!inResponseTo.equals(sessionRequestID)){
+                        logger.error("SubjectConfirmationData.InResponseTo not matching RequestID");
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        return callback.error(relayState, "ErrorCode_nr62");
+                    }
                 }
 
                 //Map<String, String> notes = new HashMap<>();
@@ -503,6 +548,17 @@ public class SpidSAMLEndpoint {
             }
         }
 
+        /**
+         * Converts SPID StatusMessage SAML response to a localization-friendly format
+         * since SPID is not returning error codes but semi-human messages only
+         * ie. <samlp:StatusMessage>ErrorCode nr19</samlp:StatusMessage> to ErrorCode_nr19
+         *
+         * @url https://github.com/lscorcia/keycloak-spid-provider/issues/14
+         */
+        private String parseSPIDStatusMessage(StatusType responseType) {
+            if (responseType.getStatusMessage() == null) return Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR;
+            return responseType.getStatusMessage().replace(" ", "_").trim();
+        }
 
         private boolean isSuccessfulSamlResponse(ResponseType responseType) {
             return responseType != null
@@ -522,6 +578,10 @@ public class SpidSAMLEndpoint {
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_FEDERATED_IDENTITY_ACTION);
             }
             StatusResponseType statusResponse = (StatusResponseType)holder.getSamlObject();
+
+
+
+
             // validate destination
             if (statusResponse.getDestination() == null && containsUnencryptedSignature(holder)) {
                 event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
