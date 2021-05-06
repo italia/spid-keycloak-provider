@@ -462,6 +462,22 @@ public class SpidSAMLEndpoint {
                     return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
                 }
 
+                if (sessionRequestID != null && !assertion.getSubject().getConfirmation().isEmpty() && assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData()!=null) {
+                    String inResponseTo = assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData().getInResponseTo();
+                    logger.debug("SubjectConfirmationData.InResponseTo: " + inResponseTo);
+                    if (inResponseTo == null || inResponseTo.trim().isEmpty()){
+                        logger.error("SubjectConfirmationData.InResponseTo missing or empty");
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        return callback.error(relayState, "ErrorCode_nr60");
+                    } else if(!inResponseTo.equals(sessionRequestID)){
+                        logger.error("SubjectConfirmationData.InResponseTo not matching RequestID");
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        return callback.error(relayState, "ErrorCode_nr62");
+                    }
+                }
+
                 //Map<String, String> notes = new HashMap<>();
                 BrokeredIdentityContext identity = new BrokeredIdentityContext(principal);
                 identity.getContextData().put(SAML_LOGIN_RESPONSE, responseType);
