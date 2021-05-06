@@ -388,7 +388,7 @@ public class SpidSAMLEndpoint {
         }
 
         protected Response handleLoginResponse(String samlResponse, SAMLDocumentHolder holder, ResponseType responseType, String relayState, String clientId) {
-
+            String sessionRequestID = null;
             try {
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
                 if (! isSuccessfulSamlResponse(responseType)) {
@@ -402,16 +402,16 @@ public class SpidSAMLEndpoint {
                 AuthenticationSessionModel authenticationSession = getAuthenticationSession(relayState);
                 if (authenticationSession != null) {
                     // SP-initiated SSO
-                    String requestID = authenticationSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
+                    sessionRequestID = authenticationSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
                     String inResponseTo = responseType.getInResponseTo();
-                    logger.debug("Resolved RequestID from session: " + requestID);
+                    logger.debug("Resolved RequestID from session: " + sessionRequestID);
                     logger.debug("InResponseTo: " + inResponseTo);
                     if (inResponseTo == null || inResponseTo.trim().isEmpty()){
                         logger.error("InResponseTo missing or empty");
                         event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                         event.error(Errors.INVALID_SAML_RESPONSE);
                         return callback.error(relayState, "ErrorCode_nr16");
-                    } else if(!inResponseTo.equals(requestID)){
+                    } else if(!inResponseTo.equals(sessionRequestID)){
                         logger.error("InResponseTo not matching RequestID");
                         event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                         event.error(Errors.INVALID_SAML_RESPONSE);
@@ -454,7 +454,6 @@ public class SpidSAMLEndpoint {
                 AssertionType assertion = responseType.getAssertions().get(0).getAssertion();
                 NameIDType subjectNameID = getSubjectNameID(assertion);
                 String principal = getPrincipal(assertion);
-                String inResponseTo = responseType.getInResponseTo();
 
                 if (principal == null) {
                     logger.errorf("no principal in assertion; expected: %s", expectedPrincipalType());
