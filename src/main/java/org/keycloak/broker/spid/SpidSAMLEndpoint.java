@@ -468,7 +468,15 @@ public class SpidSAMLEndpoint {
                     event.error(Errors.INVALID_SAML_RESPONSE);
                     return callback.error(relayState, "ErrorCode_nr42");
                 }
-                if (sessionRequestID != null && !assertion.getSubject().getConfirmation().isEmpty() && assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData()!=null) {
+
+                if (assertion.getSubject().getConfirmation().isEmpty() || assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData() == null) {
+                    logger.error("SubjectConfirmation not available");
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return callback.error(relayState, "ErrorCode_nr51");
+                }
+
+                if (sessionRequestID != null) {
                     String inResponseTo = assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData().getInResponseTo();
                     logger.debug("SubjectConfirmationData.InResponseTo: " + inResponseTo);
                     if (inResponseTo == null || inResponseTo.trim().isEmpty()){
