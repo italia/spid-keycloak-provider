@@ -23,14 +23,10 @@ import org.jboss.resteasy.annotations.cache.NoCache;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.broker.spid.exception.SpidValidationException;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.VerificationException;
-import org.keycloak.dom.saml.v2.assertion.AssertionType;
-import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
-import org.keycloak.dom.saml.v2.assertion.AttributeType;
-import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
-import org.keycloak.dom.saml.v2.assertion.NameIDType;
-import org.keycloak.dom.saml.v2.assertion.SubjectType;
+import org.keycloak.dom.saml.v2.assertion.*;
 import org.keycloak.dom.saml.v2.protocol.*;
 import org.keycloak.events.Details;
 import org.keycloak.events.Errors;
@@ -407,15 +403,11 @@ public class SpidSAMLEndpoint {
                     logger.debug("Resolved RequestID from session: " + sessionRequestID);
                     logger.debug("InResponseTo: " + inResponseTo);
                     if (inResponseTo == null || inResponseTo.trim().isEmpty()){
-                        logger.error("InResponseTo missing or empty");
-                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                        event.error(Errors.INVALID_SAML_RESPONSE);
-                        return callback.error(relayState, "ErrorCode_nr16");
-                    } else if(!inResponseTo.equals(sessionRequestID)){
-                        logger.error("InResponseTo not matching RequestID");
-                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                        event.error(Errors.INVALID_SAML_RESPONSE);
-                        return callback.error(relayState, "ErrorCode_nr18");
+                        throw new SpidValidationException(16); // 16 + 17
+                    }
+
+                    if(!inResponseTo.equals(sessionRequestID)){
+                        throw new SpidValidationException(18);
                     }
                 }
 
@@ -452,6 +444,32 @@ public class SpidSAMLEndpoint {
                 }
 
                 AssertionType assertion = responseType.getAssertions().get(0).getAssertion();
+
+                if (assertion.getSubject() == null) {
+                    throw new SpidValidationException(42); // 41+42
+                }
+
+                if (assertion.getSubject().getConfirmation() == null || assertion.getSubject().getConfirmation().isEmpty()) {
+                    throw new SpidValidationException(51); // 51 + 52
+                }
+
+                SubjectConfirmationType subjectConfirmation= assertion.getSubject().getConfirmation().get(0);
+                if (subjectConfirmation.getMethod() == null || subjectConfirmation.getMethod().isEmpty()) {
+                    throw new SpidValidationException(53); // 53 + 54
+                }
+
+                if (!subjectConfirmation.getMethod().equals(JBossSAMLURIConstants.SUBJECT_CONFIRMATION_BEARER.get())) {
+                    throw new SpidValidationException(55);
+                }
+
+                if (subjectConfirmation.getSubjectConfirmationData() == null) {
+                    throw new SpidValidationException(56);
+                }
+
+                if (subjectConfirmation.getSubjectConfirmationData().getRecipient() == null || subjectConfirmation.getSubjectConfirmationData().getRecipient().isEmpty()) {
+                    throw new SpidValidationException(57);
+                }
+
                 NameIDType subjectNameID = getSubjectNameID(assertion);
                 String principal = getPrincipal(assertion);
 
@@ -462,33 +480,17 @@ public class SpidSAMLEndpoint {
                     return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
                 }
 
-                if (assertion.getSubject() == null) {
-                    logger.error("Subject not available");
-                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                    event.error(Errors.INVALID_SAML_RESPONSE);
-                    return callback.error(relayState, "ErrorCode_nr42");
-                }
-
-                if (assertion.getSubject().getConfirmation().isEmpty() || assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData() == null) {
-                    logger.error("SubjectConfirmation not available");
-                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                    event.error(Errors.INVALID_SAML_RESPONSE);
-                    return callback.error(relayState, "ErrorCode_nr51");
-                }
+                SubjectConfirmationDataType subjectConfirmationData = assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData();
 
                 if (sessionRequestID != null) {
-                    String inResponseTo = assertion.getSubject().getConfirmation().get(0).getSubjectConfirmationData().getInResponseTo();
+                    String inResponseTo = subjectConfirmationData.getInResponseTo();
                     logger.debug("SubjectConfirmationData.InResponseTo: " + inResponseTo);
                     if (inResponseTo == null || inResponseTo.trim().isEmpty()){
-                        logger.error("SubjectConfirmationData.InResponseTo missing or empty");
-                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                        event.error(Errors.INVALID_SAML_RESPONSE);
-                        return callback.error(relayState, "ErrorCode_nr60");
-                    } else if(!inResponseTo.equals(sessionRequestID)){
-                        logger.error("SubjectConfirmationData.InResponseTo not matching RequestID");
-                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                        event.error(Errors.INVALID_SAML_RESPONSE);
-                        return callback.error(relayState, "ErrorCode_nr62");
+                        throw new SpidValidationException(60); // 60+61
+                    }
+
+                    if (!inResponseTo.equals(sessionRequestID)){
+                        throw new SpidValidationException(62);
                     }
                 }
 
@@ -555,6 +557,11 @@ public class SpidSAMLEndpoint {
 
 
                 return callback.authenticated(identity);
+            } catch(SpidValidationException e) {
+                logger.error(e.getMessage());
+                event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                event.error(Errors.INVALID_SAML_RESPONSE);
+                return callback.error(relayState, e.getErrorCode());
             } catch (WebApplicationException e) {
                 return e.getResponse();
             } catch (Exception e) {
