@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.lscorcia</groupId>
     <artifactId>keycloak-spid-provider</artifactId>
-    <version>1.0.6-SNAPSHOT</version>
+    <version>1.0.8-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>Keycloak SPID Service Provider</name>
@@ -87,22 +87,6 @@
         <finalName>spid-provider</finalName>
         <pluginManagement>
             <plugins>
-                <plugin>
-                    <groupId>com.spotify</groupId>
-                    <artifactId>docker-maven-plugin</artifactId>
-                    <version>0.4.13</version>
-                    <configuration>
-                        <imageName>keycloak-spid</imageName>
-                        <dockerDirectory>docker</dockerDirectory>
-                        <resources>
-                            <resource>
-                                <targetPath>/opt/jboss/keycloak/standalone/deployments</targetPath>
-                                <directory>${project.build.directory}</directory>
-                                <include>${project.build.finalName}.jar</include>
-                            </resource>
-                        </resources>
-                    </configuration>
-                </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-release-plugin</artifactId>
