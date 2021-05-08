@@ -23,7 +23,7 @@
 
         <version.keycloak>13.0.0</version.keycloak>
         <slf4j-api.version>1.7.30</slf4j-api.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>4.13.1</junit.version>
     </properties>
 
     <scm>
