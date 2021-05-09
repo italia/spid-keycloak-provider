@@ -31,6 +31,7 @@ import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
+import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
@@ -509,6 +510,16 @@ public class SpidSAMLEndpoint {
                     return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.EXPIRED_CODE);
                 }
 
+                // Apply SPID-specific response validation rules
+                String spidResponseValidationError = VerifySpidResponse(assertion);
+                if (spidResponseValidationError != null)
+                {
+                    logger.error("SPID Response Validation Error: " + spidResponseValidationError);
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return callback.error(spidResponseValidationError);
+                }
+
                 AuthnStatementType authn = null;
                 for (Object statement : assertion.getStatements()) {
                     if (statement instanceof AuthnStatementType) {
@@ -539,7 +550,6 @@ public class SpidSAMLEndpoint {
                 throw new IdentityBrokerException("Could not process response from SAML identity provider.", e);
             }
         }
-
 
         /**
          * If there is a client whose SAML IDP-initiated SSO URL name is set to the
@@ -789,5 +799,46 @@ public class SpidSAMLEndpoint {
         SubjectType subject = assertion.getSubject();
         SubjectType.STSubType subType = subject.getSubType();
         return subType != null ? (NameIDType) subType.getBaseID() : null;
+    }
+
+    private String VerifySpidResponse(AssertionType assertion) {
+        if (assertion.getSubject() == null) {
+            return "SpidSamlCheck_nr42";
+        }
+
+        if (assertion.getSubject().getConfirmation() == null) {
+            return "SpidSamlCheck_nr51";
+        }
+
+        if (assertion.getSubject().getConfirmation().isEmpty()) {
+            return "SpidSamlCheck_nr52";
+        }
+
+        SubjectConfirmationType subjectConfirmation = assertion.getSubject().getConfirmation().get(0);
+        if (subjectConfirmation.getMethod() == null) {
+            return "SpidSamlCheck_nr53";
+        }
+
+        if (subjectConfirmation.getMethod().isEmpty()) {
+            return "SpidSamlCheck_nr54";
+        }
+
+        if (!subjectConfirmation.getMethod().equals(JBossSAMLURIConstants.SUBJECT_CONFIRMATION_BEARER.get())) {
+            return "SpidSamlCheck_nr55";
+        }
+
+        if (subjectConfirmation.getSubjectConfirmationData() == null) {
+            return "SpidSamlCheck_nr56";
+        }
+
+        if (subjectConfirmation.getSubjectConfirmationData().getRecipient() == null) {
+            return "SpidSamlCheck_nr57";
+        }
+        
+        if (subjectConfirmation.getSubjectConfirmationData().getRecipient().isEmpty()) {
+            return "SpidSamlCheck_nr58";
+        }
+        
+        return null;
     }
 }
