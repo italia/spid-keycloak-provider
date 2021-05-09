@@ -414,8 +414,17 @@ public class SpidSAMLEndpoint {
 
                 KeyManager.ActiveRsaKey keys = session.keys().getActiveRsaKey(realm);
                 if (! isSuccessfulSamlResponse(responseType)) {
-                    String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
-                    return callback.error(statusMessage);
+                    // Translate SPID error codes to meaningful messages
+                    boolean isSpidFault = responseType.getStatus() != null
+                        && responseType.getStatus().getStatusMessage() != null
+                        && responseType.getStatus().getStatusMessage().startsWith("ErrorCode nr");
+                    if (isSpidFault)
+                        return callback.error("SpidFault_" + responseType.getStatus().getStatusMessage().replace(' ', '_'));
+                    else
+                    {
+                        String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
+                        return callback.error(statusMessage);
+                    }
                 }
                 if (responseType.getAssertions() == null || responseType.getAssertions().isEmpty()) {
                     return callback.error(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
