@@ -834,7 +834,7 @@ public class SpidSAMLEndpoint {
 
         // 54: Assertion > Subject > Confirmation > Method empty
         String subjectConfirmationMethodValue = subjectConfirmationElement.getAttribute("Method");
-        if (subjectConfirmationMethodValue.isBlank()) {
+        if (subjectConfirmationMethodValue.isEmpty()) {
             return "SpidSamlCheck_nr53";
         }
 
@@ -858,7 +858,7 @@ public class SpidSAMLEndpoint {
         
         // 57: Assertion > Subject > Confirmation > SubjectConfirmationData > Recipient is empty
         String subjectConfirmationDataRecipientValue = subjectConfirmationDataElement.getAttribute("Recipient");
-        if (subjectConfirmationDataRecipientValue.isBlank()) {
+        if (subjectConfirmationDataRecipientValue.isEmpty()) {
             return "SpidSamlCheck_nr57";
         }
 
