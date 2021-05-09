@@ -31,7 +31,6 @@ import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
-import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
@@ -110,6 +109,7 @@ import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.net.URI;
@@ -451,6 +451,16 @@ public class SpidSAMLEndpoint {
                     assertionElement = DocumentUtil.getElement(holder.getSamlDocument(), new QName(JBossSAMLConstants.ASSERTION.get()));
                 }
 
+                // Apply SPID-specific response validation rules
+                String spidResponseValidationError = verifySpidResponse(assertionElement);
+                if (spidResponseValidationError != null)
+                {
+                    logger.error("SPID Response Validation Error: " + spidResponseValidationError);
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return callback.error(spidResponseValidationError);
+                }
+
                 boolean signed = AssertionUtil.isSignedElement(assertionElement);
                 final boolean assertionSignatureNotExistsWhenRequired = config.isWantAssertionsSigned() && !signed;
                 final boolean signatureNotValid = signed && config.isValidateSignature() && !AssertionUtil.isSignatureValid(assertionElement, getIDPKeyLocator());
@@ -508,16 +518,6 @@ public class SpidSAMLEndpoint {
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
                     return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.EXPIRED_CODE);
-                }
-
-                // Apply SPID-specific response validation rules
-                String spidResponseValidationError = VerifySpidResponse(assertion);
-                if (spidResponseValidationError != null)
-                {
-                    logger.error("SPID Response Validation Error: " + spidResponseValidationError);
-                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
-                    event.error(Errors.INVALID_SAML_RESPONSE);
-                    return callback.error(spidResponseValidationError);
                 }
 
                 AuthnStatementType authn = null;
@@ -801,44 +801,82 @@ public class SpidSAMLEndpoint {
         return subType != null ? (NameIDType) subType.getBaseID() : null;
     }
 
-    private String VerifySpidResponse(AssertionType assertion) {
-        if (assertion.getSubject() == null) {
+    private String verifySpidResponse(Element assertionElement) {
+        // 42: Assertion > Subject missing
+        Element subjectElement = DocumentUtil.getChildElement(assertionElement, 
+            new QName(JBossSAMLURIConstants.ASSERTION_NSURI.get(), "Subject"));
+        if (subjectElement == null) {
             return "SpidSamlCheck_nr42";
         }
 
-        if (assertion.getSubject().getConfirmation() == null) {
-            return "SpidSamlCheck_nr51";
+        // 41: Assertion > Subject empty (Keycloak returns error earlier)
+        if (!hasNamedChild(subjectElement)) {
+            return "SpidSamlCheck_nr41";
         }
 
-        if (assertion.getSubject().getConfirmation().isEmpty()) {
+        // 52: Assertion > Subject > Confirmation missing
+        Element subjectConfirmationElement = DocumentUtil.getChildElement(subjectElement, 
+            new QName(JBossSAMLURIConstants.ASSERTION_NSURI.get(), "SubjectConfirmation"));
+
+        if (subjectConfirmationElement == null) {
             return "SpidSamlCheck_nr52";
         }
 
-        SubjectConfirmationType subjectConfirmation = assertion.getSubject().getConfirmation().get(0);
-        if (subjectConfirmation.getMethod() == null) {
-            return "SpidSamlCheck_nr53";
+        // 51: Assertion > Subject > Confirmation empty
+        if (!hasNamedChild(subjectConfirmationElement)) {
+            return "SpidSamlCheck_nr51";
         }
 
-        if (subjectConfirmation.getMethod().isEmpty()) {
+        // 53: Assertion > Subject > Confirmation > Method missing
+        if (!subjectConfirmationElement.hasAttribute("Method")) {
             return "SpidSamlCheck_nr54";
         }
 
-        if (!subjectConfirmation.getMethod().equals(JBossSAMLURIConstants.SUBJECT_CONFIRMATION_BEARER.get())) {
+        // 54: Assertion > Subject > Confirmation > Method empty
+        String subjectConfirmationMethodValue = subjectConfirmationElement.getAttribute("Method");
+        if (subjectConfirmationMethodValue.isBlank()) {
+            return "SpidSamlCheck_nr53";
+        }
+
+        // 55: Assertion > Subject > Confirmation > Method is not JBossSAMLURIConstants.SUBJECT_CONFIRMATION_BEARER
+        if (!subjectConfirmationMethodValue.equals(JBossSAMLURIConstants.SUBJECT_CONFIRMATION_BEARER.get())) {
             return "SpidSamlCheck_nr55";
         }
 
-        if (subjectConfirmation.getSubjectConfirmationData() == null) {
+        // 56: Assertion > Subject > Confirmation > SubjectConfirmationData missing
+        Element subjectConfirmationDataElement = DocumentUtil.getChildElement(subjectConfirmationElement, 
+            new QName(JBossSAMLURIConstants.ASSERTION_NSURI.get(), "SubjectConfirmationData"));
+
+        if (subjectConfirmationDataElement == null) {
             return "SpidSamlCheck_nr56";
         }
 
-        if (subjectConfirmation.getSubjectConfirmationData().getRecipient() == null) {
-            return "SpidSamlCheck_nr57";
-        }
-        
-        if (subjectConfirmation.getSubjectConfirmationData().getRecipient().isEmpty()) {
+        // 58: Assertion > Subject > Confirmation > SubjectConfirmationData > Recipient missing
+        if (!subjectConfirmationDataElement.hasAttribute("Recipient")) {
             return "SpidSamlCheck_nr58";
         }
         
+        // 57: Assertion > Subject > Confirmation > SubjectConfirmationData > Recipient is empty
+        String subjectConfirmationDataRecipientValue = subjectConfirmationDataElement.getAttribute("Recipient");
+        if (subjectConfirmationDataRecipientValue.isBlank()) {
+            return "SpidSamlCheck_nr57";
+        }
+
         return null;
+    }
+
+    private boolean hasNamedChild(Element element)
+    {
+        NodeList childNodes = element.getChildNodes();
+        if (childNodes == null) return false;
+
+        for (int i = 0; i < childNodes.getLength(); ++i)
+        {
+            Node node = childNodes.item(i);
+            if (node.getNodeType() ==  Node.ELEMENT_NODE && node.getNodeName() != null)
+                return true;
+        }
+
+        return false;
     }
 }
