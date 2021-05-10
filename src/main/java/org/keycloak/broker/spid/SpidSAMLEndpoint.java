@@ -452,7 +452,8 @@ public class SpidSAMLEndpoint {
                 }
 
                 // Apply SPID-specific response validation rules
-                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement);
+                String expectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
+                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, expectedRequestId);
                 if (spidResponseValidationError != null)
                 {
                     logger.error("SPID Response Validation Error: " + spidResponseValidationError);
@@ -801,16 +802,21 @@ public class SpidSAMLEndpoint {
         return subType != null ? (NameIDType) subType.getBaseID() : null;
     }
 
-    private String verifySpidResponse(Element documentElement, Element assertionElement) {
+    private String verifySpidResponse(Element documentElement, Element assertionElement, String expectedRequestId) {
         // 17: Response > InResponseTo missing
         if (!documentElement.hasAttribute("InResponseTo")) {
             return "SpidSamlCheck_nr17";
         }
 
         // 16: Response > InResponseTo empty
-        String responseInResponsToValue = documentElement.getAttribute("InResponseTo");
-        if (responseInResponsToValue.isEmpty()) {
+        String responseInResponseToValue = documentElement.getAttribute("InResponseTo");
+        if (responseInResponseToValue.isEmpty()) {
             return "SpidSamlCheck_nr16";
+        }
+
+        // 18: Response > InResponseTo does not match request ID
+        if (!responseInResponseToValue.equals(expectedRequestId)) {
+            return "SpidSamlCheck_nr18";
         }
 
         // 42: Assertion > Subject missing
@@ -882,6 +888,11 @@ public class SpidSAMLEndpoint {
         String subjectConfirmationDataInResponseToValue = subjectConfirmationDataElement.getAttribute("InResponseTo");
         if (subjectConfirmationDataInResponseToValue.isEmpty()) {
             return "SpidSamlCheck_nr60";
+        }
+
+        // 62: Assertion > Subject > Confirmation > SubjectConfirmationData > InResponseTo does not match request ID
+        if (!subjectConfirmationDataInResponseToValue.equals(expectedRequestId)) {
+            return "SpidSamlCheck_nr62";
         }
 
         return null;
