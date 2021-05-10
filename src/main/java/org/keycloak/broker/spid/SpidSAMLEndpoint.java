@@ -452,7 +452,7 @@ public class SpidSAMLEndpoint {
                 }
 
                 // Apply SPID-specific response validation rules
-                String spidResponseValidationError = verifySpidResponse(assertionElement);
+                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement);
                 if (spidResponseValidationError != null)
                 {
                     logger.error("SPID Response Validation Error: " + spidResponseValidationError);
@@ -801,7 +801,18 @@ public class SpidSAMLEndpoint {
         return subType != null ? (NameIDType) subType.getBaseID() : null;
     }
 
-    private String verifySpidResponse(Element assertionElement) {
+    private String verifySpidResponse(Element documentElement, Element assertionElement) {
+        // 17: Response > InResponseTo missing
+        if (!documentElement.hasAttribute("InResponseTo")) {
+            return "SpidSamlCheck_nr17";
+        }
+
+        // 16: Response > InResponseTo empty
+        String responseInResponsToValue = documentElement.getAttribute("InResponseTo");
+        if (responseInResponsToValue.isEmpty()) {
+            return "SpidSamlCheck_nr16";
+        }
+
         // 42: Assertion > Subject missing
         Element subjectElement = DocumentUtil.getChildElement(assertionElement, 
             new QName(JBossSAMLURIConstants.ASSERTION_NSURI.get(), "Subject"));
