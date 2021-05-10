@@ -873,6 +873,17 @@ public class SpidSAMLEndpoint {
             return "SpidSamlCheck_nr57";
         }
 
+        // 61: Assertion > Subject > Confirmation > SubjectConfirmationData > InResponseTo missing
+        if (!subjectConfirmationDataElement.hasAttribute("InResponseTo")) {
+            return "SpidSamlCheck_nr61";
+        }
+        
+        // 60: Assertion > Subject > Confirmation > SubjectConfirmationData > InResponseTo is empty
+        String subjectConfirmationDataInResponseToValue = subjectConfirmationDataElement.getAttribute("InResponseTo");
+        if (subjectConfirmationDataInResponseToValue.isEmpty()) {
+            return "SpidSamlCheck_nr60";
+        }
+
         return null;
     }
 
