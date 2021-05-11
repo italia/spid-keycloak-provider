@@ -1,7 +1,7 @@
-[![Java CI with Maven](https://github.com/lscorcia/keycloak-spid-provider/actions/workflows/maven.yml/badge.svg)](https://github.com/lscorcia/keycloak-spid-provider/actions/workflows/maven.yml)
-[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/lscorcia/keycloak-spid-provider?sort=semver)](https://img.shields.io/github/v/release/lscorcia/keycloak-spid-provider?sort=semver) 
-[![GitHub All Releases](https://img.shields.io/github/downloads/lscorcia/keycloak-spid-provider/total)](https://img.shields.io/github/downloads/lscorcia/keycloak-spid-provider/total)
-[![GitHub issues](https://img.shields.io/github/issues/lscorcia/keycloak-spid-provider)](https://github.com/lscorcia/keycloak-spid-provider/issues)
+[![Java CI with Maven](https://github.com/italia/keycloak-spid-provider/actions/workflows/maven.yml/badge.svg)](https://github.com/italia/keycloak-spid-provider/actions/workflows/maven.yml)
+[![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/italia/keycloak-spid-provider?sort=semver)](https://img.shields.io/github/v/release/italia/keycloak-spid-provider?sort=semver) 
+[![GitHub All Releases](https://img.shields.io/github/downloads/italia/keycloak-spid-provider/total)](https://img.shields.io/github/downloads/italia/keycloak-spid-provider/total)
+[![GitHub issues](https://img.shields.io/github/issues/italia/keycloak-spid-provider)](https://github.com/italia/keycloak-spid-provider/issues)
 
 # keycloak-spid-provider
 Italian SPID authentication provider for Keycloak (https://www.keycloak.org/)
@@ -18,7 +18,7 @@ that joins multiple SPs) . Keycloak is slowly improving on this aspect, so over 
 will become simpler and targeted on implementing only the specific changes required by SPID.
 
 I have documented a reference configuration for SPID and the workarounds required 
-in the project wiki (https://github.com/lscorcia/keycloak-spid-provider/wiki). Please make 
+in the project wiki (https://github.com/italia/keycloak-spid-provider/wiki). Please make 
 sure to read it and understand the config steps and the open issues and
 limitations before planning your Production environment.
 
@@ -36,7 +36,7 @@ versions of Keycloak, it won't work!**
 
 If you are evaluating this solution, my suggestion is to test the provider by compiling Keycloak
 yourself using the latest available sources. Detailed instructions are
-available in the project wiki (https://github.com/lscorcia/keycloak-spid-provider/wiki/Installing-the-SPID-provider).
+available in the project wiki (https://github.com/italia/keycloak-spid-provider/wiki/Installing-the-SPID-provider).
 
 ## Build requirements
 * git
@@ -89,14 +89,14 @@ After the first reload you can turn back on the caches and restart Keycloak agai
 
 ## Open issues and limitations
 Please read the appropriate page on the project wiki 
-(https://github.com/lscorcia/keycloak-spid-provider/wiki/Open-issues-and-limitations). 
+(https://github.com/italia/keycloak-spid-provider/wiki/Open-issues-and-limitations). 
 If your problem is not mentioned there, feel free to open an issue on GitHub.
 
 ## Related projects
 If you are interested in Keycloak plugins for the various Italian national auth
 systems, you may be interested also in:
 
-* Keycloak SPID Provider - https://github.com/lscorcia/keycloak-spid-provider/  
+* Keycloak SPID Provider - https://github.com/italia/keycloak-spid-provider/  
 A Keycloak provider for the SPID federation
 
 * Keycloak CIE ID Provider - https://github.com/lscorcia/keycloak-cieid-provider/  
