@@ -485,7 +485,6 @@ public class SpidSAMLEndpoint {
                     return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
                 }
 
-                //Map<String, String> notes = new HashMap<>();
                 BrokeredIdentityContext identity = new BrokeredIdentityContext(principal);
                 identity.getContextData().put(SAML_LOGIN_RESPONSE, responseType);
                 identity.getContextData().put(SAML_ASSERTION, assertion);
@@ -637,8 +636,6 @@ public class SpidSAMLEndpoint {
                 // todo need to check that it is actually a LogoutResponse
                 return handleLogoutResponse(holder, statusResponse, relayState);
             }
-            //throw new RuntimeException("Unknown response type");
-
         }
 
         protected Response handleLogoutResponse(SAMLDocumentHolder holder, StatusResponseType responseType, String relayState) {
