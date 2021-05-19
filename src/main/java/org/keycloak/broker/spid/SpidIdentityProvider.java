@@ -211,26 +211,26 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
     private List<String> getAuthnContextClassRefUris() {
         String authnContextClassRefs = getConfig().getAuthnContextClassRefs();
         if (authnContextClassRefs == null || authnContextClassRefs.isEmpty())
-            return new LinkedList<String>();
+            return new LinkedList<>();
 
         try {
             return Arrays.asList(JsonSerialization.readValue(authnContextClassRefs, String[].class));
         } catch (Exception e) {
             logger.warn("Could not json-deserialize AuthContextClassRefs config entry: " + authnContextClassRefs, e);
-            return new LinkedList<String>();
+            return new LinkedList<>();
         }
     }
 
     private List<String> getAuthnContextDeclRefUris() {
         String authnContextDeclRefs = getConfig().getAuthnContextDeclRefs();
         if (authnContextDeclRefs == null || authnContextDeclRefs.isEmpty())
-            return new LinkedList<String>();
+            return new LinkedList<>();
 
         try {
             return Arrays.asList(JsonSerialization.readValue(authnContextDeclRefs, String[].class));
         } catch (Exception e) {
             logger.warn("Could not json-deserialize AuthContextDeclRefs config entry: " + authnContextDeclRefs, e);
-            return new LinkedList<String>();
+            return new LinkedList<>();
         }
     }
 

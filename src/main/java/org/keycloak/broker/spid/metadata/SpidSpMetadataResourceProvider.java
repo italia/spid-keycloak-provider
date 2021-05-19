@@ -151,8 +151,8 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             String entityId = getEntityId(configEntityId, uriInfo, realm);
             String nameIDPolicyFormat = firstSpidProvider.getConfig().getNameIDPolicyFormat();
 
-            List<Element> signingKeys = new ArrayList<Element>();
-            List<Element> encryptionKeys = new ArrayList<Element>();
+            List<Element> signingKeys = new ArrayList<>();
+            List<Element> encryptionKeys = new ArrayList<>();
 
             Set<RsaKeyMetadata> keys = new TreeSet<>((o1, o2) -> o1.getStatus() == o2.getStatus() // Status can be only PASSIVE OR ACTIVE, push PASSIVE to end of list
               ? (int) (o2.getProviderPriority() - o1.getProviderPriority())
