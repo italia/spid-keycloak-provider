@@ -13,7 +13,7 @@
 
     <name>Keycloak SPID Service Provider</name>
     <description>A Keycloak Service Provider for the Italian SPID Federation</description>
-    <url>https://github.com/lscorcia/keycloak-spid-provider</url>
+    <url>https://github.com/italia/spid-keycloak-provider</url>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
