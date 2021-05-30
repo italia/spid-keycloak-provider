@@ -24,7 +24,6 @@ import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProviderDataMarshaller;
 import org.keycloak.broker.provider.util.SimpleHttp;
 import org.keycloak.broker.saml.SAMLDataMarshaller;
-import org.keycloak.broker.saml.mappers.UserAttributeMapper;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.crypto.Algorithm;
 import org.keycloak.crypto.KeyStatus;
@@ -33,16 +32,11 @@ import org.keycloak.dom.saml.v2.assertion.AssertionType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
-import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
-import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
-import org.keycloak.dom.saml.v2.metadata.RequestedAttributeType;
 import org.keycloak.dom.saml.v2.protocol.AuthnRequestType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.FederatedIdentityModel;
-import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.KeyManager;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
@@ -53,7 +47,6 @@ import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
-import org.keycloak.saml.SAML2AuthnRequestBuilder;
 import org.keycloak.saml.SAML2LogoutRequestBuilder;
 import org.keycloak.saml.SAML2NameIDBuilder;
 import org.keycloak.saml.SAML2NameIDPolicyBuilder;
@@ -65,10 +58,8 @@ import org.keycloak.saml.common.constants.GeneralConstants;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.common.util.DocumentUtil;
-import org.keycloak.saml.common.util.StaxUtil;
 import org.keycloak.saml.processing.api.saml.v2.request.SAML2Request;
 import org.keycloak.saml.processing.api.saml.v2.sig.SAML2Signature;
-import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.sessions.AuthenticationSessionModel;
@@ -84,10 +75,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.xml.crypto.dsig.CanonicalizationMethod;
 import javax.xml.parsers.ParserConfigurationException;
-import java.util.stream.Collectors;
-import javax.xml.stream.XMLStreamWriter;
-
-import java.io.StringWriter;
 import java.net.URI;
 import java.security.KeyPair;
 import java.util.Arrays;
@@ -95,9 +82,6 @@ import java.util.LinkedList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-
-import static org.keycloak.saml.common.constants.JBossSAMLURIConstants.ATTRIBUTE_FORMAT_BASIC;
 
 /**
  * @author Pedro Igor
@@ -378,12 +362,6 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
             boolean wantAssertionsEncrypted = getConfig().isWantAssertionsEncrypted();
             String entityId = getEntityId(uriInfo, realm);
             String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
-            int attributeConsumingServiceIndex = getConfig().getAttributeConsumingServiceIndex() != null ? getConfig().getAttributeConsumingServiceIndex(): 1;
-            String attributeConsumingServiceName = getConfig().getAttributeConsumingServiceName();
-            List<IdentityProviderMapperModel> lstAttributeMappers = realm.getIdentityProviderMappersByAlias(getConfig().getAlias())
-                .stream()
-                .filter(t -> t.getIdentityProviderMapper().equals(UserAttributeMapper.PROVIDER_ID))
-                .collect(Collectors.toList());
 
             List<Element> signingKeys = new LinkedList<>();
             List<Element> encryptionKeys = new LinkedList<>();
@@ -408,10 +386,9 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
                     });
 
             // Prepare the metadata descriptor model
-            String descriptor = SPMetadataDescriptor.getSPDescriptor(
-                authnBinding, endpoint, endpoint,
-                wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
-                entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
+            String descriptor = SPMetadataDescriptor.getSPDescriptor(authnBinding, endpoint, endpoint,
+              wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
+              entityId, nameIDPolicyFormat, signingKeys, encryptionKeys);
 
             // Metadata signing
             if (getConfig().isSignSpMetadata())
