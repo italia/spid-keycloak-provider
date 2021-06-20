@@ -21,13 +21,13 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <version.keycloak>13.0.0</version.keycloak>
+        <version.keycloak>14.0.0</version.keycloak>
         <slf4j-api.version>1.7.30</slf4j-api.version>
-        <junit.version>4.13.1</junit.version>
+        <junit.version>4.13.2</junit.version>
     </properties>
 
     <scm>
-        <developerConnection>scm:git:https://github.com/lscorcia/keycloak-spid-provider.git</developerConnection>
+        <developerConnection>scm:git:https://github.com/italia/spid-keycloak-provider.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
