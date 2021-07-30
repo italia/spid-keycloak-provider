@@ -374,7 +374,7 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     }
 
     public void setAttributeConsumingServiceIndex(Integer attributeConsumingServiceIndex) {
-        if (attributeConsumingServiceIndex < 0) {
+        if (attributeConsumingServiceIndex == null || attributeConsumingServiceIndex < 0) {
             getConfig().remove(ATTRIBUTE_CONSUMING_SERVICE_INDEX);
         } else {
             getConfig().put(ATTRIBUTE_CONSUMING_SERVICE_INDEX, String.valueOf(attributeConsumingServiceIndex));

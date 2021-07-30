@@ -31,6 +31,8 @@ import org.keycloak.dom.saml.v2.assertion.AttributeStatementType;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.assertion.AuthnStatementType;
 import org.keycloak.dom.saml.v2.assertion.NameIDType;
+import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationDataType;
+import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
@@ -453,14 +455,24 @@ public class SpidSAMLEndpoint {
                 }
 
                 // Apply SPID-specific response validation rules
-                String expectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
-                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, expectedRequestId);
+                String spidExpectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
+                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, spidExpectedRequestId);
                 if (spidResponseValidationError != null)
                 {
                     logger.error("SPID Response Validation Error: " + spidResponseValidationError);
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
                     return callback.error(spidResponseValidationError);
+                }
+
+                // Validate InResponseTo attribute: must match the generated request ID
+                String expectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
+                final boolean inResponseToValidationSuccess = validateInResponseToAttribute(responseType, expectedRequestId);
+                if (!inResponseToValidationSuccess)
+                {
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
                 }
 
                 boolean signed = AssertionUtil.isSignedElement(assertionElement);
@@ -552,6 +564,7 @@ public class SpidSAMLEndpoint {
                 throw new IdentityBrokerException("Could not process response from SAML identity provider.", e);
             }
         }
+
 
         /**
          * If there is a client whose SAML IDP-initiated SSO URL name is set to the
@@ -801,6 +814,67 @@ public class SpidSAMLEndpoint {
         SubjectType subject = assertion.getSubject();
         SubjectType.STSubType subType = subject.getSubType();
         return subType != null ? (NameIDType) subType.getBaseID() : null;
+    }
+
+    private boolean validateInResponseToAttribute(ResponseType responseType, String expectedRequestId) {
+        // If we are not expecting a request ID, don't bother
+        if (expectedRequestId == null || expectedRequestId.isEmpty())
+            return true;
+
+        // We are expecting a request ID so we are in SP-initiated login, attribute InResponseTo must be present
+        if (responseType.getInResponseTo() == null) {
+            logger.error("Response Validation Error: InResponseTo attribute was expected but not present in received response");
+            return false;
+        }
+
+        // Attribute is present, proceed with validation
+        // 1) Attribute Response > InResponseTo must not be empty
+        String responseInResponseToValue = responseType.getInResponseTo();
+        if (responseInResponseToValue.isEmpty()) {
+            logger.error("Response Validation Error: InResponseTo attribute was expected but it is empty in received response");
+            return false;
+        }
+
+        // 2) Attribute Response > InResponseTo must match request ID
+        if (!responseInResponseToValue.equals(expectedRequestId)) {
+            logger.error("Response Validation Error: received InResponseTo attribute does not match the expected request ID");
+            return false;
+        }
+
+        // If present, Assertion > Subject > Confirmation > SubjectConfirmationData > InResponseTo must also be validated
+        if (responseType.getAssertions().isEmpty())
+            return true;
+
+        SubjectType subjectElement = responseType.getAssertions().get(0).getAssertion().getSubject();
+        if (subjectElement != null) {
+            if (subjectElement.getConfirmation() != null && !subjectElement.getConfirmation().isEmpty())
+            {
+                SubjectConfirmationType subjectConfirmationElement = subjectElement.getConfirmation().get(0);
+
+                if (subjectConfirmationElement != null) {
+                    SubjectConfirmationDataType subjectConfirmationDataElement = subjectConfirmationElement.getSubjectConfirmationData();
+
+                    if (subjectConfirmationDataElement != null) {
+                        if (subjectConfirmationDataElement.getInResponseTo() != null) {
+                            // 3) Assertion > Subject > Confirmation > SubjectConfirmationData > InResponseTo is empty
+                            String subjectConfirmationDataInResponseToValue = subjectConfirmationDataElement.getInResponseTo();
+                            if (subjectConfirmationDataInResponseToValue.isEmpty()) {
+                                logger.error("Response Validation Error: SubjectConfirmationData InResponseTo attribute was expected but it is empty in received response");
+                                return false;
+                            }
+
+                            // 4) Assertion > Subject > Confirmation > SubjectConfirmationData > InResponseTo does not match request ID
+                            if (!subjectConfirmationDataInResponseToValue.equals(expectedRequestId)) {
+                                logger.error("Response Validation Error: received SubjectConfirmationData InResponseTo attribute does not match the expected request ID");
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return true;
     }
 
     private String verifySpidResponse(Element documentElement, Element assertionElement, String expectedRequestId) {

@@ -25,17 +25,20 @@ limitations before planning your Production environment.
 ## Status
 This project is still at an alpha stage. It is currently under development 
 and things may change quickly. It builds and successfully allows login/logout 
-to the SPID-TestEnv2 test IdP (https://github.com/italia/spid-testenv2) 
-and to the online SPID tester (https://idptest.spid.gov.it).  
+to the SPID Validator test IdP (https://github.com/italia/spid-saml-check) 
+and to the online SPID tester (https://www.spid-validator.it).  
 As far as I know it has not been used in Production in any environment yet.  
 
 Until the project gets to a stable release, it will be targeting the most recent release 
 of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
-Currently the main branch is targeting Keycloak 14.0.0. **Do not use this provider with previous
+Currently the main branch is targeting Keycloak 15.0.0. **Do not use this provider with previous
 versions of Keycloak, it won't work!**  
 
-If you are evaluating this solution, my suggestion is to test the provider by compiling Keycloak
-yourself using the latest available sources. Detailed instructions are
+Since this plugin uses some Keycloak internal modules, versions of this plugin
+are coupled to Keycloak versions. After (major) Keycloak upgrades, you will almost
+certainly have also to update this provider.  
+
+Detailed instructions on how to install and configure this component are
 available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
 
 ## Build requirements
