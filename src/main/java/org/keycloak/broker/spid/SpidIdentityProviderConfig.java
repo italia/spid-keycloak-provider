@@ -59,6 +59,7 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
     public static final String ALLOW_CREATE = "allowCreate";
     public static final String ATTRIBUTE_CONSUMING_SERVICE_INDEX = "attributeConsumingServiceIndex";
     public static final String ATTRIBUTE_CONSUMING_SERVICE_NAME = "attributeConsumingServiceName";
+    public static final String USE_TRANSIENT_SESSION = "useTransientSession";
     public static final String ORGANIZATION_NAMES = "organizationNames";
     public static final String ORGANIZATION_DISPLAY_NAMES = "organizationDisplayNames";
     public static final String ORGANIZATION_URLS = "organizationUrls";
@@ -413,6 +414,14 @@ public class SpidIdentityProviderConfig extends IdentityProviderModel {
         getConfig().put(ORGANIZATION_URLS, organizationUrls);
     }
 
+    public boolean isUseTransientSession() {
+        return Boolean.valueOf(getConfig().get(USE_TRANSIENT_SESSION));
+    }
+
+    public void setUseTransientSession(boolean useTransientSession) {
+        getConfig().put(USE_TRANSIENT_SESSION, String.valueOf(useTransientSession));
+    }
+    
     @Override
     public void validate(RealmModel realm) {
         SslRequired sslRequired = realm.getSslRequired();

@@ -323,6 +323,13 @@
                 <kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-name.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group">
+                <label class="col-md-2 control-label" for="useTransientSession">{{:: 'identity-provider.saml.use-transient-session' | translate}}</label>
+                <div class="col-md-6">
+                    <input ng-model="identityProvider.config.useTransientSession" id="useTransientSession" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.saml.use-transient-session.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group">
                 <label class="col-md-2 control-label" for="organizationNames">{{:: 'identity-provider.spid.organization-names' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="organizationNames" type="text" ng-model="identityProvider.config.organizationNames"/>
