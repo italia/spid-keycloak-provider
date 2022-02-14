@@ -1,0 +1,76 @@
+<md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+                     xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="${xmlunit.matchesRegex(^ID_[0-9a-f-]{36}$)}"
+                     entityID="https://keycloak.company.name.it">
+  <dsig:Signature xmlns:dsig="http://www.w3.org/2000/09/xmldsig#">
+    <dsig:SignedInfo>
+      <dsig:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+      <dsig:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
+      <dsig:Reference URI="${xmlunit.matchesRegex(^#ID_[0-9a-f-]{36}$)}">
+        <dsig:Transforms>
+          <dsig:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
+          <dsig:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
+        </dsig:Transforms>
+        <dsig:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
+        <dsig:DigestValue>${xmlunit.ignore}</dsig:DigestValue>
+      </dsig:Reference>
+    </dsig:SignedInfo>
+    <dsig:SignatureValue>${xmlunit.ignore}</dsig:SignatureValue>
+    <dsig:KeyInfo>
+      <dsig:KeyValue>
+        <dsig:RSAKeyValue>
+          <dsig:Modulus>${xmlunit.ignore}</dsig:Modulus>
+          <dsig:Exponent>${xmlunit.ignore}</dsig:Exponent>
+        </dsig:RSAKeyValue>
+      </dsig:KeyValue>
+    </dsig:KeyInfo>
+  </dsig:Signature>
+  <md:SPSSODescriptor AuthnRequestsSigned="true" WantAssertionsSigned="true" protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <md:KeyDescriptor use="signing">
+      <ds:KeyInfo>
+        <ds:KeyName>${xmlunit.ignore}</ds:KeyName>
+        <ds:X509Data>
+          <ds:X509Certificate>${xmlunit.ignore}</ds:X509Certificate>
+        </ds:X509Data>
+      </ds:KeyInfo>
+    </md:KeyDescriptor>
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                            Location="https://keycloak.company.name.it/auth/realms/spid-realm/broker/idp1/endpoint" />
+    <md:SingleLogoutService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                            Location="https://keycloak.company.name.it/auth/realms/spid-realm/broker/idp2/endpoint" />
+    <md:NameIDFormat>Transient</md:NameIDFormat>
+    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                                 Location="https://keycloak.company.name.it/auth/realms/spid-realm/broker/idp1/endpoint" index="0" isDefault="true" />
+    <md:AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                                 Location="https://keycloak.company.name.it/auth/realms/spid-realm/broker/idp2/endpoint" index="1" />
+    <md:AttributeConsumingService index="1" isDefault="true">
+      <md:ServiceName xml:lang="en">Online services</md:ServiceName>
+      <md:ServiceName xml:lang="it">Servizi online</md:ServiceName>
+      <md:RequestedAttribute Name="fiscalNumber" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+      <md:RequestedAttribute Name="name" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" />
+      <md:RequestedAttribute Name="familyName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" />
+    </md:AttributeConsumingService>
+  </md:SPSSODescriptor>
+  <md:Organization>
+    <md:OrganizationName xml:lang="en">MyCompany srl</md:OrganizationName>
+    <md:OrganizationName xml:lang="it">MyCompany srl</md:OrganizationName>
+    <md:OrganizationDisplayName xml:lang="en">MyCompany</md:OrganizationDisplayName>
+    <md:OrganizationDisplayName xml:lang="it">MyCompany</md:OrganizationDisplayName>
+    <md:OrganizationURL xml:lang="en">https://company.name.it</md:OrganizationURL>
+    <md:OrganizationURL xml:lang="it">https://company.name.it</md:OrganizationURL>
+  </md:Organization>
+  <md:ContactPerson contactType="other">
+    <md:Extensions>
+      <spid:VATNumber xmlns:spid="https://spid.gov.it/saml-extensions">VAT_manager</spid:VATNumber>
+      <spid:FiscalCode xmlns:spid="https://spid.gov.it/saml-extensions">CF_manager</spid:FiscalCode>
+      <spid:Private xmlns:spid="https://spid.gov.it/saml-extensions" />
+    </md:Extensions>
+    <md:Company>Private Company Name</md:Company>
+    <md:EmailAddress>other_contact@domain.test</md:EmailAddress>
+    <md:TelephoneNumber>+39 123 456 789</md:TelephoneNumber>
+  </md:ContactPerson>
+  <md:ContactPerson contactType="billing">
+    <md:Company>Billing contact company</md:Company>
+    <md:EmailAddress>billing@domain.test</md:EmailAddress>
+    <md:TelephoneNumber>+39 987 654 321</md:TelephoneNumber>
+  </md:ContactPerson>
+</md:EntityDescriptor>
