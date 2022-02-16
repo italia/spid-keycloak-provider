@@ -16,20 +16,19 @@ package org.keycloak.broker.spid.metadata;
 
 import org.jboss.logging.Logger;
 
+import org.keycloak.broker.spid.SpidIdentityProviderConfig;
+import org.keycloak.broker.spid.metadata.extensions.SpidBillingContactType;
+import org.keycloak.broker.spid.metadata.extensions.SpidOrganizationType;
+import org.keycloak.broker.spid.metadata.extensions.SpidOtherContactType;
 import org.keycloak.common.util.PemUtils;
 import org.keycloak.crypto.Algorithm;
 import org.keycloak.crypto.KeyStatus;
 import org.keycloak.crypto.KeyUse;
 import org.keycloak.dom.saml.v2.metadata.AttributeConsumingServiceType;
-import org.keycloak.dom.saml.v2.metadata.ContactType;
-import org.keycloak.dom.saml.v2.metadata.ContactTypeType;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
-import org.keycloak.dom.saml.v2.metadata.ExtensionsType;
 import org.keycloak.dom.saml.v2.metadata.IndexedEndpointType;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
-import org.keycloak.dom.saml.v2.metadata.LocalizedURIType;
-import org.keycloak.dom.saml.v2.metadata.OrganizationType;
 import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
 import org.keycloak.models.KeyManager;
 import org.keycloak.models.IdentityProviderModel;
@@ -39,7 +38,6 @@ import org.keycloak.saml.SPMetadataDescriptor;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.keycloak.saml.common.util.StaxUtil;
-import org.keycloak.saml.common.util.StringUtil;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.keycloak.saml.processing.api.saml.v2.sig.SAML2Signature;
@@ -49,7 +47,6 @@ import org.keycloak.services.resource.RealmResourceProvider;
 
 import java.io.StringWriter;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.KeyPair;
 import java.util.LinkedList;
 import java.util.List;
@@ -76,9 +73,6 @@ import org.keycloak.broker.spid.SpidIdentityProviderFactory;
 
 public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
     protected static final Logger logger = Logger.getLogger(SpidSpMetadataResourceProvider.class);
-
-    public static final String XMLNS_NS = "http://www.w3.org/2000/xmlns/";
-    public static final String SPID_METADATA_EXTENSIONS_NS = "https://spid.gov.it/saml-extensions";
 
     private KeycloakSession session;
 
@@ -213,33 +207,9 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
                     }
                 });
 				
-			// Additional EntityDescriptor customizations
-            String strOrganizationNames = firstSpidProvider.getConfig().getOrganizationNames();
-            String[] organizationNames = strOrganizationNames != null ? strOrganizationNames.split(","): null;
-
-            String strOrganizationDisplayNames = firstSpidProvider.getConfig().getOrganizationDisplayNames();
-            String[] organizationDisplayNames = strOrganizationDisplayNames != null ? strOrganizationDisplayNames.split(","): null;
-
-            String strOrganizationUrls = firstSpidProvider.getConfig().getOrganizationUrls();
-            String[] organizationUrls = strOrganizationUrls != null ? strOrganizationUrls.split(","): null;
-
-            boolean isSpPrivate = firstSpidProvider.getConfig().isSpPrivate();
-            String ipaCode = firstSpidProvider.getConfig().getIpaCode();
-            String vatNumber = firstSpidProvider.getConfig().getVatNumber();
-            String fiscalCode = firstSpidProvider.getConfig().getFiscalCode();
-            String otherContactPersonCompany = firstSpidProvider.getConfig().getOtherContactCompany();
-            String otherContactPersonEmail = firstSpidProvider.getConfig().getOtherContactEmail();
-            String otherContactPersonPhone = firstSpidProvider.getConfig().getOtherContactPhone();
-            String billingContactPersonCompany = firstSpidProvider.getConfig().getBillingContactCompany();
-            String billingContactPersonEmail = firstSpidProvider.getConfig().getBillingContactEmail(); 
-            String billingContactPersonPhone = firstSpidProvider.getConfig().getBillingContactPhone();
 
 			// Additional EntityDescriptor customizations
-            customizeEntityDescriptor(entityDescriptor, 
-                organizationNames, organizationDisplayNames, organizationUrls,
-                isSpPrivate, ipaCode, vatNumber, fiscalCode,
-                otherContactPersonCompany, otherContactPersonEmail, otherContactPersonPhone,
-                billingContactPersonCompany, billingContactPersonEmail, billingContactPersonPhone);
+            customizeEntityDescriptor(entityDescriptor, firstSpidProvider.getConfig());
 
             // Additional SPSSODescriptor customizations
             List<URI> assertionEndpoints = lstSpidIdentityProviders.stream()
@@ -314,134 +284,17 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
     }
 
     private static void customizeEntityDescriptor(EntityDescriptorType entityDescriptor,
-        String[] organizationNames, String[] organizationDisplayNames, String[] organizationUrls,
-        boolean isSpPrivate, String ipaCode, String vatNumber, String fiscalCode,
-        String otherContactPersonCompany, String otherContactPersonEmail, String otherContactPersonPhone,
-        String billingContactPersonCompany, String billingContactPersonEmail, String billingContactPersonPhone) 
+        SpidIdentityProviderConfig config)
         throws ConfigurationException
     {
         // Organization
-        if (organizationNames != null && organizationNames.length > 0 ||
-            organizationDisplayNames != null && organizationDisplayNames.length > 0 ||
-            organizationUrls != null && organizationUrls.length > 0)
-        {
-            OrganizationType organizationType = new OrganizationType();
+        SpidOrganizationType.build(config).ifPresent(entityDescriptor::setOrganization);
 
-            if (organizationNames != null) {
-                for (String organizationNameStr: organizationNames)
-                {
-                    String[] parsedName = organizationNameStr.split("\\|", 2);
-                    if (parsedName.length < 2) continue;
+        // ContactPerson type=OTHER
+        SpidOtherContactType.build(config).ifPresent(entityDescriptor::addContactPerson);
 
-                    LocalizedNameType organizationName = new LocalizedNameType(parsedName[0].trim());
-                    organizationName.setValue(parsedName[1].trim());
-                    organizationType.addOrganizationName(organizationName);
-                }
-            }
-
-            if (organizationDisplayNames != null) {
-                for (String organizationDisplayNameStr: organizationDisplayNames)
-                {
-                    String[] parsedDisplayName = organizationDisplayNameStr.split("\\|", 2);
-                    if (parsedDisplayName.length < 2) continue;
-
-                    LocalizedNameType organizationDisplayName = new LocalizedNameType(parsedDisplayName[0].trim());
-                    organizationDisplayName.setValue(parsedDisplayName[1].trim());
-                    organizationType.addOrganizationDisplayName(organizationDisplayName);
-                }
-            }
-
-            if (organizationUrls != null) {
-                for (String organizationUrlStr: organizationUrls)
-                {
-                    String[] parsedUrl = organizationUrlStr.split("\\|", 2);
-                    if (parsedUrl.length < 2) continue;
-
-                    LocalizedURIType organizationUrl = new LocalizedURIType(parsedUrl[0].trim());
-                    try {
-                        organizationUrl.setValue(new URI(parsedUrl[1].trim()));
-                    } catch (URISyntaxException e) { logger.error("Error creating URI for Organization URL"); continue; };
-                    organizationType.addOrganizationURL(organizationUrl);
-                }
-            }
-
-            // ContactPerson type=OTHER
-            if (!StringUtil.isNullOrEmpty(otherContactPersonCompany) || !StringUtil.isNullOrEmpty(otherContactPersonEmail) || !StringUtil.isNullOrEmpty(otherContactPersonPhone)) 
-            {
-                ContactType otherContactPerson = new ContactType(ContactTypeType.OTHER);
-
-                if (!StringUtil.isNullOrEmpty(otherContactPersonCompany)) otherContactPerson.setCompany(otherContactPersonCompany);
-                if (!StringUtil.isNullOrEmpty(otherContactPersonEmail)) otherContactPerson.addEmailAddress(otherContactPersonEmail);
-                if (!StringUtil.isNullOrEmpty(otherContactPersonPhone)) otherContactPerson.addTelephone(otherContactPersonPhone);
-
-                // Extensions
-                if (otherContactPerson.getExtensions() == null)
-                    otherContactPerson.setExtensions(new ExtensionsType());
-
-                Document doc = DocumentUtil.createDocument();
-
-                if (!isSpPrivate)
-                {
-                    // Public SP Extensions
-                        
-                    // IPA Code
-                    if (!StringUtil.isNullOrEmpty(ipaCode))
-                    {
-                        Element ipaCodeElement = doc.createElementNS(SPID_METADATA_EXTENSIONS_NS, "spid:IPACode");
-                        ipaCodeElement.setAttributeNS(XMLNS_NS, "xmlns:spid", SPID_METADATA_EXTENSIONS_NS);
-                        ipaCodeElement.setTextContent(ipaCode);
-                        otherContactPerson.getExtensions().addExtension(ipaCodeElement);
-                    }
-    
-                    // Public qualifier
-                    Element spTypeElement = doc.createElementNS(SPID_METADATA_EXTENSIONS_NS, "spid:Public");
-                    spTypeElement.setAttributeNS(XMLNS_NS, "xmlns:spid", SPID_METADATA_EXTENSIONS_NS);
-                    otherContactPerson.getExtensions().addExtension(spTypeElement);
-                }
-                else
-                {
-                    // Private SP Extensions
-                        
-                    // VAT Number
-                    if (!StringUtil.isNullOrEmpty(vatNumber))
-                    {
-                        Element vatNumberElement = doc.createElementNS(SPID_METADATA_EXTENSIONS_NS, "spid:VATNumber");
-                        vatNumberElement.setAttributeNS(XMLNS_NS, "xmlns:spid", SPID_METADATA_EXTENSIONS_NS);
-                        vatNumberElement.setTextContent(vatNumber);
-                        otherContactPerson.getExtensions().addExtension(vatNumberElement);
-                    }
-
-                    // Fiscal Code	
-                    if (!StringUtil.isNullOrEmpty(fiscalCode))
-                    {
-                        Element fiscalCodeElement = doc.createElementNS(SPID_METADATA_EXTENSIONS_NS, "spid:FiscalCode");
-                        fiscalCodeElement.setAttributeNS(XMLNS_NS, "xmlns:spid", SPID_METADATA_EXTENSIONS_NS);
-                        fiscalCodeElement.setTextContent(fiscalCode);
-                        otherContactPerson.getExtensions().addExtension(fiscalCodeElement);
-                    }
-
-                    // Private qualifier
-                    Element spTypeElement = doc.createElementNS(SPID_METADATA_EXTENSIONS_NS, "spid:Private");
-                    spTypeElement.setAttributeNS(XMLNS_NS, "xmlns:spid", SPID_METADATA_EXTENSIONS_NS);
-                    otherContactPerson.getExtensions().addExtension(spTypeElement);
-                }
-
-                entityDescriptor.addContactPerson(otherContactPerson);
-            }
-
-            // ContactPerson type=BILLING
-            if (!StringUtil.isNullOrEmpty(billingContactPersonCompany) || !StringUtil.isNullOrEmpty(billingContactPersonEmail) || !StringUtil.isNullOrEmpty(billingContactPersonPhone)) {
-                ContactType billingContactPerson = new ContactType(ContactTypeType.BILLING);
-
-                if (!StringUtil.isNullOrEmpty(billingContactPersonCompany)) billingContactPerson.setCompany(billingContactPersonCompany);
-                if (!StringUtil.isNullOrEmpty(billingContactPersonEmail)) billingContactPerson.addEmailAddress(billingContactPersonEmail);
-                if (!StringUtil.isNullOrEmpty(billingContactPersonPhone)) billingContactPerson.addTelephone(billingContactPersonPhone);
-
-                entityDescriptor.addContactPerson(billingContactPerson);
-            }
-
-            entityDescriptor.setOrganization(organizationType);
-        }
+        // ContactPerson type=BILLING
+        SpidBillingContactType.build(config).ifPresent(entityDescriptor::addContactPerson);
     }
 
     private static void customizeSpDescriptor(SPSSODescriptorType spDescriptor,
