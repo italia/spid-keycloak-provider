@@ -202,9 +202,6 @@ public class SpidSpMetadataResourceProviderTest {
         providerConfig.put(SpidIdentityProviderConfig.OTHER_CONTACT_PHONE, "+39 123 456 789");
         providerConfig.put(SpidIdentityProviderConfig.OTHER_CONTACT_EMAIL, "other_contact@domain.test");
 
-        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_COMPANY, "Billing contact company");
-        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_PHONE, "+39 987 654 321");
-        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_EMAIL, "billing@domain.test");
         return providerConfig;
     }
 
@@ -212,7 +209,7 @@ public class SpidSpMetadataResourceProviderTest {
         Map<String, String> providerConfig = mockCommonConfig();
         providerConfig.put(SpidIdentityProviderConfig.OTHER_CONTACT_SP_PRIVATE, "true");
 
-        providerConfig.put(SpidIdentityProviderConfig.OTHER_CONTACT_VAT_NUMBER, "VAT_manager");
+        providerConfig.put(SpidIdentityProviderConfig.OTHER_CONTACT_VAT_NUMBER, "IT01234567890");
         providerConfig.put(SpidIdentityProviderConfig.OTHER_CONTACT_FISCAL_CODE, "CF_manager");
         providerConfig.put(SpidIdentityProviderConfig.OTHER_CONTACT_COMPANY, "Private Company Name");
         providerConfig.put(SpidIdentityProviderConfig.OTHER_CONTACT_PHONE, "+39 123 456 789");
@@ -221,6 +218,15 @@ public class SpidSpMetadataResourceProviderTest {
         providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_COMPANY, "Billing contact company");
         providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_PHONE, "+39 987 654 321");
         providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_EMAIL, "billing@domain.test");
+
+        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_REGISTRY_NAME, "Registry Name");
+        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_ADDRESS, "StreetName");
+        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_NUMBER, "111");
+        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_CITY, "City");
+        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_ZIP_CODE, "zip");
+        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_PROVINCE, "Province");
+        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_PROVINCE, "IT");
+
         return providerConfig;
     }
 

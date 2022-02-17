@@ -45,7 +45,7 @@
     <md:AttributeConsumingService index="1" isDefault="true">
       <md:ServiceName xml:lang="en">Online services</md:ServiceName>
       <md:ServiceName xml:lang="it">Servizi online</md:ServiceName>
-      <md:RequestedAttribute Name="fiscalNumber" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic"/>
+      <md:RequestedAttribute Name="fiscalNumber" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" />
       <md:RequestedAttribute Name="name" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" />
       <md:RequestedAttribute Name="familyName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" />
     </md:AttributeConsumingService>
@@ -60,7 +60,7 @@
   </md:Organization>
   <md:ContactPerson contactType="other">
     <md:Extensions>
-      <spid:VATNumber xmlns:spid="https://spid.gov.it/saml-extensions">VAT_manager</spid:VATNumber>
+      <spid:VATNumber xmlns:spid="https://spid.gov.it/saml-extensions">IT01234567890</spid:VATNumber>
       <spid:FiscalCode xmlns:spid="https://spid.gov.it/saml-extensions">CF_manager</spid:FiscalCode>
       <spid:Private xmlns:spid="https://spid.gov.it/saml-extensions" />
     </md:Extensions>
@@ -69,6 +69,26 @@
     <md:TelephoneNumber>+39 123 456 789</md:TelephoneNumber>
   </md:ContactPerson>
   <md:ContactPerson contactType="billing">
+    <md:Extensions>
+      <fpa:CessionarioCommittente xmlns:fpa="https://spid.gov.it/invoicing-extensions">
+        <fpa:DatiAnagrafici>
+          <fpa:IdFiscaleIVA>
+            <fpa:IdPaese>IT</fpa:IdPaese>
+            <fpa:IdCodice>1234567890</fpa:IdCodice>
+          </fpa:IdFiscaleIVA>
+          <fpa:Anagrafica>
+            <fpa:Denominazione>Registry Name</fpa:Denominazione>
+          </fpa:Anagrafica>
+        </fpa:DatiAnagrafici>
+        <fpa:Sede>
+          <fpa:Indirizzo>StreetName</fpa:Indirizzo>
+          <fpa:NumeroCivico>111</fpa:NumeroCivico>
+          <fpa:CAP>zip</fpa:CAP>
+          <fpa:Comune>City</fpa:Comune>
+          <fpa:Provincia>IT</fpa:Provincia>
+        </fpa:Sede>
+      </fpa:CessionarioCommittente>
+    </md:Extensions>
     <md:Company>Billing contact company</md:Company>
     <md:EmailAddress>billing@domain.test</md:EmailAddress>
     <md:TelephoneNumber>+39 987 654 321</md:TelephoneNumber>
