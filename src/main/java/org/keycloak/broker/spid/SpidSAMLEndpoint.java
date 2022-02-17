@@ -426,7 +426,7 @@ public class SpidSAMLEndpoint {
                         return callback.error("SpidFault_" + responseType.getStatus().getStatusMessage().replace(' ', '_'));
                     else
                     {
-                        String statusMessage = responseType.getStatus() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
+                        String statusMessage = responseType.getStatus() == null || responseType.getStatus().getStatusMessage() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
                         return callback.error(statusMessage);
                     }
                 }
@@ -455,7 +455,7 @@ public class SpidSAMLEndpoint {
                 }
 
                 // Apply SPID-specific response validation rules
-                String spidExpectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
+                String spidExpectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID_BROKER);
                 String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, spidExpectedRequestId);
                 if (spidResponseValidationError != null)
                 {
@@ -466,7 +466,7 @@ public class SpidSAMLEndpoint {
                 }
 
                 // Validate InResponseTo attribute: must match the generated request ID
-                String expectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID);
+                String expectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID_BROKER);
                 final boolean inResponseToValidationSuccess = validateInResponseToAttribute(responseType, expectedRequestId);
                 if (!inResponseToValidationSuccess)
                 {
@@ -487,6 +487,10 @@ public class SpidSAMLEndpoint {
                     return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
                 }
 
+                if(AssertionUtil.isIdEncrypted(responseType)) {
+                    // This methods writes the parsed and decrypted id back on the responseType parameter:
+                    AssertionUtil.decryptId(responseType, keys.getPrivateKey());
+                }
                 AssertionType assertion = responseType.getAssertions().get(0).getAssertion();
                 NameIDType subjectNameID = getSubjectNameID(assertion);
                 String principal = getPrincipal(assertion);
