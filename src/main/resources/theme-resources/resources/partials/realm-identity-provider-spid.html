@@ -9,6 +9,7 @@
     <kc-tabs-identity-provider></kc-tabs-identity-provider>
 
     <form class="form-horizontal" name="realmForm" novalidate kc-read-only="!access.manageIdentityProviders">
+        <!-- Redirect URI start -->
         <fieldset>
             <div class="form-group clearfix">
                 <label class="col-md-2 control-label" for="redirectUri">{{:: 'redirect-uri' | translate}}</label>
@@ -18,6 +19,7 @@
                 <kc-tooltip>{{:: 'redirect-uri.tooltip' | translate}}</kc-tooltip>
             </div>
         </fieldset>
+        <!-- Common IDP configurations -->
         <fieldset>
             <div class="form-group clearfix">
                 <label class="col-md-2 control-label" for="identifier"><span class="required">*</span> {{:: 'alias' | translate}}</label>
@@ -136,6 +138,7 @@
                 <kc-tooltip>{{:: 'identity-provider.saml.protocol-endpoints.saml.tooltip' | translate}}</kc-tooltip>
             </div>
         </fieldset>
+        <!-- Generic SAML Config -->
         <fieldset>
             <legend uncollapsed><span class="text">{{:: 'saml-config' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.saml-config.tooltip' | translate}}</kc-tooltip></legend>
 
@@ -322,6 +325,11 @@
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.saml.attribute-consuming-service-name.tooltip' | translate}}</kc-tooltip>
             </div>
+        </fieldset>
+        <!-- SPID Config -->
+        <fieldset>
+            <legend uncollapsed><span class="text">{{:: 'identity-provider.spid.spid-config' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.spid.spid-config.tooltip' | translate}}</kc-tooltip></legend>
+            <!-- Organization -->
             <div class="form-group">
                 <label class="col-md-2 control-label" for="organizationNames">{{:: 'identity-provider.spid.organization-names' | translate}}</label>
                 <div class="col-md-6">
@@ -343,34 +351,7 @@
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.spid.organization-urls.tooltip' | translate}}</kc-tooltip>
             </div>
-            <div class="form-group">
-                <label class="col-md-2 control-label" for="isSpPrivate">{{:: 'identity-provider.spid.is-sp-private' | translate}}</label>
-                <div class="col-md-6">
-                    <input ng-model="identityProvider.config.otherContactIsSpPrivate" id="isSpPrivate" name="isSpPrivate" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
-                </div>
-                <kc-tooltip>{{:: 'identity-provider.spid.is-sp-private.tooltip' | translate}}</kc-tooltip>
-            </div>
-            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate != 'true'">
-                <label class="col-md-2 control-label" for="ipaCode">{{:: 'identity-provider.spid.ipaCode' | translate}}</label>
-                <div class="col-md-6">
-                    <input class="form-control" id="ipaCode" type="text" ng-model="identityProvider.config.otherContactIpaCode"/>
-                </div>
-                <kc-tooltip>{{:: 'identity-provider.spid.ipaCode.tooltip' | translate}}</kc-tooltip>
-            </div>
-            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
-                <label class="col-md-2 control-label" for="vatNumber">{{:: 'identity-provider.spid.vatNumber' | translate}}</label>
-                <div class="col-md-6">
-                    <input class="form-control" id="vatNumber" type="text" ng-model="identityProvider.config.otherContactVatNumber"/>
-                </div>
-                <kc-tooltip>{{:: 'identity-provider.spid.vatNumber.tooltip' | translate}}</kc-tooltip>
-            </div>
-            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
-                <label class="col-md-2 control-label" for="fiscalCode">{{:: 'identity-provider.spid.fiscalCode' | translate}}</label>
-                <div class="col-md-6">
-                    <input class="form-control" id="fiscalCode" type="text" ng-model="identityProvider.config.otherContactFiscalCode"/>
-                </div>
-                <kc-tooltip>{{:: 'identity-provider.spid.fiscalCode.tooltip' | translate}}</kc-tooltip>
-            </div>
+            <!-- Other Contact Common -->
             <div class="form-group">
                 <label class="col-md-2 control-label" for="otherContactCompany">{{:: 'identity-provider.spid.contactCompany.other' | translate}}</label>
                 <div class="col-md-6">
@@ -392,27 +373,60 @@
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.spid.contactEmail.other.tooltip' | translate}}</kc-tooltip>
             </div>
+            <!-- Private SP / Public SP switch -->
             <div class="form-group">
+                <label class="col-md-2 control-label" for="isSpPrivate">{{:: 'identity-provider.spid.is-sp-private' | translate}}</label>
+                <div class="col-md-6">
+                    <input ng-model="identityProvider.config.otherContactIsSpPrivate" id="isSpPrivate" name="isSpPrivate" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.is-sp-private.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <!-- Other Contact Public SP -->
+            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate != 'true'">
+                <label class="col-md-2 control-label" for="ipaCode">{{:: 'identity-provider.spid.ipaCode' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="ipaCode" type="text" ng-model="identityProvider.config.otherContactIpaCode"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.ipaCode.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <!-- Other Contact Private SP -->
+            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
+                <label class="col-md-2 control-label" for="vatNumber">{{:: 'identity-provider.spid.vatNumber' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="vatNumber" type="text" ng-model="identityProvider.config.otherContactVatNumber"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.vatNumber.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
+                <label class="col-md-2 control-label" for="fiscalCode">{{:: 'identity-provider.spid.fiscalCode' | translate}}</label>
+                <div class="col-md-6">
+                    <input class="form-control" id="fiscalCode" type="text" ng-model="identityProvider.config.otherContactFiscalCode"/>
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.fiscalCode.tooltip' | translate}}</kc-tooltip>
+            </div>
+            <!-- Billing Contact Private SP -->
+            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
                 <label class="col-md-2 control-label" for="billingContactCompany">{{:: 'identity-provider.spid.contactCompany.billing' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="billingContactCompany" type="text" ng-model="identityProvider.config.billingContactCompany"/>
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.spid.contactCompany.billing.tooltip' | translate}}</kc-tooltip>
             </div>
-            <div class="form-group">
+            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
                 <label class="col-md-2 control-label" for="billingContactPhone">{{:: 'identity-provider.spid.contactPhone.billing' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="billingContactPhone" type="text" ng-model="identityProvider.config.billingContactPhone"/>
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.spid.contactPhone.billing.tooltip' | translate}}</kc-tooltip>
             </div>
-            <div class="form-group">
+            <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
                 <label class="col-md-2 control-label" for="billingContactEmail">{{:: 'identity-provider.spid.contactEmail.billing' | translate}}</label>
                 <div class="col-md-6">
                     <input class="form-control" id="billingContactEmail" type="text" ng-model="identityProvider.config.billingContactEmail"/>
                 </div>
                 <kc-tooltip>{{:: 'identity-provider.spid.contactEmail.billing.tooltip' | translate}}</kc-tooltip>
             </div>
+            <!-- Billing Contact Private SP HeadQuarters-->
             <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
                 <label class="col-md-2 control-label" for="billingContactRegistryName">{{:: 'identity-provider.spid.RegistryName.billing' | translate}}</label>
                 <div class="col-md-6">
@@ -442,11 +456,11 @@
                 <kc-tooltip>{{:: 'identity-provider.spid.site.city.billing.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
-                <label class="col-md-2 control-label" for="billingContactSitePostalCode">{{:: 'identity-provider.spid.site.postalCode.billing' | translate}}</label>
+                <label class="col-md-2 control-label" for="billingContactSiteZipCode">{{:: 'identity-provider.spid.site.zipCode.billing' | translate}}</label>
                 <div class="col-md-6">
-                    <input class="form-control" id="billingContactSitePostalCode" type="text" ng-model="identityProvider.config.billingContactSitePostalCode"/>
+                    <input class="form-control" id="billingContactSiteZipCode" type="text" ng-model="identityProvider.config.billingContactSiteZipCode"/>
                 </div>
-                <kc-tooltip>{{:: 'identity-provider.spid.site.postalCode.billing' | translate}}</kc-tooltip>
+                <kc-tooltip>{{:: 'identity-provider.spid.site.zipCode.billing.tooltip' | translate}}</kc-tooltip>
             </div>
             <div class="form-group" data-ng-show="identityProvider.config.otherContactIsSpPrivate == 'true'">
                 <label class="col-md-2 control-label" for="billingContactSiteProvince">{{:: 'identity-provider.spid.site.province.billing' | translate}}</label>
@@ -463,6 +477,7 @@
                 <kc-tooltip>{{:: 'identity-provider.spid.site.countryCode.billing' | translate}}</kc-tooltip>
             </div>
         </fieldset>
+        <!-- Requested AuthnContext Constraints -->
         <fieldset>
             <legend collapsed><span class="text">{{:: 'identity-provider.saml.requested-authncontext' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.saml.requested-authncontext.tooltip' | translate}}</kc-tooltip></legend>
 
@@ -527,6 +542,7 @@
                 <kc-tooltip>{{:: 'identity-provider.saml.authncontext-decl-ref.tooltip' | translate}}</kc-tooltip>
             </div>
         </fieldset>
+        <!-- Import External IDP Config -->
         <fieldset data-ng-show="newIdentityProvider">
             <legend uncollapsed><span class="text">{{:: 'import-external-idp-config' | translate}}</span> <kc-tooltip>{{:: 'import-external-idp-config.tooltip' | translate}}</kc-tooltip></legend>
             <div class="form-group" data-ng-show="newIdentityProvider">
