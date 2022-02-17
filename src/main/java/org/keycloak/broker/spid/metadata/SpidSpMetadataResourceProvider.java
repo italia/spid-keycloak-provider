@@ -178,7 +178,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
                     String serviceNameLocale = parsedName.length >= 2 ? parsedName[0]: currentLocale;
 
                     LocalizedNameType attributeConsumingServiceNameElement = new LocalizedNameType(serviceNameLocale);
-                    attributeConsumingServiceNameElement.setValue(parsedName[1]);
+                    attributeConsumingServiceNameElement.setValue(parsedName.length >= 2 ? parsedName[1]: attributeConsumingServiceNameStr);
                     attributeConsumingService.addServiceName(attributeConsumingServiceNameElement);
                 }
             }

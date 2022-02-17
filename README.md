@@ -31,7 +31,7 @@ As far as I know it has not been used in Production in any environment yet.
 
 Until the project gets to a stable release, it will be targeting the most recent release 
 of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
-Currently the main branch is targeting Keycloak 15.0.0. **Do not use this provider with previous
+Currently the main branch is targeting Keycloak 16.1.1. **Do not use the latest release with previous
 versions of Keycloak, it won't work!**  
 
 Since this plugin uses some Keycloak internal modules, versions of this plugin
