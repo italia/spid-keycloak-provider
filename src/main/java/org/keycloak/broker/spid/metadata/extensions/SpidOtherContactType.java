@@ -7,14 +7,18 @@ import org.keycloak.dom.saml.v2.metadata.ExtensionsType;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.keycloak.saml.common.util.StringUtil;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import javax.xml.namespace.QName;
 import java.util.Optional;
 
 public abstract class SpidOtherContactType extends ContactType {
 
     public static final String XMLNS_NS = "http://www.w3.org/2000/xmlns/";
     public static final String SPID_METADATA_EXTENSIONS_NS = "https://spid.gov.it/saml-extensions";
+
+    protected Document doc;
 
     public static Optional<SpidOtherContactType> build(final SpidIdentityProviderConfig config) throws ConfigurationException {
         if ( StringUtil.isNullOrEmpty(config.getOtherContactCompany()) &&
@@ -26,7 +30,7 @@ public abstract class SpidOtherContactType extends ContactType {
         }
     }
 
-    protected SpidOtherContactType(final SpidIdentityProviderConfig config) {
+    protected SpidOtherContactType(final SpidIdentityProviderConfig config) throws ConfigurationException {
         super(ContactTypeType.OTHER);
         if (!StringUtil.isNullOrEmpty(config.getOtherContactCompany())) {
             this.setCompany(config.getOtherContactCompany());
@@ -38,19 +42,20 @@ public abstract class SpidOtherContactType extends ContactType {
             this.addTelephone(config.getOtherContactPhone());
         }
         this.setExtensions(new ExtensionsType());
+        doc = DocumentUtil.createDocument();
     }
 
-    protected void addQualifier(String qualifier) throws ConfigurationException {
+    protected void addQualifier(String qualifier) {
         // Private qualifier
-        Element spTypeElement = DocumentUtil.createDocument().createElementNS(SPID_METADATA_EXTENSIONS_NS, qualifier );
+        Element spTypeElement = doc.createElementNS(SPID_METADATA_EXTENSIONS_NS, qualifier );
         spTypeElement.setAttributeNS(XMLNS_NS, "xmlns:spid", SPID_METADATA_EXTENSIONS_NS);
         getExtensions().addExtension(spTypeElement);
     }
 
-    protected void addExtensionElement(String name, String value) throws ConfigurationException {
+    protected void addExtensionElement(String name, String value)  {
         if (!StringUtil.isNullOrEmpty(value))
         {
-            Element ipaCodeElement = DocumentUtil.createDocument().createElementNS(SPID_METADATA_EXTENSIONS_NS, name);
+            Element ipaCodeElement = doc.createElementNS(SPID_METADATA_EXTENSIONS_NS, name);
             ipaCodeElement.setAttributeNS(XMLNS_NS, "xmlns:spid", SPID_METADATA_EXTENSIONS_NS);
             ipaCodeElement.setTextContent(value);
             getExtensions().addExtension(ipaCodeElement);

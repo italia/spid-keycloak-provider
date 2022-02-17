@@ -66,9 +66,4 @@
     <md:EmailAddress>other_contact@domain.test</md:EmailAddress>
     <md:TelephoneNumber>+39 123 456 789</md:TelephoneNumber>
   </md:ContactPerson>
-  <md:ContactPerson contactType="billing">
-    <md:Company>Billing contact company</md:Company>
-    <md:EmailAddress>billing@domain.test</md:EmailAddress>
-    <md:TelephoneNumber>+39 987 654 321</md:TelephoneNumber>
-  </md:ContactPerson>
 </md:EntityDescriptor>

@@ -34,6 +34,13 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
     public static final String BILLING_CONTACT_COMPANY = "billingContactCompany";
     public static final String BILLING_CONTACT_PHONE = "billingContactPhone";
     public static final String BILLING_CONTACT_EMAIL = "billingContactEmail";
+    public static final String BILLING_CONTACT_REGISTRY_NAME = "billingContactRegistryName";
+    public static final String BILLING_CONTACT_SITE_ADDRESS = "billingContactSiteAddress";
+    public static final String BILLING_CONTACT_SITE_NUMBER = "billingContactSiteNumber";
+    public static final String BILLING_CONTACT_SITE_CITY = "billingContactSiteCity";
+    public static final String BILLING_CONTACT_SITE_ZIP_CODE = "billingContactSiteZipCode";
+    public static final String BILLING_CONTACT_SITE_PROVINCE = "billingContactSiteProvince";
+    public static final String BILLING_CONTACT_SITE_COUNTRY = "billingContactSiteCountry";
 
     public SpidIdentityProviderConfig(){
     }
@@ -145,4 +152,61 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
     public void setBillingContactPhone(String contactPhone) {
         getConfig().put(BILLING_CONTACT_PHONE, contactPhone);
     }
+
+    public String getBillingContactRegistryName() {
+        return getConfig().get(BILLING_CONTACT_REGISTRY_NAME);
+    }
+
+    public void setBillingContactRegistryName(String billingContactRegistryName) {
+        getConfig().put(BILLING_CONTACT_REGISTRY_NAME, billingContactRegistryName);
+    }
+
+    public String getBillingContactSiteAddress() {
+        return getConfig().get(BILLING_CONTACT_SITE_ADDRESS);
+    }
+
+    public void  setBillingContactSiteAddress(String billingContactSiteAddress) {
+        getConfig().put(BILLING_CONTACT_SITE_ADDRESS, billingContactSiteAddress);
+    }
+
+    public String getBillingContactSiteNumber() {
+        return getConfig().get(BILLING_CONTACT_SITE_NUMBER);
+    }
+
+    public void setBillingContactSiteNumber(String billingContactSiteNumber) {
+        getConfig().put(BILLING_CONTACT_SITE_NUMBER, billingContactSiteNumber);
+    }
+
+    public String getBillingContactSiteZipCode() {
+        return getConfig().get(BILLING_CONTACT_SITE_ZIP_CODE);
+    }
+
+    public void setBillingContactSiteZipCode(String billingContactSiteZipCode) {
+        getConfig().put(BILLING_CONTACT_SITE_ZIP_CODE, billingContactSiteZipCode);
+    }
+
+    public String getBillingContactSiteProvince() {
+        return getConfig().get(BILLING_CONTACT_SITE_PROVINCE);
+    }
+
+    public void setBillingContactSiteProvince(String billingContactSiteProvince) {
+        getConfig().put(BILLING_CONTACT_SITE_PROVINCE, billingContactSiteProvince);
+    }
+
+    public String getBillingContactSiteCountry() {
+        return getConfig().get(BILLING_CONTACT_SITE_COUNTRY);
+    }
+
+    public void setBillingContactSiteCountry(String billingContactSiteCountry) {
+        getConfig().put(BILLING_CONTACT_SITE_COUNTRY, billingContactSiteCountry);
+    }
+
+    public String getBillingContactSiteCity() {
+        return getConfig().get(BILLING_CONTACT_SITE_CITY);
+    }
+
+    public void setBillingContactSiteCity(String billingContactSiteCity) {
+        getConfig().put(BILLING_CONTACT_SITE_CITY, billingContactSiteCity);
+    }
+
 }
