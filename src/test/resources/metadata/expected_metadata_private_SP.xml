@@ -85,7 +85,8 @@
           <fpa:NumeroCivico>111</fpa:NumeroCivico>
           <fpa:CAP>zip</fpa:CAP>
           <fpa:Comune>City</fpa:Comune>
-          <fpa:Provincia>IT</fpa:Provincia>
+          <fpa:Provincia>Province</fpa:Provincia>
+          <fpa:Nazione>IT</fpa:Nazione>
         </fpa:Sede>
       </fpa:CessionarioCommittente>
     </md:Extensions>
