@@ -17,7 +17,6 @@
 
 package org.keycloak.broker.spid.metadata;
 
-import com.google.common.base.Joiner;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.asn1.x509.X509Extensions;
@@ -25,10 +24,12 @@ import org.bouncycastle.asn1.x509.X509Name;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
 import org.jboss.resteasy.specimpl.ResteasyUriBuilder;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.function.Executable;
 import org.keycloak.broker.provider.IdentityProviderMapper;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.broker.spid.SpidIdentityProviderConfig;
@@ -78,12 +79,14 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
@@ -225,7 +228,7 @@ public class SpidSpMetadataResourceProviderTest {
         providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_CITY, "City");
         providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_ZIP_CODE, "zip");
         providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_PROVINCE, "Province");
-        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_PROVINCE, "IT");
+        providerConfig.put(SpidIdentityProviderConfig.BILLING_CONTACT_SITE_COUNTRY, "IT");
 
         return providerConfig;
     }
@@ -316,7 +319,12 @@ public class SpidSpMetadataResourceProviderTest {
             .normalizeWhitespace()
             .withDifferenceEvaluator(new PlaceholderDifferenceEvaluator())
             .build();
-        assertFalse(myDiff.hasDifferences(), Joiner.on(",").join(myDiff.getDifferences()));
+
+        Assertions.assertAll("Found differences in metadata file",
+            StreamSupport.stream(myDiff.getDifferences().spliterator(), false)
+                .map(diff -> (Executable) (() -> fail(diff.getComparison().toString())))
+                .collect(Collectors.<Executable>toList()));
+
     }
 }
 
