@@ -1,11 +1,11 @@
 <md:EntityDescriptor xmlns:md="urn:oasis:names:tc:SAML:2.0:metadata" xmlns="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
-                     xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="${xmlunit.matchesRegex(^ID_[0-9a-f-]{36}$)}"
+                     xmlns:saml="urn:oasis:names:tc:SAML:2.0:assertion" ID="${xmlunit.matchesRegex(^ID_[0-9a-f-]{32}$)}"
                      entityID="https://keycloak.company.name.it">
   <dsig:Signature xmlns:dsig="http://www.w3.org/2000/09/xmldsig#">
     <dsig:SignedInfo>
       <dsig:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
       <dsig:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
-      <dsig:Reference URI="${xmlunit.matchesRegex(^#ID_[0-9a-f-]{36}$)}">
+      <dsig:Reference URI="${xmlunit.matchesRegex(^#ID_[0-9a-f-]{32}$)}">
         <dsig:Transforms>
           <dsig:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
           <dsig:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />

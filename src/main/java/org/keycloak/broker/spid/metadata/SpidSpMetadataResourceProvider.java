@@ -14,6 +14,7 @@
 
 package org.keycloak.broker.spid.metadata;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.jboss.logging.Logger;
 
 import org.keycloak.broker.spid.SpidIdentityProviderConfig;
@@ -36,6 +37,7 @@ import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.saml.SPMetadataDescriptor;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
+import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.keycloak.saml.common.util.DocumentUtil;
 import org.keycloak.saml.common.util.StaxUtil;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
@@ -154,11 +156,6 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
                         }
                     });
 
-            // Prepare the metadata descriptor model
-            StringWriter sw = new StringWriter();
-            XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
-            SAMLMetadataWriter metadataWriter = new SAMLMetadataWriter(writer);
-
             EntityDescriptorType entityDescriptor = SPMetadataDescriptor.buildSPdescriptor(
                 authnBinding, authnBinding, endpoint, endpoint,
                 wantAuthnRequestsSigned, wantAssertionsSigned, wantAssertionsEncrypted,
@@ -244,10 +241,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
                 }
             }
 
-            // Write the metadata and export it to a string
-            metadataWriter.writeEntityDescriptor(entityDescriptor);
-
-            String descriptor = sw.toString();
+            String descriptor = writeEntityDescriptorWithConsistentID(entityDescriptor);
 
             // Metadata signing
             if (firstSpidProvider.getConfig().isSignSpMetadata())
@@ -274,6 +268,23 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             logger.warn("Failed to export SAML SP Metadata!", e);
             throw new RuntimeException(e);
         }
+    }
+
+    private String writeEntityDescriptorWithConsistentID(final EntityDescriptorType entityDescriptor) throws ProcessingException {
+        // Update ID with hash of content so multiple metadata request give back same xml if configuration is same.
+        entityDescriptor.setID("ID_"); // Set to fixed value before hashing
+        String data = entityDescriptorAsString(entityDescriptor);
+        String hash = DigestUtils.md5Hex(data) ;
+        entityDescriptor.setID("ID_" + hash); // Update to hashed value ID
+        return entityDescriptorAsString(entityDescriptor);
+    }
+
+    private String entityDescriptorAsString(final EntityDescriptorType entityDescriptor) throws ProcessingException {
+        StringWriter sw = new StringWriter();
+        XMLStreamWriter writer = StaxUtil.getXMLStreamWriter(sw);
+        SAMLMetadataWriter metadataWriter = new SAMLMetadataWriter(writer);
+        metadataWriter.writeEntityDescriptor(entityDescriptor);
+        return sw.toString();
     }
 
     private String getEntityId(String configEntityId, UriInfo uriInfo, RealmModel realm) {
