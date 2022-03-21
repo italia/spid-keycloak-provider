@@ -914,12 +914,18 @@ public class SpidSAMLEndpoint {
 			}
         }
         
-        // 14: IssueInstant attribute prior to IssueInstant of the request (SPID check nr14)
         try {
+        	// 14: IssueInstant attribute prior to IssueInstant of the request (SPID check nr14)
 			XMLGregorianCalendar requestIssueInstantTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(requestIssueInstant);
 	        XMLGregorianCalendar responseIssueInstantTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(responseIssueInstantToValue);
-	        if (requestIssueInstantTime.compare(responseIssueInstantTime) == DatatypeConstants.GREATER) {
+	        if (responseIssueInstantTime.compare(requestIssueInstantTime) == DatatypeConstants.LESSER) {
 	        	return "SpidSamlCheck_nr14";
+	        }
+	        // 15: IssueInstant attribute following the instant of receipt (SPID check nr15)
+	        XMLGregorianCalendar requestFutureIssueInstantTime = (XMLGregorianCalendar)requestIssueInstantTime.clone();
+	        requestFutureIssueInstantTime.add(DatatypeFactory.newInstance().newDuration(true, 0, 0, 0, 0, 3, 0));
+	        if (responseIssueInstantTime.compare(requestFutureIssueInstantTime) == DatatypeConstants.GREATER) {
+	        	return "SpidSamlCheck_nr15";
 	        }
         } catch (DatatypeConfigurationException e) {
 			logger.error(e);
@@ -1186,6 +1192,11 @@ public class SpidSAMLEndpoint {
         }
 
         Element authnStatementElement = getDirectChild(assertionElement, "AuthnStatement");
+        
+        // 89: Missing AuthStatement element of the Assertion (SPID check nr89)
+        if (authnStatementElement == null) {
+        	return "SpidSamlCheck_nr89";
+        }
         
         // 88: AuthStatement element of the Assertion is empty (SPID check nr88)
         if (!hasNamedChild(authnStatementElement)) {
