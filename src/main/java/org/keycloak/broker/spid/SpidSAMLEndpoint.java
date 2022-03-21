@@ -17,9 +17,50 @@
 
 package org.keycloak.broker.spid;
 
+import java.io.IOException;
+import java.net.URI;
+import java.security.Key;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.GregorianCalendar;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import javax.xml.crypto.dsig.XMLSignature;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
-
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
@@ -34,6 +75,7 @@ import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationDataType;
 import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
+import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
@@ -50,11 +92,14 @@ import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.LoginProtocol;
 import org.keycloak.protocol.LoginProtocolFactory;
 import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
+import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlProtocolUtils;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
+import org.keycloak.rotation.HardcodedKeyLocator;
+import org.keycloak.rotation.KeyLocator;
 import org.keycloak.saml.SAML2LogoutResponseBuilder;
 import org.keycloak.saml.SAMLRequestParser;
 import org.keycloak.saml.common.constants.GeneralConstants;
@@ -63,63 +108,25 @@ import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.keycloak.saml.common.util.DocumentUtil;
+import org.keycloak.saml.common.util.StringUtil;
 import org.keycloak.saml.processing.core.saml.v2.common.SAMLDocumentHolder;
 import org.keycloak.saml.processing.core.saml.v2.constants.X500SAMLProfileConstants;
 import org.keycloak.saml.processing.core.saml.v2.util.AssertionUtil;
+import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.processing.core.util.XMLSignatureUtil;
 import org.keycloak.saml.processing.web.util.PostBindingUtil;
+import org.keycloak.saml.validators.ConditionsValidator;
+import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.Urls;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.messages.Messages;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.namespace.QName;
-import java.io.IOException;
-import java.security.Key;
-import java.security.cert.X509Certificate;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-import org.keycloak.protocol.saml.SamlPrincipalType;
-import org.keycloak.rotation.HardcodedKeyLocator;
-import org.keycloak.rotation.KeyLocator;
-import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
-import org.keycloak.saml.validators.ConditionsValidator;
-import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.sessions.AuthenticationSessionModel;
+import org.keycloak.util.JsonSerialization;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
-import java.net.URI;
-import java.security.cert.CertificateException;
-
-import java.util.Collections;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.xml.crypto.dsig.XMLSignature;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -142,7 +149,11 @@ public class SpidSAMLEndpoint {
     protected IdentityProvider.AuthenticationCallback callback;
     protected SpidIdentityProvider provider;
     private final DestinationValidator destinationValidator;
-
+    // iso8601 fully compliant regex
+    private static final String _UTC_STRING = "^(-?(?:[1-9][0-9]*)?[0-9]{4})-(1[0-2]|0[1-9])-(3[01]|0[1-9]|[12][0-9])T(2[0-3]|[01][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]+)?(Z|[+-](?:2[0-3]|[01][0-9]):[0-5][0-9])?$";
+    //
+    private static final String[] SPID_LEVEL= {"https://www.spid.gov.it/SpidL1", "https://www.spid.gov.it/SpidL2", "https://www.spid.gov.it/SpidL3"};
+    
     @Context
     private KeycloakSession session;
 
@@ -456,13 +467,19 @@ public class SpidSAMLEndpoint {
 
                 // Apply SPID-specific response validation rules
                 String spidExpectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID_BROKER);
-                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, spidExpectedRequestId);
+                String requestIssueInstant = authSession.getClientNote(SpidIdentityProvider.SPID_REQUEST_ISSUE_INSTANT);
+                String entityId = config.getSingleSignOnServiceUrl().substring(0, config.getSingleSignOnServiceUrl().indexOf("/samlsso"));
+                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, spidExpectedRequestId, requestIssueInstant, entityId);
                 if (spidResponseValidationError != null)
                 {
                     logger.error("SPID Response Validation Error: " + spidResponseValidationError);
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
-                    return callback.error(spidResponseValidationError);
+                    if (config.isDebugEnabled()) {
+                    	return callback.error(spidResponseValidationError);
+                    } else {
+                    	return callback.error("SpidSamlCheck_GenericError");
+                    }
                 }
 
                 // Validate InResponseTo attribute: must match the generated request ID
@@ -881,7 +898,131 @@ public class SpidSAMLEndpoint {
         return true;
     }
 
-    private String verifySpidResponse(Element documentElement, Element assertionElement, String expectedRequestId) {
+    private String verifySpidResponse(Element documentElement, Element assertionElement, String expectedRequestId, String requestIssueInstant, String entityId) {     	
+		// 08: Response > ID empty
+        String responseIDToValue = documentElement.getAttribute("ID");
+        if (responseIDToValue.isEmpty()) {
+            return "SpidSamlCheck_nr08";
+        }
+
+		// 03: Response > IssueInstant invalid format.
+        String responseIssueInstantToValue = documentElement.getAttribute("IssueInstant");
+        if (!responseIssueInstantToValue.isEmpty()) {
+			Pattern utcPattern = Pattern.compile(_UTC_STRING);
+			if (!utcPattern.matcher(responseIssueInstantToValue).find()) {
+				return "SpidSamlCheck_nr13";
+			}
+        }
+        
+        // 14: IssueInstant attribute prior to IssueInstant of the request (SPID check nr14)
+        try {
+			XMLGregorianCalendar requestIssueInstantTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(requestIssueInstant);
+	        XMLGregorianCalendar responseIssueInstantTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(responseIssueInstantToValue);
+	        if (requestIssueInstantTime.compare(responseIssueInstantTime) == DatatypeConstants.GREATER) {
+	        	return "SpidSamlCheck_nr14";
+	        }
+        } catch (DatatypeConfigurationException e) {
+			logger.error(e);
+			return "SpidSamlCheck_nr14";
+		}
+
+        Element issuerElement = getDirectChild(documentElement, "Issuer");
+               
+        // 28: Missing Issuer element (SPID check nr28)
+        if (issuerElement == null) {
+            return "SpidSamlCheck_nr28";
+        }
+
+        // 27: Issuer element is empty (SPID check nr27)
+        if (!issuerElement.hasChildNodes() || !StringUtil.isNotNull(issuerElement.getFirstChild().getNodeValue()) || hasNamedChild(issuerElement)) {
+        	return "SpidSamlCheck_nr27";
+        }
+        
+        // 29: Issuer element different from EntityID IdP (SPID check nr29)
+        if (!issuerElement.getFirstChild().getNodeValue().equals(entityId)) {
+        	return "SpidSamlCheck_nr29";
+        }
+        
+        // 30: Issuer Format attribute must be omitted or take value urn:oasis:names:tc:SAML:2.0:nameid-format:entity (SPID check nr30)
+        if (issuerElement.hasAttribute("Format")) {
+        	if (!issuerElement.getAttribute("Format").equals(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.get())) {
+        		return "SpidSamlCheck_nr30";
+        	}
+        }
+
+        // 33: Assertion ID attribute is empty (SPID check nr33)
+        String responseAssertionIDToValue = assertionElement.getAttribute("ID");
+        if (responseAssertionIDToValue.isEmpty()) {
+            return "SpidSamlCheck_nr33";
+        }
+
+        String responseAssertionIssueInstantToValue = assertionElement.getAttribute("IssueInstant");
+        try {
+        	// 39: IssueInstant attribute of the Assertion prior to the IssueInstant of the Request (SPID check nr39)
+			XMLGregorianCalendar requestIssueInstantTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(requestIssueInstant);
+	        XMLGregorianCalendar assertionIssueInstantTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(responseAssertionIssueInstantToValue);
+	        if (assertionIssueInstantTime.compare(requestIssueInstantTime) == DatatypeConstants.LESSER) {
+	        	return "SpidSamlCheck_nr39";
+	        }
+	        // 40: IssueInstant attribute of the Assertion following the IssueInstant of the Request (SPID check nr40)
+	        XMLGregorianCalendar requestFutureIssueInstantTime = (XMLGregorianCalendar)requestIssueInstantTime.clone();
+	        requestFutureIssueInstantTime.add(DatatypeFactory.newInstance().newDuration(true, 0, 0, 0, 0, 3, 0));
+	        if (assertionIssueInstantTime.compare(requestFutureIssueInstantTime) == DatatypeConstants.GREATER) {
+	        	return "SpidSamlCheck_nr40";
+	        }
+        } catch (DatatypeConfigurationException e) {
+			logger.error(e);
+			return "SpidSamlCheck_nr39";
+		}
+        
+        Element subjectElement = getDirectChild(assertionElement, "Subject");
+     
+        // 42: Assertion > Subject missing
+        if (subjectElement == null) {
+            return "SpidSamlCheck_nr42";
+        }
+
+        // 41: Assertion > Subject element is empty (SPID check nr41)
+        if (!hasNamedChild(subjectElement)) {
+            return "SpidSamlCheck_nr41";
+        }
+        
+        Element nameIdElement = getDirectChild(subjectElement, "NameID");
+        
+        // 44: Missing Assertion NameID element (SPID check nr44)
+        if (nameIdElement == null) {
+            return "SpidSamlCheck_nr44";
+        }
+
+        // 43: NameID element of the Assertion is empty (SPID check nr43)
+        if (!nameIdElement.hasChildNodes() || !StringUtil.isNotNull(nameIdElement.getFirstChild().getNodeValue()) || hasNamedChild(nameIdElement)) {
+        	return "SpidSamlCheck_nr43";
+        }
+                
+        if (nameIdElement.hasAttribute("Format")) {
+        	// 45: Format attribute of the NameID element of the Assertion is empty (SPID check nr45)
+        	if (nameIdElement.getAttribute("Format").isEmpty()) {
+        		return "SpidSamlCheck_nr45";
+        	}
+        	// 47: Assertion NameID Format attribute other than urn:oasis:names:tc:SAML:2.0:nameidformat:transient (SPID check nr47)
+        	if (!nameIdElement.getAttribute("Format").equals(JBossSAMLURIConstants.NAMEID_FORMAT_TRANSIENT.get())) {
+        		return "SpidSamlCheck_nr47";
+        	}
+        } else {
+        	// 46: Missing Assertion NameID Element Format attribute (SPID check nr46)
+        	return "SpidSamlCheck_nr46";
+        }
+        
+        // 49: NameQualifier attribute of NameID of Assertion is missing (SPID check nr49)
+        if (!nameIdElement.hasAttribute("NameQualifier")) {
+        	return "SpidSamlCheck_nr49";
+        }
+
+        // 48: NameQualifier attribute of NameID of the Assertion is empty (SPID check nr48)
+        if (nameIdElement.getAttribute("NameQualifier").isEmpty()) {
+        	return "SpidSamlCheck_nr48";
+        }
+        
         // 17: Response > InResponseTo missing
         if (!documentElement.hasAttribute("InResponseTo")) {
             return "SpidSamlCheck_nr17";
@@ -898,26 +1039,13 @@ public class SpidSAMLEndpoint {
             return "SpidSamlCheck_nr18";
         }
 
-        // 42: Assertion > Subject missing
-        Element subjectElement = DocumentUtil.getChildElement(assertionElement, 
-            new QName(JBossSAMLURIConstants.ASSERTION_NSURI.get(), "Subject"));
-        if (subjectElement == null) {
-            return "SpidSamlCheck_nr42";
-        }
-
-        // 41: Assertion > Subject empty (Keycloak returns error earlier)
-        if (!hasNamedChild(subjectElement)) {
-            return "SpidSamlCheck_nr41";
-        }
-
         // 52: Assertion > Subject > Confirmation missing
-        Element subjectConfirmationElement = DocumentUtil.getChildElement(subjectElement, 
-            new QName(JBossSAMLURIConstants.ASSERTION_NSURI.get(), "SubjectConfirmation"));
+        Element subjectConfirmationElement = getDirectChild(subjectElement, "SubjectConfirmation");
 
         if (subjectConfirmationElement == null) {
             return "SpidSamlCheck_nr52";
         }
-
+        
         // 51: Assertion > Subject > Confirmation empty
         if (!hasNamedChild(subjectConfirmationElement)) {
             return "SpidSamlCheck_nr51";
@@ -939,10 +1067,9 @@ public class SpidSAMLEndpoint {
             return "SpidSamlCheck_nr55";
         }
 
-        // 56: Assertion > Subject > Confirmation > SubjectConfirmationData missing
-        Element subjectConfirmationDataElement = DocumentUtil.getChildElement(subjectConfirmationElement, 
-            new QName(JBossSAMLURIConstants.ASSERTION_NSURI.get(), "SubjectConfirmationData"));
+        Element subjectConfirmationDataElement = getDirectChild(subjectConfirmationElement, "SubjectConfirmationData"); 
 
+        // 56: Assertion > Subject > Confirmation > SubjectConfirmationData missing
         if (subjectConfirmationDataElement == null) {
             return "SpidSamlCheck_nr56";
         }
@@ -958,6 +1085,11 @@ public class SpidSAMLEndpoint {
             return "SpidSamlCheck_nr57";
         }
 
+        // 59: 
+        if (!subjectConfirmationDataRecipientValue.equals(documentElement.getAttribute("Destination"))) {
+        	return "SpidSamlCheck_nr59";
+        }
+        
         // 61: Assertion > Subject > Confirmation > SubjectConfirmationData > InResponseTo missing
         if (!subjectConfirmationDataElement.hasAttribute("InResponseTo")) {
             return "SpidSamlCheck_nr61";
@@ -974,9 +1106,174 @@ public class SpidSAMLEndpoint {
             return "SpidSamlCheck_nr62";
         }
 
+        // 64: NotOnOrAfter attribute of SubjectConfirmationData is missing (SPID check nr64)
+        if (!subjectConfirmationDataElement.hasAttribute("NotOnOrAfter")) {
+            return "SpidSamlCheck_nr64";
+        }
+        
+        try {
+        	// 66: NotOnOrAfter attribute of SubjectConfirmationData prior to the time the response was received (SPID check nr66)
+			XMLGregorianCalendar notOnOrAfterTime = DatatypeFactory.newInstance().newXMLGregorianCalendar(subjectConfirmationDataElement.getAttribute("NotOnOrAfter"));
+			GregorianCalendar gregorianCalendar = new GregorianCalendar();
+	        DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
+	        XMLGregorianCalendar now = datatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
+			if (notOnOrAfterTime.compare(now) == DatatypeConstants.LESSER) {
+	        	return "SpidSamlCheck_nr66";
+	        }
+        } catch (DatatypeConfigurationException e) {
+			logger.error(e);
+			return "SpidSamlCheck_nr66";
+		}
+        
+        Element assertionIssuerElement = getDirectChild(assertionElement, "Issuer");
+        
+        // 68: Missing Issuer element of the Assertion (SPID check nr68)
+        if (assertionIssuerElement == null) {
+            return "SpidSamlCheck_nr68";
+        }
+
+        // 67: Issuer element of the Assertion is empty (SPID check nr67)
+        if (!assertionIssuerElement.hasChildNodes() || !StringUtil.isNotNull(assertionIssuerElement.getFirstChild().getNodeValue()) || hasNamedChild(assertionIssuerElement)) {
+        	return "SpidSamlCheck_nr67";
+        }
+        
+        // 69: Issuer element of the Assertion different from EntityID IdP (SPID check nr69)
+        if (!assertionIssuerElement.getFirstChild().getNodeValue().equals(entityId)) {
+        	return "SpidSamlCheck_nr69";
+        }
+
+        if (assertionIssuerElement.hasAttribute("Format")) {
+        	// 70: Format attribute of Issuer of the Assertion is empty (SPID check nr70)
+        	if (assertionIssuerElement.getAttribute("Format").isEmpty()) {
+        		return "SpidSamlCheck_nr70";
+        	}
+        	// 72: Format attribute of Issuer of the Assertion must be present with the value urn:oasis:names:tc:SAML:2.0:nameid-format:entity (SPID check nr72)
+        	if (!assertionIssuerElement.getAttribute("Format").equals(JBossSAMLURIConstants.NAMEID_FORMAT_ENTITY.get())) {
+        		return "SpidSamlCheck_nr72";
+        	}
+        } else {
+        	// 71: Missing Assertion Issuer Format attribute (SPID check nr71)
+        	return "SpidSamlCheck_nr71";
+        }
+
+        Element conditionsElement = getDirectChild(assertionElement, "Conditions");
+
+        // 74: Missing Assertion Conditions element (SPID check nr74)
+        if (conditionsElement == null) {
+            return "SpidSamlCheck_nr74";
+        }
+        
+        // 73: Conditions element of the Assertion is empty (SPID check nr73)
+        if (!hasNamedChild(conditionsElement)) {
+            return "SpidSamlCheck_nr73";
+        }
+
+        // 76: Missing Assertion Condition NotBefore attribute (SPID check nr76)
+        if (!conditionsElement.hasAttribute("NotBefore")) {
+        	return "SpidSamlCheck_nr76";
+        }
+        
+        // 80: Missing Assertion Condition NotOnOrAfter attribute (SPID check nr80)
+        if (!conditionsElement.hasAttribute("NotOnOrAfter")) {
+        	return "SpidSamlCheck_nr80";
+        }
+
+        Element audienceRestrictionElement = getDirectChild(conditionsElement, "AudienceRestriction");
+
+        // 84: Missing Assertion Condition AudienceRestriction element (SPID check nr84)
+        if (audienceRestrictionElement == null) {
+            return "SpidSamlCheck_nr84";
+        }
+
+        Element authnStatementElement = getDirectChild(assertionElement, "AuthnStatement");
+        
+        // 88: AuthStatement element of the Assertion is empty (SPID check nr88)
+        if (!hasNamedChild(authnStatementElement)) {
+            return "SpidSamlCheck_nr88";
+        }
+
+        Element authnContextElement = getDirectChild(authnStatementElement, "AuthnContext");
+
+        // 91: Missing AuthStatement AuthnContext Element of Assertion (SPID check nr91)
+        if (authnContextElement == null) {
+            return "SpidSamlCheck_nr91";
+        }
+
+        // 90: AuthnContext of AuthStatement of Assertion is empty (SPID check nr90)
+        if (!hasNamedChild(authnContextElement)) {
+            return "SpidSamlCheck_nr90";
+        }
+        
+        Element authnContextClassRef = getDirectChild(authnContextElement, "AuthnContextClassRef");
+        
+        // 93: AuthStatement AuthStatement AuthContextClassRef Element of the Missing Assertion (SPID check nr93)
+        if (authnContextClassRef == null) {
+            return "SpidSamlCheck_nr93";
+        }
+
+        // 92: AuthStatement AuthStatement AuthContextClassRef Element of the Assertion is empty (SPID check nr92)
+        if (!authnContextClassRef.hasChildNodes() || !StringUtil.isNotNull(authnContextClassRef.getFirstChild().getNodeValue()) || hasNamedChild(authnContextClassRef)) {
+        	return "SpidSamlCheck_nr92";
+        }
+        
+        // 97: AuthContextClassRef element set to an unexpected value (SPID check nr97)
+        String responseSpidLevel = authnContextClassRef.getFirstChild().getNodeValue();
+        int spidLevelResponse = Arrays.asList(SPID_LEVEL).indexOf(responseSpidLevel) + 1;
+        
+        List<String> spidLevelRequestList = null;
+        try {
+        	spidLevelRequestList = Arrays.asList(JsonSerialization.readValue(config.getAuthnContextClassRefs(), String[].class));
+        } catch (Exception e) {
+        	logger.error("Could not json-deserialize AuthContextClassRefs config entry: " + config.getAuthnContextClassRefs(), e);
+        	return "SpidSamlCheck_nr97";
+        }
+        int spidLevelRequest = Arrays.asList(SPID_LEVEL).indexOf(spidLevelRequestList.get(0)) + 1;
+        
+        if (spidLevelResponse < 1) {
+        	return "SpidSamlCheck_nr97";
+        }
+        
+        // 94: AuthContextClassRef element set on https://www.spid.gov.it/SpidL1 (SPID check nr94)
+        // 95: AuthContextClassRef element set on https://www.spid.gov.it/SpidL2 (SPID check nr95)
+        // 96: AuthContextClassRef element set on https://www.spid.gov.it/SpidL3 (SPID check nr96)
+        if (config.getAuthnContextComparisonType().equals(AuthnContextComparisonType.EXACT)) {
+        	if (spidLevelResponse != spidLevelRequest) {
+        		return getSpidLevelAssertion(spidLevelResponse);
+        	}
+        } else if (config.getAuthnContextComparisonType().equals(AuthnContextComparisonType.MINIMUM)) {
+        	if (spidLevelResponse < spidLevelRequest) {
+        		return getSpidLevelAssertion(spidLevelResponse);
+        	}
+        } else if (config.getAuthnContextComparisonType().equals(AuthnContextComparisonType.MAXIMUM)) {
+        	if (spidLevelResponse > spidLevelRequest) {
+        		return getSpidLevelAssertion(spidLevelResponse);
+        	}
+        } else if (config.getAuthnContextComparisonType().equals(AuthnContextComparisonType.BETTER)) {
+        	if (!responseSpidLevel.equals(config.getAuthnContextClassRefs())) {
+        		return getSpidLevelAssertion(spidLevelResponse);
+        	}
+        }
+        
         return null;
     }
 
+    private String getSpidLevelAssertion(int spidLevel) {
+    	switch (spidLevel) {
+	    	case 1 : {
+	    		return "SpidSamlCheck_nr94";
+	    	}
+	    	case 2 : {
+	    		return "SpidSamlCheck_nr95";
+	    	}
+	    	case 3 : {
+	    		return "SpidSamlCheck_nr96";
+	    	}
+	    	default : {
+	    		return "SpidSamlCheck_nr97";
+	    	}
+    	}
+    }
+    
     private boolean hasNamedChild(Element element)
     {
         NodeList childNodes = element.getChildNodes();
@@ -991,4 +1288,14 @@ public class SpidSAMLEndpoint {
 
         return false;
     }
+    
+    private Element getDirectChild(Element parent, String name)
+    {
+        for(Node child = parent.getFirstChild(); child != null; child = child.getNextSibling())
+        {
+            if(child instanceof Element && name.equals(child.getLocalName())) return (Element) child;
+        }
+        return null;
+    }
+    
 }

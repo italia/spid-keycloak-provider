@@ -329,6 +329,14 @@
         <!-- SPID Config -->
         <fieldset>
             <legend uncollapsed><span class="text">{{:: 'identity-provider.spid.spid-config' | translate}}</span> <kc-tooltip>{{:: 'identity-provider.spid.spid-config.tooltip' | translate}}</kc-tooltip></legend>
+            <!--  Debug SPID Response -->
+            <div class="form-group">
+                <label class="col-md-2 control-label" for="debugEnabled">{{:: 'identity-provider.spid.debug-enabled' | translate}}</label>
+                <div class="col-md-6">
+                    <input ng-model="identityProvider.config.debugEnabled" name="identityProvider.config.debugEnabled" id="debugEnabled" onoffswitchvalue on-text="{{:: 'onText' | translate}}" off-text="{{:: 'offText' | translate}}" />
+                </div>
+                <kc-tooltip>{{:: 'identity-provider.spid.debug-enabled.tooltip' | translate}}</kc-tooltip>
+            </div>
             <!-- Organization -->
             <div class="form-group">
                 <label class="col-md-2 control-label" for="organizationNames">{{:: 'identity-provider.spid.organization-names' | translate}}</label>

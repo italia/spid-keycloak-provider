@@ -41,6 +41,7 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
     public static final String BILLING_CONTACT_SITE_ZIP_CODE = "billingContactSiteZipCode";
     public static final String BILLING_CONTACT_SITE_PROVINCE = "billingContactSiteProvince";
     public static final String BILLING_CONTACT_SITE_COUNTRY = "billingContactSiteCountry";
+    public static final String SPID_RESPONSE_DEBUG_ENABLED = "debugEnabled";
 
     public SpidIdentityProviderConfig(){
     }
@@ -209,4 +210,12 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
         getConfig().put(BILLING_CONTACT_SITE_CITY, billingContactSiteCity);
     }
 
+    public boolean isDebugEnabled() {
+        return Boolean.valueOf(getConfig().get(SPID_RESPONSE_DEBUG_ENABLED));
+    }
+
+    public void setDebugEnabled(boolean isDebugEnabled) {
+        getConfig().put(SPID_RESPONSE_DEBUG_ENABLED, String.valueOf(isDebugEnabled));
+    }
+ 
 }
