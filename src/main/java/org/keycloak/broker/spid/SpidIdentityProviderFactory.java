@@ -122,6 +122,8 @@ public class SpidIdentityProviderFactory extends AbstractIdentityProviderFactory
                         }
 
                     }
+                    
+                    samlIdentityProviderConfig.setEntityIdIdp(entityType.getEntityID());
                     samlIdentityProviderConfig.setSingleLogoutServiceUrl(singleLogoutServiceUrl);
                     samlIdentityProviderConfig.setSingleSignOnServiceUrl(singleSignOnServiceUrl);
                     samlIdentityProviderConfig.setWantAuthnRequestsSigned(idpDescriptor.isWantAuthnRequestsSigned());
