@@ -468,8 +468,8 @@ public class SpidSAMLEndpoint {
                 // Apply SPID-specific response validation rules
                 String spidExpectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID_BROKER);
                 String requestIssueInstant = authSession.getClientNote(SpidIdentityProvider.SPID_REQUEST_ISSUE_INSTANT);
-                String entityId = config.getSingleSignOnServiceUrl().substring(0, config.getSingleSignOnServiceUrl().indexOf("/samlsso"));
-                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, spidExpectedRequestId, requestIssueInstant, entityId);
+                String entityIdIdp = config.getEntityIdIdp();
+                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, spidExpectedRequestId, requestIssueInstant, entityIdIdp);
                 if (spidResponseValidationError != null)
                 {
                     logger.error("SPID Response Validation Error: " + spidResponseValidationError);
@@ -898,7 +898,7 @@ public class SpidSAMLEndpoint {
         return true;
     }
 
-    private String verifySpidResponse(Element documentElement, Element assertionElement, String expectedRequestId, String requestIssueInstant, String entityId) {     	
+    private String verifySpidResponse(Element documentElement, Element assertionElement, String expectedRequestId, String requestIssueInstant, String entityIdIdp) {     	
 		// 08: Response > ID empty
         String responseIDToValue = documentElement.getAttribute("ID");
         if (responseIDToValue.isEmpty()) {
@@ -945,7 +945,7 @@ public class SpidSAMLEndpoint {
         }
         
         // 29: Issuer element different from EntityID IdP (SPID check nr29)
-        if (!issuerElement.getFirstChild().getNodeValue().equals(entityId)) {
+        if (!issuerElement.getFirstChild().getNodeValue().equals(entityIdIdp)) {
         	return "SpidSamlCheck_nr29";
         }
         
@@ -1144,7 +1144,7 @@ public class SpidSAMLEndpoint {
         }
         
         // 69: Issuer element of the Assertion different from EntityID IdP (SPID check nr69)
-        if (!assertionIssuerElement.getFirstChild().getNodeValue().equals(entityId)) {
+        if (!assertionIssuerElement.getFirstChild().getNodeValue().equals(entityIdIdp)) {
         	return "SpidSamlCheck_nr69";
         }
 

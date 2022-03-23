@@ -42,6 +42,7 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
     public static final String BILLING_CONTACT_SITE_PROVINCE = "billingContactSiteProvince";
     public static final String BILLING_CONTACT_SITE_COUNTRY = "billingContactSiteCountry";
     public static final String SPID_RESPONSE_DEBUG_ENABLED = "debugEnabled";
+    public static final String ENTITY_ID_IDP = "entityIdIdp";
 
     public SpidIdentityProviderConfig(){
     }
@@ -217,5 +218,13 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
     public void setDebugEnabled(boolean isDebugEnabled) {
         getConfig().put(SPID_RESPONSE_DEBUG_ENABLED, String.valueOf(isDebugEnabled));
     }
- 
+
+    public String getEntityIdIdp() {
+        return getConfig().get(ENTITY_ID_IDP);
+    }
+
+    public void setEntityIdIdp(String entityIdIdp) {
+        getConfig().put(ENTITY_ID_IDP, entityIdIdp);
+    }
+    
 }
