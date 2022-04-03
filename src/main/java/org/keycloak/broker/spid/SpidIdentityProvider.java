@@ -16,25 +16,6 @@
  */
 package org.keycloak.broker.spid;
 
-import java.io.StringWriter;
-import java.net.URI;
-import java.security.KeyPair;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Objects;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.crypto.dsig.CanonicalizationMethod;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.stream.XMLStreamWriter;
-
 import org.jboss.logging.Logger;
 import org.keycloak.broker.provider.AbstractIdentityProvider;
 import org.keycloak.broker.provider.AuthenticationRequest;
@@ -92,16 +73,35 @@ import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.util.JsonSerialization;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import javax.xml.crypto.dsig.CanonicalizationMethod;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLStreamWriter;
+
+import java.io.StringWriter;
+import java.net.URI;
+import java.security.KeyPair;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
 
 /**
  * @author Pedro Igor
  */
 public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityProviderConfig> {
-
-	protected static final Logger logger = Logger.getLogger(SpidIdentityProvider.class);
+    protected static final Logger logger = Logger.getLogger(SpidIdentityProvider.class);
 
     public static final String SPID_REQUEST_ISSUE_INSTANT = "SPID_REQUEST_ISSUE_INSTANT";
 

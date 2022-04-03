@@ -17,50 +17,9 @@
 
 package org.keycloak.broker.spid;
 
-import java.io.IOException;
-import java.net.URI;
-import java.security.Key;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.crypto.dsig.XMLSignature;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
 import org.jboss.logging.Logger;
 import org.jboss.resteasy.annotations.cache.NoCache;
+
 import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
@@ -75,7 +34,6 @@ import org.keycloak.dom.saml.v2.assertion.NameIDType;
 import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationDataType;
 import org.keycloak.dom.saml.v2.assertion.SubjectConfirmationType;
 import org.keycloak.dom.saml.v2.assertion.SubjectType;
-import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.dom.saml.v2.protocol.LogoutRequestType;
 import org.keycloak.dom.saml.v2.protocol.RequestAbstractType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
@@ -92,14 +50,11 @@ import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.LoginProtocol;
 import org.keycloak.protocol.LoginProtocolFactory;
 import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
-import org.keycloak.protocol.saml.SamlPrincipalType;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlProtocolUtils;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.SamlSessionUtils;
 import org.keycloak.protocol.saml.preprocessor.SamlAuthenticationPreprocessor;
-import org.keycloak.rotation.HardcodedKeyLocator;
-import org.keycloak.rotation.KeyLocator;
 import org.keycloak.saml.SAML2LogoutResponseBuilder;
 import org.keycloak.saml.SAMLRequestParser;
 import org.keycloak.saml.common.constants.GeneralConstants;
@@ -108,25 +63,74 @@ import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.common.exceptions.ProcessingException;
 import org.keycloak.saml.common.util.DocumentUtil;
-import org.keycloak.saml.common.util.StringUtil;
 import org.keycloak.saml.processing.core.saml.v2.common.SAMLDocumentHolder;
 import org.keycloak.saml.processing.core.saml.v2.constants.X500SAMLProfileConstants;
 import org.keycloak.saml.processing.core.saml.v2.util.AssertionUtil;
-import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
 import org.keycloak.saml.processing.core.util.XMLSignatureUtil;
 import org.keycloak.saml.processing.web.util.PostBindingUtil;
-import org.keycloak.saml.validators.ConditionsValidator;
-import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.services.ErrorPage;
 import org.keycloak.services.Urls;
 import org.keycloak.services.managers.AuthenticationManager;
 import org.keycloak.services.messages.Messages;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.HttpHeaders;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+import javax.xml.namespace.QName;
+import java.io.IOException;
+import java.security.Key;
+import java.security.cert.X509Certificate;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import org.keycloak.protocol.saml.SamlPrincipalType;
+import org.keycloak.rotation.HardcodedKeyLocator;
+import org.keycloak.rotation.KeyLocator;
+import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
+import org.keycloak.saml.validators.ConditionsValidator;
+import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.sessions.AuthenticationSessionModel;
-import org.keycloak.util.JsonSerialization;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import java.net.URI;
+import java.security.cert.CertificateException;
+
+import java.util.Collections;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.xml.crypto.dsig.XMLSignature;
+
+import java.util.Arrays;
+import java.util.GregorianCalendar;
+import java.util.regex.Pattern;
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
+import org.keycloak.saml.common.util.StringUtil;
+import org.keycloak.util.JsonSerialization;
 
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
@@ -468,8 +472,8 @@ public class SpidSAMLEndpoint {
                 // Apply SPID-specific response validation rules
                 String spidExpectedRequestId = authSession.getClientNote(SamlProtocol.SAML_REQUEST_ID_BROKER);
                 String requestIssueInstant = authSession.getClientNote(SpidIdentityProvider.SPID_REQUEST_ISSUE_INSTANT);
-                String entityIdIdp = config.getEntityIdIdp();
-                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, spidExpectedRequestId, requestIssueInstant, entityIdIdp);
+                String idpEntityId = config.getIdpEntityId();
+                String spidResponseValidationError = verifySpidResponse(holder.getSamlDocument().getDocumentElement(), assertionElement, spidExpectedRequestId, requestIssueInstant, idpEntityId);
                 if (spidResponseValidationError != null)
                 {
                     logger.error("SPID Response Validation Error: " + spidResponseValidationError);
@@ -480,6 +484,17 @@ public class SpidSAMLEndpoint {
                     } else {
                     	return callback.error("SpidSamlCheck_GenericError");
                     }
+                }
+
+                // Validate the response Issuer
+                final String responseIssuer = responseType.getIssuer() != null ? responseType.getIssuer().getValue(): null;
+                final boolean responseIssuerValidationSuccess = config.getIdpEntityId() == null ||
+                    (responseIssuer != null && responseIssuer.equals(config.getIdpEntityId()));
+                if (!responseIssuerValidationSuccess) {
+                    logger.errorf("Response Issuer validation failed: expected %s, actual %s", config.getIdpEntityId(), responseIssuer);
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
                 }
 
                 // Validate InResponseTo attribute: must match the generated request ID
@@ -509,6 +524,18 @@ public class SpidSAMLEndpoint {
                     AssertionUtil.decryptId(responseType, keys.getPrivateKey());
                 }
                 AssertionType assertion = responseType.getAssertions().get(0).getAssertion();
+
+                // Validate the assertion Issuer
+                final String assertionIssuer = assertion.getIssuer() != null ? assertion.getIssuer().getValue(): null;
+                final boolean assertionIssuerValidationSuccess = config.getIdpEntityId() == null ||
+                    (assertionIssuer != null && assertionIssuer.equals(config.getIdpEntityId()));
+                if (!assertionIssuerValidationSuccess) {
+                    logger.errorf("Assertion Issuer validation failed: expected %s, actual %s", config.getIdpEntityId(), assertionIssuer);
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.INVALID_REQUESTER);
+                }
+
                 NameIDType subjectNameID = getSubjectNameID(assertion);
                 String principal = getPrincipal(assertion);
 
@@ -898,7 +925,7 @@ public class SpidSAMLEndpoint {
         return true;
     }
 
-    private String verifySpidResponse(Element documentElement, Element assertionElement, String expectedRequestId, String requestIssueInstant, String entityIdIdp) {     	
+    private String verifySpidResponse(Element documentElement, Element assertionElement, String expectedRequestId, String requestIssueInstant, String idpEntityId) {
 		// 08: Response > ID empty
         String responseIDToValue = documentElement.getAttribute("ID");
         if (responseIDToValue.isEmpty()) {
@@ -945,7 +972,7 @@ public class SpidSAMLEndpoint {
         }
         
         // 29: Issuer element different from EntityID IdP (SPID check nr29)
-        if (!issuerElement.getFirstChild().getNodeValue().equals(entityIdIdp)) {
+        if (!issuerElement.getFirstChild().getNodeValue().equals(idpEntityId)) {
         	return "SpidSamlCheck_nr29";
         }
         
@@ -1144,7 +1171,7 @@ public class SpidSAMLEndpoint {
         }
         
         // 69: Issuer element of the Assertion different from EntityID IdP (SPID check nr69)
-        if (!assertionIssuerElement.getFirstChild().getNodeValue().equals(entityIdIdp)) {
+        if (!assertionIssuerElement.getFirstChild().getNodeValue().equals(idpEntityId)) {
         	return "SpidSamlCheck_nr69";
         }
 
