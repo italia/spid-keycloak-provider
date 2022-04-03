@@ -22,6 +22,7 @@ import org.keycloak.models.IdentityProviderModel;
 public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
 
     public static final String ORGANIZATION_NAMES = "organizationNames";
+    public static final String IDP_ENTITY_ID = "idpEntityId";
     public static final String ORGANIZATION_DISPLAY_NAMES = "organizationDisplayNames";
     public static final String ORGANIZATION_URLS = "organizationUrls";
     public static final String OTHER_CONTACT_SP_PRIVATE = "otherContactIsSpPrivate";
@@ -42,13 +43,20 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
     public static final String BILLING_CONTACT_SITE_PROVINCE = "billingContactSiteProvince";
     public static final String BILLING_CONTACT_SITE_COUNTRY = "billingContactSiteCountry";
     public static final String SPID_RESPONSE_DEBUG_ENABLED = "debugEnabled";
-    public static final String ENTITY_ID_IDP = "entityIdIdp";
 
     public SpidIdentityProviderConfig(){
     }
 
     public SpidIdentityProviderConfig(IdentityProviderModel identityProviderModel) {
         super(identityProviderModel);
+    }
+
+    public String getIdpEntityId() {
+        return getConfig().get(IDP_ENTITY_ID);
+    }
+
+    public void setIdpEntityId(String idpEntityId) {
+        getConfig().put(IDP_ENTITY_ID, idpEntityId);
     }
 
     public String getOrganizationNames() {
@@ -217,14 +225,6 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
 
     public void setDebugEnabled(boolean isDebugEnabled) {
         getConfig().put(SPID_RESPONSE_DEBUG_ENABLED, String.valueOf(isDebugEnabled));
-    }
-
-    public String getEntityIdIdp() {
-        return getConfig().get(ENTITY_ID_IDP);
-    }
-
-    public void setEntityIdIdp(String entityIdIdp) {
-        getConfig().put(ENTITY_ID_IDP, entityIdIdp);
     }
     
 }
