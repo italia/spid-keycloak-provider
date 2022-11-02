@@ -14,7 +14,6 @@
 
 package org.keycloak.broker.spid.metadata;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.jboss.logging.Logger;
 
 import org.keycloak.broker.spid.SpidIdentityProviderConfig;
@@ -48,8 +47,12 @@ import org.keycloak.protocol.saml.mappers.SamlMetadataDescriptorUpdater;
 import org.keycloak.services.resource.RealmResourceProvider;
 
 import java.io.StringWriter;
+import java.math.BigInteger;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -274,7 +277,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
         // Update ID with hash of content so multiple metadata request give back same xml if configuration is same.
         entityDescriptor.setID("ID_"); // Set to fixed value before hashing
         String data = entityDescriptorAsString(entityDescriptor);
-        String hash = DigestUtils.md5Hex(data) ;
+        String hash = md5hex(data);
         entityDescriptor.setID("ID_" + hash); // Update to hashed value ID
         return entityDescriptorAsString(entityDescriptor);
     }
@@ -336,6 +339,17 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
 
             spDescriptor.addAssertionConsumerService(assertionConsumerEndpoint);
             assertionEndpointIndex++;
+        }
+    }
+
+    private static String md5hex(String data)
+    {
+        try {
+            byte[] bytes = MessageDigest.getInstance("MD5").digest(data.getBytes(StandardCharsets.UTF_8));
+            return new BigInteger(1, bytes).toString(16);
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
     }
 
