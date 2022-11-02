@@ -132,6 +132,8 @@ import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
 import org.keycloak.saml.common.util.StringUtil;
 import org.keycloak.util.JsonSerialization;
 
+import static org.keycloak.utils.LockObjectsForModification.lockUserSessionsForModification;
+
 /**
  * @author <a href="mailto:bill@burkecentral.com">Bill Burke</a>
  * @version $Revision: 1 $
@@ -345,7 +347,7 @@ public class SpidSAMLEndpoint {
             }  else {
                 for (String sessionIndex : request.getSessionIndex()) {
                     String brokerSessionId = config.getAlias()  + "." + sessionIndex;
-                    UserSessionModel userSession = session.sessions().getUserSessionByBrokerSessionId(realm, brokerSessionId);
+                    UserSessionModel userSession = lockUserSessionsForModification(session, () -> session.sessions().getUserSessionByBrokerSessionId(realm, brokerSessionId));
                     if (userSession != null) {
                         if (userSession.getState() == UserSessionModel.State.LOGGING_OUT || userSession.getState() == UserSessionModel.State.LOGGED_OUT) {
                             continue;
@@ -710,7 +712,7 @@ public class SpidSAMLEndpoint {
                 event.error(Errors.USER_SESSION_NOT_FOUND);
                 return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
             }
-            UserSessionModel userSession = session.sessions().getUserSession(realm, relayState);
+            UserSessionModel userSession = lockUserSessionsForModification(session, () -> session.sessions().getUserSession(realm, relayState));
             if (userSession == null) {
                 logger.error("no valid user session");
                 event.event(EventType.LOGOUT);

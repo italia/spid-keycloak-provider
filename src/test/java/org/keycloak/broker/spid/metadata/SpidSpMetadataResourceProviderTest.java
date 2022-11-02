@@ -23,7 +23,7 @@ import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.asn1.x509.X509Name;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.x509.X509V3CertificateGenerator;
-import org.jboss.resteasy.specimpl.ResteasyUriBuilder;
+import org.jboss.resteasy.spi.ResteasyUriBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -149,7 +149,7 @@ public class SpidSpMetadataResourceProviderTest {
             when(keycloakSession.getContext()).thenReturn(keycloakContext);
             lenient().when(keycloakSession.getKeycloakSessionFactory()).thenReturn(keycloakSessionFactory);
             KeycloakUriInfo keycloakUriInfo = mock(KeycloakUriInfo.class);
-            lenient().when(keycloakUriInfo.getBaseUriBuilder()).thenAnswer(i -> new ResteasyUriBuilder().uri(new URI(SP_KEYCLOAK_BASE_URL + "/auth")));
+            lenient().when(keycloakUriInfo.getBaseUriBuilder()).thenAnswer(i -> ResteasyUriBuilder.fromUri(new URI(SP_KEYCLOAK_BASE_URL + "/auth")));
             lenient().when(keycloakContext.getUri()).thenReturn(keycloakUriInfo);
             when(keycloakContext.getRealm()).thenReturn(realm);
             lenient().when(realm.getName()).thenReturn("spid-realm");

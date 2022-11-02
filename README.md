@@ -31,7 +31,7 @@ As far as I know it has not been used in Production in any environment yet.
 
 Until the project gets to a stable release, it will be targeting the most recent release 
 of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
-Currently the main branch is targeting Keycloak 16.1.1. **Do not use the latest release with previous
+Currently the main branch is targeting Keycloak 19.0.3. **Do not use the latest release with previous
 versions of Keycloak, it won't work!**  
 
 Since this plugin uses some Keycloak internal modules, versions of this plugin
@@ -89,6 +89,11 @@ and change it to:
 Then restart Keycloak and it will reload the resources from the packages. Make sure you also clear 
 your browser caches or use incognito mode when verifying the correct deployment.
 After the first reload you can turn back on the caches and restart Keycloak again.
+
+If you are upgrading to Keycloak v19.x, please keep in mind that Keycloak switched the admin console 
+to the new "keycloak.v2" theme. This plugin is not yet compatible with the new Admin console theme, 
+so you'll have to switch the Admin Console Theme to the older "keycloak" one in order to configure
+the SPID-related settings.
 
 ## Open issues and limitations
 Please read the appropriate page on the project wiki 
