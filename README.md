@@ -41,14 +41,30 @@ certainly have also to update this provider.
 Detailed instructions on how to install and configure this component are
 available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
 
-## Build requirements
+## Build (without docker)
+Requirements:
 * git
 * JDK8+
 * Maven
 
-## Build
-Just run `mvn clean package` for a full rebuild. The output package will
-be generated under `target/spid-provider.jar`.
+Just run:
+```
+git clone https://github.com/italia/spid-keycloak-provider.git
+cd spid-keycloak-provider
+mvn clean package
+```
+The output package will be generated under `target/spid-provider.jar`.
+
+## Build (with docker)
+Requirements:
+* Docker
+
+Just run:
+```
+git clone https://github.com/italia/spid-keycloak-provider.git
+docker run --rm -v $(pwd)/spid-keycloak-provider:/opt/spid-keycloak-provider -w /opt/spid-keycloak-provider maven:3.8.6-openjdk-18-slim bash -c "mvn clean package"
+```
+The output package will be generated under `spid-keycloak-provider/target/spid-provider.jar`.
 
 ## Deployment
 This provider should be deployed as a module, i.e. copied under
