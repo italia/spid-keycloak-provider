@@ -1,4 +1,4 @@
-SERVICE_TARGET := keycloak-multiple-ds-user-storage
+SERVICE_TARGET := spid-keycloak-provider
 
 # all our targets are phony (no files to check).
 .PHONY: help package
