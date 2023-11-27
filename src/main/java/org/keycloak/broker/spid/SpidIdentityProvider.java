@@ -50,7 +50,6 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserSessionModel;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.protocol.saml.JaxrsSAML2BindingBuilder;
-import org.keycloak.protocol.saml.SAMLEncryptionAlgorithms;
 import org.keycloak.protocol.saml.SamlProtocol;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.SamlSessionUtils;
@@ -117,7 +116,7 @@ public class SpidIdentityProvider extends AbstractIdentityProvider<SpidIdentityP
 
     @Override
     public Object callback(RealmModel realm, AuthenticationCallback callback, EventBuilder event) {
-        return new SpidSAMLEndpoint(realm, this, getConfig(), callback, destinationValidator);
+        return new SpidSAMLEndpoint(session, this, getConfig(), callback, destinationValidator);
     }
 
     @Override

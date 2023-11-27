@@ -110,6 +110,7 @@ import org.keycloak.saml.validators.ConditionsValidator;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.keycloak.services.util.CacheControlUtil;
 import org.keycloak.sessions.AuthenticationSessionModel;
+import org.keycloak.utils.StringUtil;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -129,7 +130,6 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import org.keycloak.dom.saml.v2.protocol.AuthnContextComparisonType;
-import org.keycloak.saml.common.util.StringUtil;
 import org.keycloak.util.JsonSerialization;
 
 import static org.keycloak.utils.LockObjectsForModification.lockUserSessionsForModification;
@@ -170,12 +170,15 @@ public class SpidSAMLEndpoint {
     private HttpHeaders headers;
 
 
-    public SpidSAMLEndpoint(RealmModel realm, SpidIdentityProvider provider, SpidIdentityProviderConfig config, IdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator) {
-        this.realm = realm;
+    public SpidSAMLEndpoint(KeycloakSession session, SpidIdentityProvider provider, SpidIdentityProviderConfig config, IdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator) {
+        this.realm = session.getContext().getRealm();
         this.config = config;
         this.callback = callback;
         this.provider = provider;
         this.destinationValidator = destinationValidator;
+        this.session = session;
+        this.clientConnection = session.getContext().getConnection();
+        this.headers = session.getContext().getRequestHeaders();
     }
 
     @GET
@@ -426,10 +429,15 @@ public class SpidSAMLEndpoint {
 
             try {
                 AuthenticationSessionModel authSession;
-                if (clientId != null && ! clientId.trim().isEmpty()) {
+                if (StringUtil.isNotBlank(clientId)) {
                     authSession = samlIdpInitiatedSSO(clientId);
-                } else {
+                } else if (StringUtil.isNotBlank(relayState)) {
                     authSession = callback.getAndVerifyAuthenticationSession(relayState);
+                } else {
+                    logger.error("SAML RelayState parameter was null when it should be returned by the IDP");
+                    event.event(EventType.LOGIN);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return ErrorPage.error(session, null, Response.Status.BAD_REQUEST, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
                 }
                 session.getContext().setAuthenticationSession(authSession);
 
@@ -969,7 +977,7 @@ public class SpidSAMLEndpoint {
         }
 
         // 27: Issuer element is empty (SPID check nr27)
-        if (!issuerElement.hasChildNodes() || !StringUtil.isNotNull(issuerElement.getFirstChild().getNodeValue()) || hasNamedChild(issuerElement)) {
+        if (!issuerElement.hasChildNodes() || !org.keycloak.saml.common.util.StringUtil.isNotNull(issuerElement.getFirstChild().getNodeValue()) || hasNamedChild(issuerElement)) {
         	return "SpidSamlCheck_nr27";
         }
         
@@ -1030,7 +1038,7 @@ public class SpidSAMLEndpoint {
         }
 
         // 43: NameID element of the Assertion is empty (SPID check nr43)
-        if (!nameIdElement.hasChildNodes() || !StringUtil.isNotNull(nameIdElement.getFirstChild().getNodeValue()) || hasNamedChild(nameIdElement)) {
+        if (!nameIdElement.hasChildNodes() || !org.keycloak.saml.common.util.StringUtil.isNotNull(nameIdElement.getFirstChild().getNodeValue()) || hasNamedChild(nameIdElement)) {
         	return "SpidSamlCheck_nr43";
         }
                 
@@ -1168,7 +1176,7 @@ public class SpidSAMLEndpoint {
         }
 
         // 67: Issuer element of the Assertion is empty (SPID check nr67)
-        if (!assertionIssuerElement.hasChildNodes() || !StringUtil.isNotNull(assertionIssuerElement.getFirstChild().getNodeValue()) || hasNamedChild(assertionIssuerElement)) {
+        if (!assertionIssuerElement.hasChildNodes() || !org.keycloak.saml.common.util.StringUtil.isNotNull(assertionIssuerElement.getFirstChild().getNodeValue()) || hasNamedChild(assertionIssuerElement)) {
         	return "SpidSamlCheck_nr67";
         }
         
@@ -1252,7 +1260,7 @@ public class SpidSAMLEndpoint {
         }
 
         // 92: AuthStatement AuthStatement AuthContextClassRef Element of the Assertion is empty (SPID check nr92)
-        if (!authnContextClassRef.hasChildNodes() || !StringUtil.isNotNull(authnContextClassRef.getFirstChild().getNodeValue()) || hasNamedChild(authnContextClassRef)) {
+        if (!authnContextClassRef.hasChildNodes() || !org.keycloak.saml.common.util.StringUtil.isNotNull(authnContextClassRef.getFirstChild().getNodeValue()) || hasNamedChild(authnContextClassRef)) {
         	return "SpidSamlCheck_nr92";
         }
         
