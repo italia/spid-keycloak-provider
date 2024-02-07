@@ -31,7 +31,7 @@ As far as I know it has not been used in Production in any environment yet.
 
 Until the project gets to a stable release, it will be targeting the most recent release 
 of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
-Currently the main branch is targeting Keycloak 20.0.0. **Do not use the latest release with previous
+Currently the main branch is targeting Keycloak 23.0.6. **Do not use the latest release with previous
 versions of Keycloak, it won't work!**  
 
 Since this plugin uses some Keycloak internal modules, versions of this plugin
@@ -44,7 +44,7 @@ available in the project wiki (https://github.com/italia/spid-keycloak-provider/
 ## Build (without docker)
 Requirements:
 * git
-* JDK8+
+* JDK17+
 * Maven
 
 Just run:
