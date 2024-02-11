@@ -23,28 +23,37 @@ sure to read it and understand the config steps and the open issues and
 limitations before planning your Production environment.
 
 ## Status
-This project is still at an alpha stage. It is currently under development 
-and things may change quickly. It builds and successfully allows login/logout 
-to the SPID Validator test IdP (https://github.com/italia/spid-saml-check) 
-and to the online SPID tester (https://www.spid-validator.it).  
-As far as I know it has not been used in Production in any environment yet.  
+This project is still at a beta stage. It has been successfully tested for SPID validation and 
+**it's currently used in Production**.
 
 Until the project gets to a stable release, it will be targeting the most recent release 
 of Keycloak as published on the website (see property `version.keycloak` in file `pom.xml`).
-Currently the main branch is targeting Keycloak 20.0.0. **Do not use the latest release with previous
+Currently the main branch is targeting Keycloak 23.0.6. **Do not use the latest release with previous
 versions of Keycloak, it won't work!**  
 
 Since this plugin uses some Keycloak internal modules, versions of this plugin
 are coupled to Keycloak versions. After (major) Keycloak upgrades, you will almost
 certainly have also to update this provider.  
 
-Detailed instructions on how to install and configure this component are
+## Compatibility
+* Keycloak 23.x.x: Release 1.0.17
+* Keycloak 19.x.x: Release 1.0.16
+
+## Configuration
+### Release 1.0.17 (latest, Keycloak 23.x.x compatibility)
+With the latest release targeting latest Keycloak 23.x.x it's not possible to configure the plugin through the Keycloak web UI, 
+but only through REST services. Suggested to use https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
+
+### Release 1.0.6
+It's possible to configure the plugin through the Keycloak web UI, detailed instructions
+on how to install and configure this component are
 available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
+To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
 
 ## Build (without docker)
 Requirements:
 * git
-* JDK8+
+* JDK17+
 * Maven
 
 Just run:
@@ -68,7 +77,7 @@ The output package will be generated under `spid-keycloak-provider/target/spid-p
 
 ## Deployment
 This provider should be deployed as a module, i.e. copied under
-`{$KEYCLOAK_PATH}/standalone/deployments/`, with the right permissions.
+`{$KEYCLOAK_PATH}/providers/`, with the right permissions.
 Keycloak will take care of loading the module, no restart needed.  
 
 Use this command for reference:  

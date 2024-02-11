@@ -35,6 +35,8 @@ import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.provider.ConfiguredProvider;
+import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.common.util.DocumentUtil;
@@ -45,7 +47,7 @@ import org.w3c.dom.Element;
 /**
  * @author Pedro Igor
  */
-public class SpidIdentityProviderFactory extends AbstractIdentityProviderFactory<SpidIdentityProvider> {
+public class SpidIdentityProviderFactory extends AbstractIdentityProviderFactory<SpidIdentityProvider> implements ConfiguredProvider {
 
     public static final String PROVIDER_ID = "spid";
 
@@ -199,5 +201,9 @@ public class SpidIdentityProviderFactory extends AbstractIdentityProviderFactory
         super.init(config);
 
         this.destinationValidator = DestinationValidator.forProtocolMap(config.getArray("knownProtocols"));
+    }
+
+    public List<ProviderConfigProperty> getConfigProperties() {
+        return SpidIdentityProviderConfig.getConfigProperties();
     }
 }
