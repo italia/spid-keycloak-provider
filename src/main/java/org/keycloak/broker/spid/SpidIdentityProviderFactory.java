@@ -49,7 +49,7 @@ import org.w3c.dom.Element;
  */
 public class SpidIdentityProviderFactory extends AbstractIdentityProviderFactory<SpidIdentityProvider> implements ConfiguredProvider {
 
-    public static final String PROVIDER_ID = "spid";
+    public static final String PROVIDER_ID = "spid-saml";
 
     private static final String MACEDIR_ENTITY_CATEGORY = "http://macedir.org/entity-category";
     private static final String REFEDS_HIDE_FROM_DISCOVERY = "http://refeds.org/category/hide-from-discovery";
