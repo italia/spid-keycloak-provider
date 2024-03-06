@@ -164,7 +164,7 @@ public class SpidSpMetadataResourceProviderTest {
 
         Response response = invitationResourceProvider.get();
         assertEquals(200, response.getStatus());
-        assertMetaData(response.readEntity(String.class), "/metadata/expected_metadata_public_SP.xml");
+        assertMetaData(response.getEntity().toString(), "/metadata/expected_metadata_public_SP.xml");
     }
 
     @Test
@@ -173,7 +173,7 @@ public class SpidSpMetadataResourceProviderTest {
 
         Response response = invitationResourceProvider.get();
         assertEquals(200, response.getStatus());
-        assertMetaData(response.readEntity(String.class), "/metadata/expected_metadata_private_SP.xml");
+        assertMetaData(response.getEntity().toString(), "/metadata/expected_metadata_private_SP.xml");
     }
 
     private Map<String, String> mockPublicSPConfig() {
