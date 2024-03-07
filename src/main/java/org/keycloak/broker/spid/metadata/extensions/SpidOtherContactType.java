@@ -10,7 +10,6 @@ import org.keycloak.saml.common.util.StringUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
 import java.util.Optional;
 
 public abstract class SpidOtherContactType extends ContactType {
