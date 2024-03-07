@@ -44,7 +44,6 @@ import org.keycloak.saml.common.util.StaxUtil;
 import org.keycloak.saml.common.exceptions.ConfigurationException;
 import org.keycloak.saml.processing.core.saml.v2.writers.SAMLMetadataWriter;
 import org.keycloak.saml.processing.api.saml.v2.sig.SAML2Signature;
-import org.keycloak.protocol.saml.SAMLEncryptionAlgorithms;
 import org.keycloak.protocol.saml.SamlService;
 import org.keycloak.protocol.saml.mappers.SamlMetadataDescriptorUpdater;
 import org.keycloak.services.resource.RealmResourceProvider;
