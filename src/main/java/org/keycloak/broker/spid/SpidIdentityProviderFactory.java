@@ -26,6 +26,7 @@ import javax.xml.namespace.QName;
 
 import org.keycloak.Config.Scope;
 import org.keycloak.broker.provider.AbstractIdentityProviderFactory;
+import org.keycloak.broker.spid.metadata.SpidSpMetadataResourceProvider;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
 import org.keycloak.dom.saml.v2.metadata.EntitiesDescriptorType;
@@ -63,6 +64,7 @@ public class SpidIdentityProviderFactory extends AbstractIdentityProviderFactory
 
     @Override
     public SpidIdentityProvider create(KeycloakSession session, IdentityProviderModel model) {
+        model.getConfig().put(SpidIdentityProviderConfig.METADATA_URL, SpidSpMetadataResourceProvider.getMetadataURL(session).toString());
         return new SpidIdentityProvider(session, new SpidIdentityProviderConfig(model), destinationValidator);
     }
 

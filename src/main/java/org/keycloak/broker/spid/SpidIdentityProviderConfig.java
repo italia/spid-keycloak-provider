@@ -19,6 +19,7 @@ package org.keycloak.broker.spid;
 import java.util.List;
 
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
+import org.keycloak.broker.spid.metadata.SpidSpMetadataResourceProviderFactory;
 import org.keycloak.models.IdentityProviderModel;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
@@ -47,6 +48,7 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
     public static final String BILLING_CONTACT_SITE_PROVINCE = "billingContactSiteProvince";
     public static final String BILLING_CONTACT_SITE_COUNTRY = "billingContactSiteCountry";
     public static final String SPID_RESPONSE_DEBUG_ENABLED = "debugEnabled";
+    public static final String METADATA_URL = "metadataUrl";
 
     public SpidIdentityProviderConfig(){
     }
@@ -233,6 +235,15 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
 
     public static List<ProviderConfigProperty> getConfigProperties() {
         return ProviderConfigurationBuilder.create()
+
+        .property()
+        .name(METADATA_URL)
+        .type(ProviderConfigProperty.STRING_TYPE)
+        .defaultValue("/realms/<realm>/" + SpidSpMetadataResourceProviderFactory.ID)
+        .label("identity-provider.saml.url.metadata")
+        .helpText("identity-provider.saml.url.metadata.tooltip")
+        .add()
+
         .property()
         .name(ORGANIZATION_NAMES)
         .type(ProviderConfigProperty.STRING_TYPE)
@@ -386,7 +397,7 @@ public class SpidIdentityProviderConfig extends SAMLIdentityProviderConfig  {
         .label("identity-provider.spid.debug-enabled")
         .helpText("identity-provider.spid.debug-enabled.tooltip")
         .add()
-        
+
         .build();
     }
     

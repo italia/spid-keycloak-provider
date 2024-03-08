@@ -358,4 +358,11 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
     public void close() {
     }
 
+    public static URI getMetadataURL(KeycloakSession session) {
+        UriInfo uriInfo = session.getContext().getUri();
+        return uriInfo.getBaseUriBuilder()
+                    .path("realms").path(session.getContext().getRealm().getName())
+                    .path(SpidSpMetadataResourceProviderFactory.ID)
+                    .build();
+    }
 }
