@@ -18,9 +18,8 @@
 package org.keycloak.broker.spid;
 
 import org.jboss.logging.Logger;
-import org.jboss.resteasy.annotations.cache.NoCache;
+//import org.jboss.resteasy.reactive.NoCache;
 
-import org.jboss.resteasy.spi.ResteasyProviderFactory;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProvider;
@@ -180,7 +179,7 @@ public class SpidSAMLEndpoint {
     }
 
     @GET
-    @NoCache
+    // @NoCache
     @Path("descriptor")
     public Response getSPDescriptor() {
         return provider.export(session.getContext().getUri(), realm, null);
@@ -555,7 +554,7 @@ public class SpidSAMLEndpoint {
                 }
 
                 //Map<String, String> notes = new HashMap<>();
-                BrokeredIdentityContext identity = new BrokeredIdentityContext(principal);
+                BrokeredIdentityContext identity = new BrokeredIdentityContext(principal, config);
                 identity.getContextData().put(SAML_LOGIN_RESPONSE, responseType);
                 identity.getContextData().put(SAML_ASSERTION, assertion);
                 identity.setAuthenticationSession(authSession);
@@ -606,7 +605,6 @@ public class SpidSAMLEndpoint {
 
                 String brokerUserId = config.getAlias() + "." + principal;
                 identity.setBrokerUserId(brokerUserId);
-                identity.setIdpConfig(config);
                 identity.setIdp(provider);
                 if (authn != null && authn.getSessionIndex() != null) {
                     identity.setBrokerSessionId(config.getAlias() + "." + authn.getSessionIndex());
@@ -646,7 +644,6 @@ public class SpidSAMLEndpoint {
 
             LoginProtocolFactory factory = (LoginProtocolFactory) session.getKeycloakSessionFactory().getProviderFactory(LoginProtocol.class, SamlProtocol.LOGIN_PROTOCOL);
             SamlService samlService = (SamlService) factory.createProtocolEndpoint(SpidSAMLEndpoint.this.session, event);
-            ResteasyProviderFactory.getInstance().injectProperties(samlService);
             AuthenticationSessionModel authSession = samlService.getOrCreateLoginSessionForIdpInitiatedSso(session, SpidSAMLEndpoint.this.realm, oClient.get(), null);
             if (authSession == null) {
                 event.error(Errors.INVALID_REDIRECT_URI);
