@@ -35,11 +35,17 @@ are coupled to Keycloak versions. After (major) Keycloak upgrades, you will almo
 certainly have also to update this provider.  
 
 ## Compatibility
+* Keycloak 25.x.x: Release `25.0.1`
 * Keycloak 24.x.x: Release `24.0.1`
 * Keycloak 23.x.x: Release `1.0.17`
 * Keycloak 19.x.x: Release `1.0.16`
 
 ## Configuration
+### Release 25.0.1 (latest, Keycloak 25.0.1 compatibility)
+Detailed instructions on how to install and configure this component are 
+available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
+To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
+
 ### Release 24.0.1 (latest, Keycloak 24.0.1 compatibility)
 With this release targeting latest Keycloak 24.0.1 it was restored the possibility of configuring the plugin through 
 the Keycloak web UI, detailed instructions on how to install and configure this component are 
