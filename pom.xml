@@ -8,7 +8,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.lscorcia</groupId>
     <artifactId>keycloak-spid-provider</artifactId>
-    <version>24.0.2</version>
+    <version>25.0.1</version>
     <packaging>jar</packaging>
 
     <name>Keycloak SPID Service Provider</name>
@@ -19,12 +19,13 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <version.keycloak>24.0.3</version.keycloak>
+        <version.keycloak>25.0.1</version.keycloak>
         <slf4j-api.version>1.7.30</slf4j-api.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <mockito.version>4.3.1</mockito.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <resteasy.version>6.2.7.Final</resteasy.version>
     </properties>
 
     <scm>

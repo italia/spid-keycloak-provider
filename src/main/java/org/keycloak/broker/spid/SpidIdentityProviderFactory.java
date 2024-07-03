@@ -16,7 +16,6 @@
  */
 package org.keycloak.broker.spid;
 
-import java.io.InputStream;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +40,7 @@ import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.common.util.DocumentUtil;
+import org.keycloak.saml.common.util.StaxParserUtil;
 import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.w3c.dom.Element;
@@ -74,9 +74,9 @@ public class SpidIdentityProviderFactory extends AbstractIdentityProviderFactory
     }
 
     @Override
-    public Map<String, String> parseConfig(KeycloakSession session, InputStream inputStream) {
+    public Map<String, String> parseConfig(KeycloakSession session, String config) {
         try {
-            Object parsedObject = SAMLParser.getInstance().parse(inputStream);
+            Object parsedObject = SAMLParser.getInstance().parse(StaxParserUtil.getXMLEventReader(config));
             EntityDescriptorType entityType;
 
             if (EntitiesDescriptorType.class.isInstance(parsedObject)) {
