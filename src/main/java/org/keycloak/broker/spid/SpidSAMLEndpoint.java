@@ -18,7 +18,7 @@
 package org.keycloak.broker.spid;
 
 import org.jboss.logging.Logger;
-//import org.jboss.resteasy.reactive.NoCache;
+import org.jboss.resteasy.reactive.NoCache;
 
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
@@ -179,7 +179,7 @@ public class SpidSAMLEndpoint {
     }
 
     @GET
-    // @NoCache
+    @NoCache
     @Path("descriptor")
     public Response getSPDescriptor() {
         return provider.export(session.getContext().getUri(), realm, null);
