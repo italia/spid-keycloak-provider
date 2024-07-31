@@ -30,7 +30,7 @@ public class SpidBillingContactTypePrivateSP extends SpidBillingContactType {
             logger.errorf("Invalid VAT number % ", config.getVatNumber());
         } else {
             createElement("fpa:IdPaese", config.getVatNumber().substring(0, 2)).ifPresent(vatFiscalCode::appendChild);
-            createElement("fpa:IdCodice", config.getVatNumber().substring(3, 13)).ifPresent(vatFiscalCode::appendChild);
+            createElement("fpa:IdCodice", config.getVatNumber().substring(2, 13)).ifPresent(vatFiscalCode::appendChild);
         }
         personalData.appendChild(vatFiscalCode);
 
