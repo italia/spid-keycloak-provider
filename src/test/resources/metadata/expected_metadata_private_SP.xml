@@ -74,7 +74,7 @@
         <fpa:DatiAnagrafici>
           <fpa:IdFiscaleIVA>
             <fpa:IdPaese>IT</fpa:IdPaese>
-            <fpa:IdCodice>1234567890</fpa:IdCodice>
+            <fpa:IdCodice>01234567890</fpa:IdCodice>
           </fpa:IdFiscaleIVA>
           <fpa:Anagrafica>
             <fpa:Denominazione>Registry Name</fpa:Denominazione>
