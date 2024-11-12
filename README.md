@@ -35,7 +35,7 @@ are coupled to Keycloak versions. After (major) Keycloak upgrades, you will almo
 certainly have also to update this provider.  
 
 ## Compatibility
-* Keycloak 26.x.x: Release `26.0.1`
+* Keycloak 26.x.x: Release `26.0.5`
 * Keycloak 25.x.x: Release `25.0.1`
 * Keycloak 24.x.x: Release `24.0.1`
 * Keycloak 23.x.x: Release `1.0.17`
