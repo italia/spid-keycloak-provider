@@ -442,16 +442,21 @@ public class SpidSAMLEndpoint {
                     boolean isSpidFault = responseType.getStatus() != null
                         && responseType.getStatus().getStatusMessage() != null
                         && responseType.getStatus().getStatusMessage().startsWith("ErrorCode nr");
-                    if (isSpidFault)
-                        return callback.error("SpidFault_" + responseType.getStatus().getStatusMessage().replace(' ', '_'));
+                    if (isSpidFault) {
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE_ERROR);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, "SpidFault_" + responseType.getStatus().getStatusMessage().replace(' ', '_'));
+                    }
                     else
                     {
                         String statusMessage = responseType.getStatus() == null || responseType.getStatus().getStatusMessage() == null ? Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR : responseType.getStatus().getStatusMessage();
-                        return callback.error(statusMessage);
+                        event.event(EventType.IDENTITY_PROVIDER_RESPONSE_ERROR);
+                        event.error(Errors.INVALID_SAML_RESPONSE);
+                        return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, statusMessage);
                     }
                 }
                 if (responseType.getAssertions() == null || responseType.getAssertions().isEmpty()) {
-                    return callback.error(Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
+                    return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, Messages.IDENTITY_PROVIDER_UNEXPECTED_ERROR);
                 }
 
                 boolean assertionIsEncrypted = AssertionUtil.isAssertionEncrypted(responseType);
@@ -484,11 +489,9 @@ public class SpidSAMLEndpoint {
                     logger.error("SPID Response Validation Error: " + spidResponseValidationError);
                     event.event(EventType.IDENTITY_PROVIDER_RESPONSE);
                     event.error(Errors.INVALID_SAML_RESPONSE);
-                    if (config.isDebugEnabled()) {
-                    	return callback.error(spidResponseValidationError);
-                    } else {
-                    	return callback.error("SpidSamlCheck_GenericError");
-                    }
+                    event.event(EventType.IDENTITY_PROVIDER_RESPONSE_ERROR);
+                    event.error(Errors.INVALID_SAML_RESPONSE);
+                    return ErrorPage.error(session, authSession, Response.Status.BAD_REQUEST, config.isDebugEnabled() ? spidResponseValidationError : "SpidSamlCheck_GenericError");
                 }
 
                 // Validate the response Issuer
