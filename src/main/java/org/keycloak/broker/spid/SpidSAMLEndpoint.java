@@ -658,6 +658,7 @@ public class SpidSAMLEndpoint {
               && responseType.getStatus() != null
               && responseType.getStatus().getStatusCode() != null
               && responseType.getStatus().getStatusCode().getValue() != null
+              && responseType.getStatus().getStatusCode().getValue().toString().isEmpty() == false
               && Objects.equals(responseType.getStatus().getStatusCode().getValue().toString(), JBossSAMLURIConstants.STATUS_SUCCESS.get());
         }
 
