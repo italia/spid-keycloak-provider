@@ -22,6 +22,7 @@ import org.jboss.logging.Logger;
 import org.keycloak.broker.provider.BrokeredIdentityContext;
 import org.keycloak.broker.provider.IdentityBrokerException;
 import org.keycloak.broker.provider.IdentityProvider;
+import org.keycloak.broker.provider.UserAuthenticationIdentityProvider;
 import org.keycloak.common.ClientConnection;
 import org.keycloak.common.VerificationException;
 import org.keycloak.dom.saml.v2.assertion.AssertionType;
@@ -148,7 +149,7 @@ public class SpidSAMLEndpoint {
     protected RealmModel realm;
     protected EventBuilder event;
     protected SpidIdentityProviderConfig config;
-    protected IdentityProvider.AuthenticationCallback callback;
+    protected UserAuthenticationIdentityProvider.AuthenticationCallback callback;
     protected SpidIdentityProvider provider;
     private final DestinationValidator destinationValidator;
     // iso8601 fully compliant regex
@@ -166,7 +167,7 @@ public class SpidSAMLEndpoint {
     private HttpHeaders headers;
 
 
-    public SpidSAMLEndpoint(KeycloakSession session, SpidIdentityProvider provider, SpidIdentityProviderConfig config, IdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator) {
+    public SpidSAMLEndpoint(KeycloakSession session, SpidIdentityProvider provider, SpidIdentityProviderConfig config, UserAuthenticationIdentityProvider.AuthenticationCallback callback, DestinationValidator destinationValidator) {
         this.realm = session.getContext().getRealm();
         this.config = config;
         this.callback = callback;
