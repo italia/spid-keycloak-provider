@@ -19,7 +19,7 @@
         <failOnMissingWebXml>false</failOnMissingWebXml>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <version.keycloak>26.5.2</version.keycloak>
+        <version.keycloak>26.5.3</version.keycloak>
         <quarkus.version>3.8.5</quarkus.version>
         <slf4j-api.version>1.7.30</slf4j-api.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
