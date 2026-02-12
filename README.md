@@ -35,7 +35,7 @@ are coupled to Keycloak versions. After (major) Keycloak upgrades, you will almo
 certainly have also to update this provider.  
 
 ## Compatibility
-* Keycloak 26.5.x: Release `26.5.2`
+* Keycloak 26.5.x: Release `26.5.3`
 * Keycloak 26.4.x: Release `26.4.2`
 * Keycloak 26.3.x: Release `26.3.1`
 * Keycloak 26.2.x: Release `26.2.3`
@@ -47,7 +47,7 @@ certainly have also to update this provider.
 * Keycloak 19.x.x: Release `1.0.16`
 
 ## Configuration
-### Release 26.5.2 (latest, Keycloak 26.5.x compatibility)
+### Release 26.5.3 (latest, Keycloak 26.5.x compatibility)
 Detailed instructions on how to install and configure this component are 
 available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
 To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
