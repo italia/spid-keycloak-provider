@@ -35,6 +35,8 @@ import org.keycloak.crypto.KeyUse;
 import org.keycloak.crypto.KeyWrapper;
 import org.keycloak.models.IdentityProviderMapperModel;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProviderQuery;
+import org.keycloak.models.IdentityProviderStorageProvider;
 import org.keycloak.models.KeyManager;
 import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.KeycloakSession;
@@ -63,8 +65,6 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
@@ -84,6 +84,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 
 @ExtendWith(MockitoExtension.class)
 public class SpidSpMetadataResourceProviderTest {
@@ -97,6 +98,8 @@ public class SpidSpMetadataResourceProviderTest {
     private KeycloakSessionFactory keycloakSessionFactory;
     @Mock
     private RealmModel realm;
+    @Mock
+    IdentityProviderStorageProvider identityProviderStorageProvider;
     @InjectMocks
     private SpidSpMetadataResourceProvider invitationResourceProvider = spy(new SpidSpMetadataResourceProvider(keycloakSession));
 
@@ -138,9 +141,8 @@ public class SpidSpMetadataResourceProviderTest {
             KeyManager keyManager = mock(KeyManager.class);
             lenient().when(keycloakSession.keys()).thenReturn(keyManager);
             lenient().when(keyManager.getKeysStream(realm, KeyUse.SIG, Algorithm.RS256)).thenReturn(Stream.of(keyWrapper));
-            lenient().when(keyManager.getActiveRsaKey(realm)).thenReturn(
-                new KeyManager.ActiveRsaKey(keyWrapper.getKid(), (PrivateKey) keyWrapper.getPrivateKey(), (PublicKey) keyWrapper.getPublicKey(),
-                    keyWrapper.getCertificate()));
+            lenient().when(keyManager.getActiveKey(realm, KeyUse.SIG, Algorithm.RS256)).thenReturn(keyWrapper);
+            lenient().when(keycloakSession.identityProviders()).thenReturn(identityProviderStorageProvider);
         } catch (Exception e) {
             log.error("", e);
         }
@@ -215,7 +217,7 @@ public class SpidSpMetadataResourceProviderTest {
     }
 
     private Map<String, String> mockCommonConfig() {
-        Map<String, String> providerConfig = new HashMap();
+        Map<String, String> providerConfig = new HashMap<String, String>();
         // Generic SAML configuration options
 
         providerConfig.put(SAMLIdentityProviderConfig.ENTITY_ID, SP_KEYCLOAK_BASE_URL);
@@ -249,7 +251,7 @@ public class SpidSpMetadataResourceProviderTest {
     }
 
     private void mockSPIDProviders(Map<String, String> commonConfig, String... aliases) {
-        when(realm.getIdentityProvidersStream()).thenReturn(Stream.of(aliases).map(alias -> mockSPIDProvider(commonConfig, alias)));
+        when(identityProviderStorageProvider.getAllStream(any(IdentityProviderQuery.class))).thenReturn(Stream.of(aliases).map(alias -> mockSPIDProvider(commonConfig, alias)));
     }
 
     private IdentityProviderModel mockSPIDProvider(Map<String, String> commonConfig, String alias) {
@@ -257,13 +259,13 @@ public class SpidSpMetadataResourceProviderTest {
         when(idpModel.getAlias()).thenReturn(alias);
         when(idpModel.getProviderId()).thenReturn(SpidIdentityProviderFactory.PROVIDER_ID);
         when(idpModel.isEnabled()).thenReturn(true);
-        Map<String, String> idpConfig = new HashMap();
+        Map<String, String> idpConfig = new HashMap<String, String>();
         idpConfig.putAll(commonConfig);
         idpConfig.put(SAMLIdentityProviderConfig.SINGLE_SIGN_ON_SERVICE_URL, "https://" + alias + ".localtest.me/samlsso/login");
         idpConfig.put(SAMLIdentityProviderConfig.SINGLE_LOGOUT_SERVICE_URL, "https://" + alias + ".localtest.me/samlsso/logout");
         lenient().when(idpModel.getConfig()).thenReturn(idpConfig);
         Stream<IdentityProviderMapperModel> identityProviderMappers = mockAttributeMappers(alias);
-        lenient().when(realm.getIdentityProviderMappersByAliasStream(alias)).thenReturn(identityProviderMappers);
+        lenient().when(identityProviderStorageProvider.getMappersByAliasStream(alias)).thenReturn(identityProviderMappers);
         return idpModel;
     }
 

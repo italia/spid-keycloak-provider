@@ -33,7 +33,10 @@ import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.dom.saml.v2.metadata.LocalizedNameType;
 import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
 import org.keycloak.models.KeyManager;
+import org.keycloak.models.KeyManager.ActiveRsaKey;
 import org.keycloak.models.IdentityProviderModel;
+import org.keycloak.models.IdentityProviderQuery;
+import org.keycloak.models.IdentityProviderStorageProvider;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.saml.SPMetadataDescriptor;
@@ -99,7 +102,8 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
         {
             // Retrieve all enabled SPID Identity Providers for this realms
             RealmModel realm = session.getContext().getRealm();
-            List<IdentityProviderModel> lstSpidIdentityProviders = realm.getIdentityProvidersStream()
+            IdentityProviderStorageProvider identityProviderStorage = session.identityProviders();
+            List<IdentityProviderModel> lstSpidIdentityProviders = identityProviderStorage.getAllStream(IdentityProviderQuery.userAuthentication())
                 .filter(t -> t.getProviderId().equals(SpidIdentityProviderFactory.PROVIDER_ID) &&
                     t.isEnabled())
                 .sorted((o1,o2)-> o1.getAlias().compareTo(o2.getAlias()))
@@ -150,9 +154,9 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
                         try {
                             Element element = SPMetadataDescriptor
                                     .buildKeyInfoElement(key.getKid(), PemUtils.encodeCertificate(key.getCertificate()));                            
-                            signingKeys.add(SPMetadataDescriptor.buildKeyDescriptorType(element, KeyTypes.SIGNING, null));
+                            signingKeys.add(SPMetadataDescriptor.buildKeyDescriptorType(element, KeyTypes.SIGNING));
                             if (key.getStatus() == KeyStatus.ACTIVE) {
-                                encryptionKeys.add(SPMetadataDescriptor.buildKeyDescriptorType(element, KeyTypes.ENCRYPTION, null));
+                                encryptionKeys.add(SPMetadataDescriptor.buildKeyDescriptorType(element, KeyTypes.ENCRYPTION));
                             }
                         } catch (ParserConfigurationException e) {
                             logger.warn("Failed to export SAML SP Metadata!", e);
@@ -198,7 +202,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             }
             
             // Add the attribute mappers
-            realm.getIdentityProviderMappersByAliasStream(firstSpidProvider.getConfig().getAlias())
+            identityProviderStorage.getMappersByAliasStream(firstSpidProvider.getConfig().getAlias())
                 .forEach(mapper -> {
                     IdentityProviderMapper target = (IdentityProviderMapper) session.getKeycloakSessionFactory().getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
                     if (target instanceof SamlMetadataDescriptorUpdater)
@@ -250,7 +254,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             // Metadata signing
             if (firstSpidProvider.getConfig().isSignSpMetadata())
             {
-                KeyManager.ActiveRsaKey activeKey = session.keys().getActiveRsaKey(realm);
+                KeyManager.ActiveRsaKey activeKey = new ActiveRsaKey(session.keys().getActiveKey(realm, KeyUse.SIG, Algorithm.RS256));
                 String keyName = firstSpidProvider.getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(), activeKey.getCertificate());
                 KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
 
