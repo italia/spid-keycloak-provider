@@ -35,77 +35,28 @@ are coupled to Keycloak versions. After (major) Keycloak upgrades, you will almo
 certainly have also to update this provider.  
 
 ## Compatibility
-* Keycloak 26.5.x: Release `26.5.4`
-* Keycloak 26.4.x: Release `26.4.2`
-* Keycloak 26.3.x: Release `26.3.1`
-* Keycloak 26.2.x: Release `26.2.3`
-* Keycloak 26.1.x: Release `26.1.4`
-* Keycloak 26.0.x: Release `26.0.5`
-* Keycloak 25.x.x: Release `25.0.1`
-* Keycloak 24.x.x: Release `24.0.1`
-* Keycloak 23.x.x: Release `1.0.17`
-* Keycloak 19.x.x: Release `1.0.16`
+
+| Keycloak | Plugin release | Notes |
+|----------|----------------|-------|
+| 26.5.x | `26.5.4` | |
+| 26.4.x | `26.4.2` | |
+| 26.3.x | `26.3.1` | |
+| 26.2.x | `26.2.3` | |
+| 26.1.x | `26.1.4` | |
+| 26.0.x | `26.0.5` | |
+| 25.x.x | `25.0.1` | |
+| 24.x.x | `24.0.1` | Web UI configuration restored; provider ID changed from `spid` to `spid-saml` (see migration note below) |
+| 23.x.x | `1.0.17` | Web UI configuration not available — use REST API only |
+| 19.x.x | `1.0.16` | |
 
 ## Configuration
-### Release 26.5.4 (latest, Keycloak 26.5.x compatibility)
-Detailed instructions on how to install and configure this component are 
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
+Given SPID requires hundreds of different parameters, to avoid errors it's **strongly recommended** to use 
+[keycloak-spid-provider-configuration-client](https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client) to configure the plugin correctly.
 
-### Release 26.5.0 (Keycloak 26.5.x compatibility)
-Detailed instructions on how to install and configure this component are 
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
-
-### Release 26.4.2 (Keycloak 26.4.x compatibility)
-Detailed instructions on how to install and configure this component are 
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
-
-### Release 26.3.1 (Keycloak 26.3.x compatibility)
-Detailed instructions on how to install and configure this component are 
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
-
-### Release 26.2.3 (latest, Keycloak 26.2.x compatibility)
-Detailed instructions on how to install and configure this component are 
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
-
-### Release 26.1.4 (Keycloak 26.1.x compatibility)
-Detailed instructions on how to install and configure this component are 
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
-
-### Release 26.0.5 (Keycloak 26.0.5 compatibility)
-Detailed instructions on how to install and configure this component are 
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
-
-### Release 25.0.1 (Keycloak 25.0.1 compatibility)
-Detailed instructions on how to install and configure this component are 
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
-
-### Release 24.0.1 (Keycloak 24.0.1 compatibility)
-With this release targeting latest Keycloak 24.0.1 it was restored the possibility of configuring the plugin through 
-the Keycloak web UI, detailed instructions on how to install and configure this component are 
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
-#### IMPORTANT if upgrading from release 1.0.17
-Provider ID was changed from `spid` to `spid-saml` in order to account for [hardcoded Keycloak 24.x behavior](https://github.com/keycloak/keycloak/blob/a228b6c7c9ec7a54ee91bb547b42cc4097ae38e2/js/apps/admin-ui/src/identity-providers/add/DetailSettings.tsx#L396). Before upgrading the plugin make sure to run this SQL query against Keycloak database:
+### Upgrading from release 1.0.17 to 24.0.1+
+Provider ID was changed from `spid` to `spid-saml` to account for [hardcoded Keycloak 24.x behavior](https://github.com/keycloak/keycloak/blob/a228b6c7c9ec7a54ee91bb547b42cc4097ae38e2/js/apps/admin-ui/src/identity-providers/add/DetailSettings.tsx#L396). Before upgrading, run this SQL query against the Keycloak database:
 
     UPDATE IDENTITY_PROVIDER SET PROVIDER_ID="spid-saml" WHERE PROVIDER_ID="spid"
-
-### Release 1.0.17 (Keycloak 23.x.x compatibility)
-With the latest release targeting Keycloak 23.x.x it's not possible to configure the plugin through the Keycloak web UI, 
-but only through REST services. Suggested to use https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
-
-### Release 1.0.6
-It's possible to configure the plugin through the Keycloak web UI, detailed instructions
-on how to install and configure this component are
-available in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki/Installing-the-SPID-provider).
-To avoid errors, it's suggested to use anyway https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client
 
 ## Build (without docker)
 Requirements:
