@@ -103,7 +103,6 @@ public class SpidIdentityProviderFactory extends AbstractIdentityProviderFactory
                         singleLogoutServiceUrl = endpoint.getLocation().toString();
                         break;
                     }
-
                 }
                 samlIdentityProviderConfig.setIdpEntityId(entityType.getEntityID());
                 samlIdentityProviderConfig.setSingleLogoutServiceUrl(singleLogoutServiceUrl);

@@ -58,6 +58,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -110,11 +111,12 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
                 .collect(Collectors.toList());
 
             if (lstSpidIdentityProviders.size() == 0)
-                throw new Exception("No SPID providers found!");
+                throw new RuntimeException("No SPID providers found!");
 
             // Create an instance of the first SPID Identity Provider in alphabetical order
             SpidIdentityProviderFactory providerFactory = new SpidIdentityProviderFactory();
             SpidIdentityProvider firstSpidProvider = providerFactory.create(session, lstSpidIdentityProviders.get(0));
+            SpidIdentityProviderConfig config = firstSpidProvider.getConfig();
 
             // Retrieve the context URI
             UriInfo uriInfo = session.getContext().getUri();
@@ -122,25 +124,25 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             //
             URI authnBinding = JBossSAMLURIConstants.SAML_HTTP_REDIRECT_BINDING.getUri();
 
-            if (firstSpidProvider.getConfig().isPostBindingAuthnRequest()) {
+            if (config.isPostBindingAuthnRequest()) {
                 authnBinding = JBossSAMLURIConstants.SAML_HTTP_POST_BINDING.getUri();
             }
 
             URI endpoint = uriInfo.getBaseUriBuilder()
                     .path("realms").path(realm.getName())
                     .path("broker")
-                    .path(firstSpidProvider.getConfig().getAlias())
+                    .path(config.getAlias())
                     .path("endpoint")
                     .build();
 
-            boolean wantAuthnRequestsSigned = firstSpidProvider.getConfig().isWantAuthnRequestsSigned();
-            boolean wantAssertionsSigned = firstSpidProvider.getConfig().isWantAssertionsSigned();
-            boolean wantAssertionsEncrypted = firstSpidProvider.getConfig().isWantAssertionsEncrypted();
-            String configEntityId = firstSpidProvider.getConfig().getEntityId();
+            boolean wantAuthnRequestsSigned = config.isWantAuthnRequestsSigned();
+            boolean wantAssertionsSigned = config.isWantAssertionsSigned();
+            boolean wantAssertionsEncrypted = config.isWantAssertionsEncrypted();
+            String configEntityId = config.getEntityId();
             String entityId = getEntityId(configEntityId, uriInfo, realm);
-            String nameIDPolicyFormat = firstSpidProvider.getConfig().getNameIDPolicyFormat();
-            int attributeConsumingServiceIndex = firstSpidProvider.getConfig().getAttributeConsumingServiceIndex() != null ? firstSpidProvider.getConfig().getAttributeConsumingServiceIndex(): 1;
-            String attributeConsumingServiceName = firstSpidProvider.getConfig().getAttributeConsumingServiceName();
+            String nameIDPolicyFormat = config.getNameIDPolicyFormat();
+            int attributeConsumingServiceIndex = config.getAttributeConsumingServiceIndex() != null ? config.getAttributeConsumingServiceIndex(): 1;
+            String attributeConsumingServiceName = config.getAttributeConsumingServiceName();
             String[] attributeConsumingServiceNames = attributeConsumingServiceName != null ? attributeConsumingServiceName.split(","): null;
 
             List<KeyDescriptorType> signingKeys = new LinkedList<>();
@@ -152,8 +154,9 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
                     .sorted(SamlService::compareKeys)
                     .forEach(key -> {
                         try {
+                            X509Certificate cert = key.getCertificate();
                             Element element = SPMetadataDescriptor
-                                    .buildKeyInfoElement(key.getKid(), PemUtils.encodeCertificate(key.getCertificate()));                            
+                                .buildKeyInfoElement(key.getKid(), PemUtils.encodeCertificate(cert));
                             signingKeys.add(SPMetadataDescriptor.buildKeyDescriptorType(element, KeyTypes.SIGNING));
                             if (key.getStatus() == KeyStatus.ACTIVE) {
                                 encryptionKeys.add(SPMetadataDescriptor.buildKeyDescriptorType(element, KeyTypes.ENCRYPTION));
@@ -202,7 +205,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             }
             
             // Add the attribute mappers
-            identityProviderStorage.getMappersByAliasStream(firstSpidProvider.getConfig().getAlias())
+            identityProviderStorage.getMappersByAliasStream(config.getAlias())
                 .forEach(mapper -> {
                     IdentityProviderMapper target = (IdentityProviderMapper) session.getKeycloakSessionFactory().getProviderFactory(IdentityProviderMapper.class, mapper.getIdentityProviderMapper());
                     if (target instanceof SamlMetadataDescriptorUpdater)
@@ -214,7 +217,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
 				
 
 			// Additional EntityDescriptor customizations
-            customizeEntityDescriptor(entityDescriptor, firstSpidProvider.getConfig());
+            customizeEntityDescriptor(entityDescriptor, config);
 
             // Additional SPSSODescriptor customizations
             List<URI> assertionEndpoints = lstSpidIdentityProviders.stream()
@@ -252,10 +255,10 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
             String descriptor = writeEntityDescriptorWithConsistentID(entityDescriptor);
 
             // Metadata signing
-            if (firstSpidProvider.getConfig().isSignSpMetadata())
+            if (config.isSignSpMetadata())
             {
                 KeyManager.ActiveRsaKey activeKey = new ActiveRsaKey(session.keys().getActiveKey(realm, KeyUse.SIG, Algorithm.RS256));
-                String keyName = firstSpidProvider.getConfig().getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(), activeKey.getCertificate());
+                String keyName = config.getXmlSigKeyInfoKeyNameTransformer().getKeyName(activeKey.getKid(), activeKey.getCertificate());
                 KeyPair keyPair = new KeyPair(activeKey.getPublicKey(), activeKey.getPrivateKey());
 
                 Document metadataDocument = DocumentUtil.getDocument(descriptor);
