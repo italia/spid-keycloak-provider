@@ -52,7 +52,6 @@ import org.keycloak.protocol.saml.mappers.SamlMetadataDescriptorUpdater;
 import org.keycloak.services.resource.RealmResourceProvider;
 
 import java.io.StringWriter;
-import java.math.BigInteger;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
@@ -351,7 +350,11 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
     {
         try {
             byte[] bytes = MessageDigest.getInstance("MD5").digest(data.getBytes(StandardCharsets.UTF_8));
-            return new BigInteger(1, bytes).toString(16);
+            StringBuilder sb = new StringBuilder(32);
+            for (byte b: bytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
         }
         catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
