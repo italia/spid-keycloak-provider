@@ -22,6 +22,15 @@ in the project wiki (https://github.com/italia/spid-keycloak-provider/wiki). Ple
 sure to read it and understand the config steps and the open issues and
 limitations before planning your Production environment.
 
+### Generating a self-signed RSA X509 certificate compliant with SPID specifications
+Public administrations in Italy are allowed to use self-signed certificates for SPID/SAML signatures.
+This plugin implements an alternative to the keycloak's `rsa-generated` provider, which generates a self-signed RSA X509 certificate compliant with SPID specifications.
+You can select this provider by going to the `Keys` tab of the Keycloak admin console, clicking on `Add provider` and selecting `SPID RSA Generated` from the popup menu.
+You must enable the new provider and set it as active, as well as setting it as the default RSA signature provider by doing one of the following:
+* setting a higher priority for the new provider compared to the default one
+* disabling the default provider
+* deleting the default provider
+
 ## Status
 This project is still at a development stage but it has been successfully tested for SPID validation and 
 **it's currently used in Production**.
@@ -38,7 +47,7 @@ certainly have also to update this provider.
 
 | Keycloak | Plugin release | Notes |
 |----------|----------------|-------|
-| 26.5.x | `26.5.4` | |
+| 26.5.x | `26.5.6` | |
 | 26.4.x | `26.4.2` | |
 | 26.3.x | `26.3.1` | |
 | 26.2.x | `26.2.3` | |
