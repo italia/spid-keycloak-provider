@@ -28,7 +28,6 @@ import org.keycloak.broker.provider.AbstractIdentityProviderFactory;
 import org.keycloak.broker.spid.metadata.SpidSpMetadataResourceProvider;
 import org.keycloak.dom.saml.v2.assertion.AttributeType;
 import org.keycloak.dom.saml.v2.metadata.EndpointType;
-import org.keycloak.dom.saml.v2.metadata.EntitiesDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.IDPSSODescriptorType;
 import org.keycloak.dom.saml.v2.metadata.KeyDescriptorType;
@@ -39,8 +38,6 @@ import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.saml.common.constants.JBossSAMLURIConstants;
 import org.keycloak.saml.common.exceptions.ParsingException;
 import org.keycloak.saml.common.util.DocumentUtil;
-import org.keycloak.saml.common.util.StaxParserUtil;
-import org.keycloak.saml.processing.core.parsers.saml.SAMLParser;
 import org.keycloak.saml.processing.core.saml.v2.util.SAMLMetadataUtil;
 import org.keycloak.saml.validators.DestinationValidator;
 import org.w3c.dom.Element;
@@ -103,7 +100,6 @@ public class SpidIdentityProviderFactory extends AbstractIdentityProviderFactory
                         singleLogoutServiceUrl = endpoint.getLocation().toString();
                         break;
                     }
-
                 }
                 samlIdentityProviderConfig.setIdpEntityId(entityType.getEntityID());
                 samlIdentityProviderConfig.setSingleLogoutServiceUrl(singleLogoutServiceUrl);

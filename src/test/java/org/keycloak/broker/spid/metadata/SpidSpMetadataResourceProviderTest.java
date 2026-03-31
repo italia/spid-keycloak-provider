@@ -156,7 +156,7 @@ public class SpidSpMetadataResourceProviderTest {
             invitationResourceProvider.get();
         });
 
-        assertEquals("java.lang.Exception: No SPID providers found!", runtimeException.getMessage());
+        assertEquals("java.lang.RuntimeException: No SPID providers found!", runtimeException.getMessage());
         assertNotNull(runtimeException.getCause());
         assertEquals("No SPID providers found!", runtimeException.getCause().getMessage());
     }
