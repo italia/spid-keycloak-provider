@@ -47,7 +47,7 @@ certainly have also to update this provider.
 
 | Keycloak | Plugin release | Notes |
 |----------|----------------|-------|
-| 26.5.x | `26.5.4` | |
+| 26.5.x | `26.5.6` | |
 | 26.4.x | `26.4.2` | |
 | 26.3.x | `26.3.1` | |
 | 26.2.x | `26.2.3` | |
