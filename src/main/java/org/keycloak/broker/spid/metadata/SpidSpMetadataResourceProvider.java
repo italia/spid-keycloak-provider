@@ -58,6 +58,7 @@ import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
+import java.util.HexFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -353,11 +354,7 @@ public class SpidSpMetadataResourceProvider implements RealmResourceProvider {
     {
         try {
             byte[] bytes = MessageDigest.getInstance("MD5").digest(data.getBytes(StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder(32);
-            for (byte b: bytes) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
+            return HexFormat.of().formatHex(bytes);
         }
         catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
