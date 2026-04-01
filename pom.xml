@@ -24,8 +24,6 @@
         <slf4j-api.version>1.7.30</slf4j-api.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
         <mockito.version>4.3.1</mockito.version>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
         <resteasy.version>6.2.7.Final</resteasy.version>
     </properties>
 
@@ -139,7 +137,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.8.0</version>
                 <configuration>
-                    <release>11</release>
+                    <release>17</release>
                 </configuration>
             </plugin>
             <plugin>
