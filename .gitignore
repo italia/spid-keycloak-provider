@@ -19,6 +19,7 @@ target
 .project
 .classpath
 .vscode
+.factorypath
 
 # OS generated files #
 ######################
