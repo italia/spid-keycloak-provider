@@ -1,0 +1,50 @@
+volumes:
+  postgres-volume:
+    driver: local
+
+services:
+  spid-postgres:
+    image: postgres:18.4
+    restart: always
+    container_name: "spid-postgres"
+    networks:
+      - spid-local-network
+    environment:
+      PGDATA: /var/lib/postgresql/18/docker/data
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak-password
+    volumes:
+      - postgres-volume:/var/lib/postgresql/18/docker
+  spid-keycloak:
+    image: quay.io/keycloak/keycloak:26.5.6
+    restart: always
+    container_name: "spid-keycloak"
+    command: "start-dev --import-realm"
+    ports:
+      - 8180:8180
+    environment:
+      KC_HTTP_PORT: "8180"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_LOG_LEVEL: "info"
+      KC_BOOTSTRAP_ADMIN_USERNAME: "kc-admin"
+      KC_BOOTSTRAP_ADMIN_PASSWORD: "kc-admin"
+      KC_HOSTNAME_STRICT: "false"
+      DB: postgres
+      DB_URL_HOST: spid-postgres
+      DB_SCHEMA: keycloak
+      DB_USERNAME: keycloak
+      DB_PASSWORD: keycloak-password
+    volumes:
+      - ./realm:/opt/keycloak/data/import
+      - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar
+    networks:
+      - spid-local-network
+    depends_on:
+      - spid-postgres
+
+networks:
+  spid-local-network:
+    driver: bridge

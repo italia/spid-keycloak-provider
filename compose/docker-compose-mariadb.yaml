@@ -1,0 +1,50 @@
+volumes:
+  mariadb-volume:
+    driver: local
+
+services:
+  spid-mariadb:
+    image: mariadb:10.5.29 # Ultima versione con default unicode utf8mb3
+    restart: always
+    container_name: "spid-mariadb"
+    networks:
+      - spid-local-network
+    environment:
+      MYSQL_ROOT_PASSWORD: keycloak-root
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: keycloak-password
+    volumes:
+      - mariadb-volume:/var/lib/mysql
+  spid-keycloak:
+    image: quay.io/keycloak/keycloak:26.5.6
+    restart: always
+    container_name: "spid-keycloak"
+    command: "start-dev --import-realm"
+    ports:
+      - 8180:8180
+    environment:
+      KC_HTTP_PORT: "8180"
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
+      KC_LOG_LEVEL: "info"
+      KC_BOOTSTRAP_ADMIN_USERNAME: "kc-admin"
+      KC_BOOTSTRAP_ADMIN_PASSWORD: "kc-admin"
+      KC_HOSTNAME_STRICT: "false"
+      DB: MARIADB
+      DB_URL_HOST: spid-mariadb
+      DB_SCHEMA: keycloak
+      DB_USERNAME: keycloak
+      DB_PASSWORD: keycloak-password
+    volumes:
+      - ./realm:/opt/keycloak/data/import
+      - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar
+    networks:
+      - spid-local-network
+    depends_on:
+      - spid-mariadb
+
+networks:
+  spid-local-network:
+    driver: bridge
