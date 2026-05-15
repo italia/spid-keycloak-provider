@@ -10,14 +10,14 @@ services:
     networks:
       - spid-local-network
     environment:
-      MYSQL_ROOT_PASSWORD: keycloak-root
-      MYSQL_DATABASE: keycloak
-      MYSQL_USER: keycloak
-      MYSQL_PASSWORD: keycloak-password
+      MYSQL_ROOT_PASSWORD: ${SPID_DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${SPID_DB_SCHEMA}
+      MYSQL_USER: ${SPID_DB_USERNAME}
+      MYSQL_PASSWORD: ${SPID_DB_PASSWORD}
     volumes:
       - mysql-volume:/var/lib/mysql
   spid-keycloak:
-    image: quay.io/keycloak/keycloak:26.5.6
+    image: quay.io/keycloak/keycloak:${SPID_KC_VERSION}
     restart: always
     container_name: "spid-keycloak"
     command: "start-dev --import-realm"
@@ -29,14 +29,14 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: "info"
-      KC_BOOTSTRAP_ADMIN_USERNAME: "kc-admin"
-      KC_BOOTSTRAP_ADMIN_PASSWORD: "kc-admin"
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PASSWORD}
       KC_HOSTNAME_STRICT: "false"
       DB: mysql
       DB_URL_HOST: spid-mysql
-      DB_SCHEMA: keycloak
-      DB_USERNAME: keycloak
-      DB_PASSWORD: keycloak-password
+      DB_SCHEMA: ${SPID_DB_SCHEMA}
+      DB_USERNAME: ${SPID_DB_USERNAME}
+      DB_PASSWORD: ${SPID_DB_PASSWORD}
     volumes:
       - ./realm:/opt/keycloak/data/import
       - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar

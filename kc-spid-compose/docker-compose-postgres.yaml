@@ -10,10 +10,9 @@ services:
     networks:
       - spid-local-network
     environment:
-      PGDATA: /var/lib/postgresql/18/docker/data
-      POSTGRES_DB: keycloak
-      POSTGRES_USER: keycloak
-      POSTGRES_PASSWORD: keycloak-password
+      POSTGRES_DB: ${SPID_DB_SCHEMA}
+      POSTGRES_USER: ${SPID_DB_USERNAME}
+      POSTGRES_PASSWORD: ${SPID_DB_PASSWORD}
     volumes:
       - postgres-volume:/var/lib/postgresql/18/docker
   spid-keycloak:
@@ -29,14 +28,14 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: "info"
-      KC_BOOTSTRAP_ADMIN_USERNAME: "kc-admin"
-      KC_BOOTSTRAP_ADMIN_PASSWORD: "kc-admin"
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USERNAME}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PASSWORD}
       KC_HOSTNAME_STRICT: "false"
       DB: postgres
       DB_URL_HOST: spid-postgres
-      DB_SCHEMA: keycloak
-      DB_USERNAME: keycloak
-      DB_PASSWORD: keycloak-password
+      DB_SCHEMA: ${SPID_DB_SCHEMA}
+      DB_USERNAME: ${SPID_DB_USERNAME}
+      DB_PASSWORD: ${SPID_DB_PASSWORD}
     volumes:
       - ./realm:/opt/keycloak/data/import
       - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar
