@@ -1,5 +1,7 @@
 #!/bin/sh
 
+docker pull maven:3-eclipse-temurin-17
+
 docker run -it --rm \
   -v $PWD/..:/opt/maven \
   -v $HOME/.m2:/opt/maven-repo/.m2 \
