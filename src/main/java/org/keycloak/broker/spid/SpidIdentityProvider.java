@@ -16,12 +16,16 @@
  */
 package org.keycloak.broker.spid;
 
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import org.jboss.logging.Logger;
+import org.keycloak.broker.provider.AuthenticationRequest;
 import org.keycloak.broker.saml.SAMLIdentityProvider;
 import org.keycloak.broker.saml.SAMLIdentityProviderConfig;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
+import org.keycloak.models.UserSessionModel;
 import org.keycloak.saml.validators.DestinationValidator;
 
 /**
@@ -41,6 +45,12 @@ public class SpidIdentityProvider extends SAMLIdentityProvider {
      */
     public static final String SPID_REQUEST_ISSUE_INSTANT = "SPID_REQUEST_ISSUE_INSTANT";
 
+    /**
+     * Marker key set on the auth/user session to indicate this is a SPID flow.
+     * Read by SpidSamlAuthenticationPreprocessor to skip non-SPID SAML providers.
+     */
+    public static final String SPID_FLOW_MARKER = "SPID_FLOW";
+
     private final DestinationValidator destinationValidator;
 
     private final SpidIdentityProviderConfig spidConfig;
@@ -55,6 +65,26 @@ public class SpidIdentityProvider extends SAMLIdentityProvider {
     @Override
     public SpidIdentityProviderConfig getConfig() {
         return spidConfig;
+    }
+
+    @Override
+    public Response performLogin(AuthenticationRequest request) {
+        request.getAuthenticationSession().setClientNote(SPID_FLOW_MARKER, "true");
+        return super.performLogin(request);
+    }
+
+    @Override
+    public Response keycloakInitiatedBrowserLogout(KeycloakSession session, UserSessionModel userSession,
+                                                    UriInfo uriInfo, RealmModel realm) {
+        userSession.setNote(SPID_FLOW_MARKER, "true");
+        return super.keycloakInitiatedBrowserLogout(session, userSession, uriInfo, realm);
+    }
+
+    @Override
+    public void backchannelLogout(KeycloakSession session, UserSessionModel userSession,
+                                  UriInfo uriInfo, RealmModel realm) {
+        userSession.setNote(SPID_FLOW_MARKER, "true");
+        super.backchannelLogout(session, userSession, uriInfo, realm);
     }
 
     @Override
