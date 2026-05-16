@@ -20,7 +20,7 @@ services:
     image: quay.io/keycloak/keycloak:${SPID_KC_VERSION}
     restart: always
     container_name: "spid-keycloak"
-    command: "start-dev --import-realm --https-certificate-file=/opt/keycloak/bin/keycloak-server.crt.pem --https-certificate-key-file=/opt/keycloak/bin/keycloak-server.key.pem --verbose"
+    command: "start-dev --import-realm --verbose"
     ports:
       - 8080:8080
       - 8443:8443
@@ -39,8 +39,7 @@ services:
     volumes:
       - ./realm:/opt/keycloak/data/import
       - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar
-      - ./certificates/keycloak-server.crt.pem:/opt/keycloak/bin/keycloak-server.crt.pem
-      - ./certificates/keycloak-server.key.pem:/opt/keycloak/bin/keycloak-server.key.pem
+      - ./certificates/keycloak-server.p12:/opt/keycloak/conf/server.keystore.p12
     networks:
       - spid-local-network
     depends_on:

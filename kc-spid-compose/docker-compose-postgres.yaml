@@ -19,12 +19,11 @@ services:
     image: quay.io/keycloak/keycloak:${SPID_KC_VERSION}
     restart: always
     container_name: "spid-keycloak"
-    command: "start-dev --import-realm"
+    command: "start-dev --import-realm --verbose"
     ports:
-      - 8180:8180
+      - 8080:8080
+      - 8443:8443
     environment:
-      KC_HTTP_PORT: "8180"
-      KC_HTTP_ENABLED: "true"
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: "info"
@@ -39,6 +38,7 @@ services:
     volumes:
       - ./realm:/opt/keycloak/data/import
       - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar
+      - ./certificates/keycloak-server.p12:/opt/keycloak/conf/server.keystore.p12
     networks:
       - spid-local-network
     depends_on:
