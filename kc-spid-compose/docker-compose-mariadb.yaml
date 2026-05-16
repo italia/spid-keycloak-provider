@@ -30,6 +30,8 @@ services:
       KC_LOG_LEVEL: "info"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PASSWORD}
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt.pem
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key.pem
       KC_HOSTNAME_STRICT: "false"
       DB: mariadb
       DB_URL_HOST: spid-mariadb
@@ -39,7 +41,8 @@ services:
     volumes:
       - ./realm:/opt/keycloak/data/import
       - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar
-      - ./certificates/keycloak-server.p12:/opt/keycloak/conf/server.keystore.p12
+      - ./certificates/keycloak-server.crt.pem:/opt/keycloak/conf/server.crt.pem
+      - ./certificates/keycloak-server.key.pem:/opt/keycloak/conf/server.key.pem
     networks:
       - spid-local-network
     depends_on:
