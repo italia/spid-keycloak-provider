@@ -9,6 +9,8 @@ services:
     container_name: "spid-mysql"
     networks:
       - spid-local-network
+    ports:
+      - 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD: ${SPID_DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${SPID_DB_SCHEMA}

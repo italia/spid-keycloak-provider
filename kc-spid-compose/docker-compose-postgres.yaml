@@ -9,6 +9,8 @@ services:
     container_name: "spid-postgres"
     networks:
       - spid-local-network
+    ports:
+      - 5432:5432
     environment:
       POSTGRES_DB: ${SPID_DB_SCHEMA}
       POSTGRES_USER: ${SPID_DB_USERNAME}
