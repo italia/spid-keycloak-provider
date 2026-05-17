@@ -7,10 +7,13 @@ services:
     container_name: "spid-keycloak"
     command: "start-dev --import-realm --verbose"
     ports:
-      - 8080:8080
-      - 8443:8443
-      - 9000:9000
+      - 8080:8080 # Standard http
+      - 8443:8443 # Standard https
+      - 8787:8787 # Debug
+      - 9000:9000 # Monitoring / OpenAPI
     environment:
+      KC_DEBUG: "true"
+      KC_DEBUG_PORT: "*:8787"
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: "info"
