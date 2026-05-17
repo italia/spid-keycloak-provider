@@ -16,7 +16,7 @@ services:
       KC_DEBUG_PORT: "*:8787"
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
-      KC_LOG_LEVEL: "info"
+      KC_LOG_LEVEL: "debug"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PASSWORD}
       KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt.pem
@@ -36,6 +36,7 @@ services:
       - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar
       - ./certificates/keycloak-server.crt.pem:/opt/keycloak/conf/server.crt.pem
       - ./certificates/keycloak-server.key.pem:/opt/keycloak/conf/server.key.pem
+      - ./certificates/spid-saml-check.crt:/opt/keycloak/conf/truststores/spid-saml-check.crt
     networks:
       - spid-local-network
     depends_on:
