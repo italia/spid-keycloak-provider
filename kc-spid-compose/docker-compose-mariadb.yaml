@@ -4,7 +4,7 @@ volumes:
 
 services:
   spid-mariadb:
-    image: mariadb:10.5.29 # Ultima versione con default unicode utf8mb3
+    image: mariadb:11.8 # Versione supportata da Keycloak -> https://www.keycloak.org/server/supported-configurations
     restart: always
     container_name: "spid-mariadb"
     networks:

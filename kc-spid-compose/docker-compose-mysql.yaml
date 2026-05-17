@@ -4,7 +4,7 @@ volumes:
 
 services:
   spid-mysql:
-    image: mysql:5.7.44 # Ultima versione con default unicode utf8mb3
+    image: mysql:8.4 # Versione supportata da Keycloak -> https://www.keycloak.org/server/supported-configurations
     restart: always
     container_name: "spid-mysql"
     networks:
