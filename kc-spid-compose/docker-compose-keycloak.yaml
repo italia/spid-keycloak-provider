@@ -9,6 +9,7 @@ services:
     ports:
       - 8080:8080
       - 8443:8443
+      - 9000:9000
     environment:
       KC_LOG_LEVEL: "info"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USERNAME}
@@ -16,6 +17,10 @@ services:
       KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt.pem
       KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key.pem
       KC_HOSTNAME_STRICT: "false"
+      KC_FEATURE_CLIENT_ADMIN_API: "enabled"
+      KC_FEATURE_OPENAPI: "enabled"
+      KC_OPENAPI_ENABLED: "true"
+      KC_OPENAPI_UI_ENABLED: "true"
       DB: ${SPID_KC_DB_TYPE}
       DB_URL_HOST: spid-${SPID_KC_DB_TYPE}
       DB_SCHEMA: ${SPID_DB_SCHEMA}
