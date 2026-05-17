@@ -11,6 +11,8 @@ services:
       - 8443:8443
       - 9000:9000
     environment:
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: "info"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PASSWORD}
