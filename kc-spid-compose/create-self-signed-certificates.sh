@@ -1,5 +1,7 @@
 #!/bin/sh
 
+rm -rf $PWD/certificates/keycloak-server.key.pem $PWD/certificates/keycloak-server.crt.pem
+
 # Key and crt files generation
 openssl req -newkey rsa:2048 -nodes \
   -keyout $PWD/certificates/keycloak-server.key.pem -x509 -days 3650 \
