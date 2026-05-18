@@ -19,6 +19,7 @@ services:
       KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt.pem
       KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key.pem
       KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_RELATIVE_PATH: "/auth" # Adattamento per configuration client
       DB: ${SPID_KC_DB_TYPE}
       DB_URL_HOST: spid-${SPID_KC_DB_TYPE}
       DB_SCHEMA: ${SPID_DB_SCHEMA}
