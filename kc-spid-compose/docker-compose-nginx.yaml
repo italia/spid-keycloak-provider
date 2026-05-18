@@ -1,0 +1,17 @@
+# Common spid-keycloak service; ${SPID_KC_DB_TYPE} environment variable can be set to match the db used in the infrastructure
+
+services:
+  spid-nginx:
+    image: nginx:1.31.0
+    restart: always
+    container_name: "spid-nginx"
+    ports:
+      - 80:80 # Standard http
+      - 443:443 # Standard https
+    volumes:
+      - type: bind
+        source: ./tests/spid-sp-test.xml
+        target: /usr/share/nginx/html/spid-sp-test.xml
+        read_only: "true"
+    networks:
+      - spid-local-network
