@@ -1,5 +1,7 @@
 #!/bin/sh
 
+rm -rf $PWD/provider/spid-provider.jar
+
 docker pull maven:3-eclipse-temurin-17
 
 docker run -it --rm \
