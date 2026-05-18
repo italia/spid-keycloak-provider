@@ -4,7 +4,7 @@ volumes:
 
 services:
   spid-postgres:
-    image: postgres:18.4
+    image: postgres:18.4 # Latest supported version -> https://www.keycloak.org/server/supported-configurations
     restart: always
     container_name: "spid-postgres"
     networks:

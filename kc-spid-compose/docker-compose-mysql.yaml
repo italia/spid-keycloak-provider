@@ -4,7 +4,7 @@ volumes:
 
 services:
   spid-mysql:
-    image: mysql:8.4 # Versione supportata da Keycloak -> https://www.keycloak.org/server/supported-configurations
+    image: mysql:8.4 # Latest supported version -> https://www.keycloak.org/server/supported-configurations
     restart: always
     container_name: "spid-mysql"
     networks:
