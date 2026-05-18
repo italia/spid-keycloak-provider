@@ -32,11 +32,26 @@ services:
       DB_USERNAME: ${SPID_DB_USERNAME}
       DB_PASSWORD: ${SPID_DB_PASSWORD}
     volumes:
-      - ./realm:/opt/keycloak/data/import
-      - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar
-      - ./certificates/keycloak-server.crt.pem:/opt/keycloak/conf/server.crt.pem
-      - ./certificates/keycloak-server.key.pem:/opt/keycloak/conf/server.key.pem
-      - ./certificates/spid-saml-check.crt:/opt/keycloak/conf/truststores/spid-saml-check.crt
+      - type: bind
+        source: ./realm
+        target: /opt/keycloak/data/import
+        read_only: "true"
+      - type: bind
+        source: ./provider/spid-provider.jar
+        target: /opt/keycloak/providers/spid-provider.jar
+        read_only: "true"
+      - type: bind
+        source: ./certificates/keycloak-server.crt.pem
+        target: /opt/keycloak/conf/server.crt.pem
+        read_only: "true"
+      - type: bind
+        source: ./certificates/keycloak-server.key.pem
+        target: /opt/keycloak/conf/server.key.pem
+        read_only: "true"
+      - type: bind
+        source: ./certificates/spid-saml-check.crt
+        target: /opt/keycloak/conf/truststores/spid-saml-check.crt
+        read_only: "true"
     networks:
       - spid-local-network
     depends_on:
