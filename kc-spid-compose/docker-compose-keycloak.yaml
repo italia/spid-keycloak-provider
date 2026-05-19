@@ -42,10 +42,6 @@ services:
         source: ./certificates/keycloak-server.key.pem
         target: /opt/keycloak/conf/server.key.pem
         read_only: "true"
-      - type: bind
-        source: ./certificates/spid-saml-check.crt
-        target: /opt/keycloak/conf/truststores/spid-saml-check.crt
-        read_only: "true"
     networks:
       - spid-local-network
     depends_on:
