@@ -18,6 +18,9 @@ you have to launch this script.
 All these files are mounted as read only volumes into the Keycloak container, described
 into `docker-compose-keycloak.yaml`.
 
+Launch `./create-spid-sp-test-metadata.sh` to create the `spid-sp-test.xml` file
+that will be used for IdP configuration and for running tests.
+
 ## Start compose
 To start the compose infrastructure, choose a db type (i.e. `mariadb`, `mysql` or `postgres`)
 and launch the corresponding script; this will create the network, volumes, db and Keycloak instances.
@@ -29,7 +32,8 @@ Common environment variables are set in the `.env` file of the current directory
 
 ## Identity Providers configuration
 Use the [keycloak-spid-provider-configuration-client](https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client)
-project to configure the IdP in the Keycloak instance.
+project to configure the IdP in the Keycloak instance. You can use the `.env` file stored in the
+`configuration-client` subdirectory.
 **Note**: because of (possible) recent changes in naming specifications, the "First broker login (SPID)"
 description is no more accepted in Keycloak (parenthesis are no more allowed).
 
