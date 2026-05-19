@@ -1,9 +1,0 @@
-# Common spid-keycloak service; ${SPID_KC_DB_TYPE} environment variable can be set to match the db used in the infrastructure
-
-services:
-  spid-saml-check:
-    image: italia/spid-saml-check
-    restart: always
-    container_name: "spid-saml-check"
-    networks:
-      - spid-local-network
