@@ -5,7 +5,6 @@ volumes:
 services:
   spid-mariadb:
     image: mariadb:11.8 # Latest supported version -> https://www.keycloak.org/server/supported-configurations
-    restart: always
     container_name: "spid-mariadb"
     networks:
       - spid-local-network

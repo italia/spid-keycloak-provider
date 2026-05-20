@@ -3,7 +3,6 @@
 services:
   spid-keycloak:
     image: quay.io/keycloak/keycloak:${SPID_KC_VERSION}
-    restart: always
     container_name: "spid-keycloak"
     command: "start-dev --import-realm --verbose"
     ports:
