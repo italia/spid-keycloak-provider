@@ -10,7 +10,7 @@ services:
       - 443:443 # Standard https
     volumes:
       - type: bind
-        source: ./tests/spid-sp-test.xml
+        source: ./tests/metadata/spid-sp-test.xml
         target: /usr/share/nginx/html/spid-sp-test.xml
         read_only: "true"
     networks:
