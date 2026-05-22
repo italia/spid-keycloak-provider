@@ -1,9 +1,8 @@
 #!/bin/sh
 
-docker pull ghcr.io/italia/spid-sp-test:latest
+rm -rf $PWD/tests/spid-sp-test.xml
 
-rm -rf $PWD/tests/metadata/spid-sp-test.xml
-mkdir -p $PWD/tests/metadata
-
-# Key and crt files generation
-docker run --rm -it ghcr.io/italia/spid-sp-test --idp-metadata > $PWD/tests/metadata/spid-sp-test.xml
+# spid-sp-test.xml medadata file generation
+docker run --net=host --rm -t italia/spid-sp-test --idp-metadata \
+  | sed 's/WantAuthnRequestsSigned="false"/WantAuthnRequestsSigned="true" WantAssertionsSigned="false"/' \
+  > $PWD/tests/spid-sp-test.xml
