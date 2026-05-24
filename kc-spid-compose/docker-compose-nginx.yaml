@@ -12,5 +12,9 @@ services:
         source: ./tests/spid-sp-test.xml
         target: /usr/share/nginx/html/spid-sp-test.xml
         read_only: "true"
+      - type: bind
+        source: ./nginx/secure-nginx.conf
+        target: /etc/nginx/conf.d/secure-nginx.conf
+        read_only: "true"
     networks:
       - spid-local-network
