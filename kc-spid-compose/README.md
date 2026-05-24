@@ -4,7 +4,7 @@ Docker compose for local development and test of Keycloak SPID Provider.
 
 ## Initialization
 Launch `./create-self-signed-certificates.sh` to create in `certificates`
-directory the `keycloak-server.crt.pem` and `keycloak-server.key.pem` files
+directory the `keycloak-server.crt` and `keycloak-server.key` files
 for running Keycloak with https. This can be launched the first time, you are configuring
 the infrastructure, then you can keep the generated files.
 

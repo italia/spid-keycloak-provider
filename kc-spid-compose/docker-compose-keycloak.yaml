@@ -15,8 +15,8 @@ services:
       KC_LOG_LEVEL: "info"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PASSWORD}
-      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt.pem
-      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key.pem
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key
       KC_HOSTNAME_STRICT: "false"
       KC_HTTP_RELATIVE_PATH: "/auth" # For backwards compatibility
       DB: ${SPID_KC_DB_TYPE}
@@ -34,12 +34,12 @@ services:
         target: /opt/keycloak/providers/spid-provider.jar
         read_only: "true"
       - type: bind
-        source: ./certificates/keycloak-server.crt.pem
-        target: /opt/keycloak/conf/server.crt.pem
+        source: ./certificates/keycloak-server.crt
+        target: /opt/keycloak/conf/server.crt
         read_only: "true"
       - type: bind
-        source: ./certificates/keycloak-server.key.pem
-        target: /opt/keycloak/conf/server.key.pem
+        source: ./certificates/keycloak-server.key
+        target: /opt/keycloak/conf/server.key
         read_only: "true"
     networks:
       - spid-local-network
