@@ -13,6 +13,14 @@ services:
         target: /usr/share/nginx/html/spid-sp-test.xml
         read_only: "true"
       - type: bind
+        source: ./certificates/nginx.crt
+        target: /etc/ssl/certs/nginx.crt
+        read_only: "true"
+      - type: bind
+        source: ./certificates/nginx.key
+        target: /etc/ssl/private/nginx.key
+        read_only: "true"
+      - type: bind
         source: ./nginx/secure-nginx.conf
         target: /etc/nginx/conf.d/secure-nginx.conf
         read_only: "true"
