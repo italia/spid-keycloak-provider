@@ -41,6 +41,10 @@ services:
         source: ./certificates/keycloak-server.key
         target: /opt/keycloak/conf/server.key
         read_only: "true"
+      - type: bind
+        source: ./certificates/nginx.crt
+        target: /opt/keycloak/conf/truststores/nginx.crt
+        read_only: "true"
     networks:
       - spid-local-network
     depends_on:
