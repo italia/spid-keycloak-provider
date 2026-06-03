@@ -1,6 +1,7 @@
 #!/bin/sh
 
 NOW=$(date +"%Y%m%d_%H%M%S")
+mkdir -p $(pwd)/tests/report/${NOW}_authn
 
 docker run -ti --net=host --rm \
   -v "$(pwd)/tests/report/${NOW}_authn:/spid/html_report:rw" \

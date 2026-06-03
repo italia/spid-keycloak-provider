@@ -2,6 +2,10 @@
 
 NOW=$(date +"%Y%m%d_%H%M%S")
 
+mkdir -p $(pwd)/tests/report/${NOW}_responses
+
+mkdir -p $(pwd)/tests/dumps/${NOW}_responses
+
 docker run -ti --net=host --rm \
   -v "$(pwd)/tests/report/${NOW}_responses:/spid/html_report:rw" \
   -v "$(pwd)/tests/dumps/${NOW}_responses:/spid/dumps:rw" \
