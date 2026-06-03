@@ -15,5 +15,11 @@ services:
       MYSQL_DATABASE: ${SPID_DB_SCHEMA}
       MYSQL_USER: ${SPID_DB_USERNAME}
       MYSQL_PASSWORD: ${SPID_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
     volumes:
       - mariadb-volume:/var/lib/mysql
