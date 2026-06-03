@@ -8,5 +8,5 @@ docker run -ti --net=host --rm \
   italia/spid-sp-test:0.9.0-KC \
   --metadata-url "https://localhost:8443/auth/realms/spid/spid-sp-metadata" \
   --authn-url "https://localhost:8443/auth/realms/spid/protocol/openid-connect/auth?client_id=account&scope=openid&response_type=code&redirect_uri=https://localhost:8443/auth/realms/spid/account&state=12345&kc_idp_hint=spid-spid-sp-test" \
-  --test-response \
-  --extra -rf html -o html_report/ --response-html-dumps dumps/
+  --extra --report_format html --report-output-file html_report/ \
+  --test-response --response-html-dumps dumps/
