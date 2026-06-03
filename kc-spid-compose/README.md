@@ -51,7 +51,8 @@ the environment that is used by `keycloak-spid-provider-configuration-client`.
 Common environment variables are set in the `.env` file of the current directory.
 
 ## Identity Providers configuration
-Launch the `./run-configuration-client-docker.sh` script, that will configure all the IdPs in the running
+Launch the `./run-configuration-client-docker.sh` script, that will create the `.env` environment file
+in the `configuration-client` folder and will configure all the IdPs in the running
 Keycloak instance.
 **Note**: because of recent changes in naming specifications, the "First broker login (SPID)"
 description is no more accepted in Keycloak (parenthesis are no more allowed).
