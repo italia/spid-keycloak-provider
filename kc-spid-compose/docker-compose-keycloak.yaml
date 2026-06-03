@@ -9,9 +9,12 @@ services:
       - 8080:8080 # Standard http
       - 8443:8443 # Standard https
       - 8787:8787 # Debug
+      - 9000:9000 # Monitoring / OpenAPI
     environment:
       KC_DEBUG: "true"
       KC_DEBUG_PORT: "*:8787"
+      KC_HEALTH_ENABLED: "true"
+      KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: "info"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USERNAME}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PASSWORD}
