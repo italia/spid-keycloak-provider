@@ -12,5 +12,11 @@ services:
       - ./certificates/nginx.crt:/etc/ssl/certs/nginx.crt:ro
       - ./certificates/nginx.key:/etc/ssl/private/nginx.key:ro
       - ./nginx/secure-nginx.conf:/etc/nginx/conf.d/secure-nginx.conf:ro
+    healthcheck:
+      test: ["CMD", "curl", "--insecure", "--fail", "https://localhost:443"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
     networks:
       - spid-local-network
