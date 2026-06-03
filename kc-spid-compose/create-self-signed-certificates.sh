@@ -13,5 +13,5 @@ rm -rf $PWD/certificates/nginx.key $PWD/certificates/nginx.crt
 openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
   -keyout $PWD/certificates/nginx.key \
   -out $PWD/certificates/nginx.crt \
-  -subj "/C=IT/ST=MI/L=Milan/O=AgID/OU=Servizio Accreditamento/CN=nginx" \
+  -subj "/C=IT/ST=MI/L=Milan/O=AgID/OU=Servizio Accreditamento/CN=spid-nginx" \
   -addext "subjectAltName = DNS:spid-nginx, DNS:spid-nginx:443, DNS:localhost:443"
