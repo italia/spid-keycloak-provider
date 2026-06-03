@@ -10,9 +10,6 @@ https on nginx.
 This can be launched the first time, you are configuring
 the infrastructure, then you can keep the generated files.
 
-In the `certificates` directory there is also the `spid-saml-check.crt` file borrowed
-from `spid-saml-check/src/config-sample` project.
-
 Launch `./build-provider-jar.sh` to create the `spid-provider.jar` in the `provider`
 directory. Every time you have to update the provider because of changes in the java sources,
 you have to launch this script.
@@ -25,7 +22,8 @@ Because the configuration and the test infrastructure are based on custom branch
 build the custom docker images with the `./create-configuration-client-docker-image.sh`
 and `./create-spid-sp-test-docker-image.sh` scripts before the following steps.
 
-Launch `./create-spid-sp-test-metadata.sh` to create the `spid-sp-test.xml` file
+Launch `./create-spid-sp-test-metadata-certificates.sh` to create the `spid-sp-test.xml`
+(in the `tests` folder) file and the updated IdP certificates (in the `certificates/spid-sp-tests-ipd` folder)
 that will be used for IdP configuration and for running tests.
 
 ## Start compose
@@ -40,7 +38,7 @@ Common environment variables are set in the `.env` file of the current directory
 ## Identity Providers configuration
 Launch the `run-configuration-client-docker.sh` script, that will configure all the IdPs in the running
 Keycloak instance.
-**Note**: because of (possible) recent changes in naming specifications, the "First broker login (SPID)"
+**Note**: because of recent changes in naming specifications, the "First broker login (SPID)"
 description is no more accepted in Keycloak (parenthesis are no more allowed).
 
 ## Testing
@@ -48,7 +46,8 @@ You can launch the scripts:
 - `./run-spid-sp-test-metadata.sh`
 - `./run-spid-sp-test-authn.sh`
 - `./run-spid-sp-test-responses.sh`
-Please refer to `spid-sp-test` project documentation.
+Reports and dumps are stored in `tests/report` and `tests/dumps` folders.
+For a detailed explanation on test coverages and options, please refer to `spid-sp-test` project documentation.
 
 ## Reset compose
 To reset the compose infrastructure (i.e. `docker compose down` of all services, volumes and network),
