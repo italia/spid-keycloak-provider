@@ -1,7 +1,5 @@
 #!/bin/sh
 
-JAVA_RELEASE=17
-
 rm -rf $PWD/provider/spid-provider.jar
 
 make -C $PWD/.. build
