@@ -2,6 +2,21 @@
 
 Docker compose for local development and test of Keycloak SPID Provider.
 
+# TL;DR
+Launch the following script sequence:
+- `./create-self-signed-certificates.sh`
+- `./build-provider-jar.sh`
+- `./create-configuration-client-docker-image.sh`
+- `./create-spid-sp-test-docker-image.sh`
+- `./create-spid-sp-test-metadata-certificates.sh`
+- `./start-mariadb-compose.sh` or `./start-mysql-compose.sh` or `./start-postgres-compose.sh`
+- `./run-configuration-client-docker.sh`
+
+Testing:
+- `./run-spid-sp-test-metadata.sh`
+- `./run-spid-sp-test-authn.sh`
+- `./run-spid-sp-test-responses.sh`
+
 ## Initialization
 Launch `./create-self-signed-certificates.sh` to create in `certificates`
 directory the `keycloak-server.crt` and `keycloak-server.key` files
@@ -28,7 +43,7 @@ that will be used for IdP configuration and for running tests.
 
 ## Start compose
 To start the compose infrastructure, choose a db type (i.e. `mariadb`, `mysql` or `postgres`)
-and launch the corresponding script; this will create the network, volumes, db and Keycloak instances.
+and launch the corresponding script (i.e. `./start-mariadb-compose.sh`); this will create the network, volumes, db and Keycloak instances.
 Database ports are exposed, so you can access the services using 3306 (for mariadb and mysql) and 5432
 (for postgres).
 During start, Keycloak will import the `spid-realm.json` from `realm` directory to preconfigure
@@ -36,7 +51,7 @@ the environment that is used by `keycloak-spid-provider-configuration-client`.
 Common environment variables are set in the `.env` file of the current directory.
 
 ## Identity Providers configuration
-Launch the `run-configuration-client-docker.sh` script, that will configure all the IdPs in the running
+Launch the `./run-configuration-client-docker.sh` script, that will configure all the IdPs in the running
 Keycloak instance.
 **Note**: because of recent changes in naming specifications, the "First broker login (SPID)"
 description is no more accepted in Keycloak (parenthesis are no more allowed).
