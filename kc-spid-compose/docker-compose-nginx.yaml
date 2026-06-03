@@ -8,21 +8,9 @@ services:
       - 80:80 # Standard http
       - 443:443 # Standard https
     volumes:
-      - type: bind
-        source: ./tests/spid-sp-test.xml
-        target: /usr/share/nginx/html/spid-sp-test.xml
-        read_only: "true"
-      - type: bind
-        source: ./certificates/nginx.crt
-        target: /etc/ssl/certs/nginx.crt
-        read_only: "true"
-      - type: bind
-        source: ./certificates/nginx.key
-        target: /etc/ssl/private/nginx.key
-        read_only: "true"
-      - type: bind
-        source: ./nginx/secure-nginx.conf
-        target: /etc/nginx/conf.d/secure-nginx.conf
-        read_only: "true"
+      - ./tests/spid-sp-test.xml:/usr/share/nginx/html/spid-sp-test.xml:ro
+      - ./certificates/nginx.crt:/etc/ssl/certs/nginx.crt:ro
+      - ./certificates/nginx.key:/etc/ssl/private/nginx.key:ro
+      - ./nginx/secure-nginx.conf:/etc/nginx/conf.d/secure-nginx.conf:ro
     networks:
       - spid-local-network
