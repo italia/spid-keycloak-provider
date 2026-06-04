@@ -14,9 +14,9 @@ services:
       - ./nginx/secure-nginx.conf:/etc/nginx/conf.d/secure-nginx.conf:ro
     healthcheck:
       test: ["CMD", "curl", "--insecure", "--fail", "https://localhost:443"]
+      start_period: 10s
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 10s
+      retries: 5
     networks:
       - spid-local-network
