@@ -1,60 +1,62 @@
-clean:
-	echo Cleaning docker compose and artifacts...
+reset-mariadb:
 	./reset-mariadb-compose.sh
+
+reset-mysql:
 	./reset-mysql-compose.sh
+
+reset-postgres:
 	./reset-postgres-compose.sh
+
+clean: reset-mariadb reset-mysql reset-postgres
 	rm -rf ./certificates/spid-sp-test-idp ./certificates/keycloak-server.* ./certificates/nginx.*
 	rm -rf ./configuration-client/.env
 	rm -rf ./provider/*.jar
 	rm -rf ./tests/spid-sp-test.xml
-	echo Cleaning completed.
 
 init:
-	echo Initializing environment...
 	./create-configuration-client-docker-image.sh
 	./create-self-signed-certificates.sh
 	./create-spid-sp-test-docker-image.sh
 	./create-spid-sp-test-metadata-certificates.sh
 
-provider:
-	echo Building provider...
+build-provider:
 	./build-provider-jar.sh
 
 mariadb:
-	echo Building compose...
 	SPID_KC_DB_TYPE=mariadb docker compose -f docker-compose-networks.yaml -f docker-compose-mariadb.yaml -f docker-compose-keycloak.yaml -f docker-compose-nginx.yaml up -d --wait
-	echo Waiting for services...
 	sleep 10s
-	echo Running configuration client...
 	./run-configuration-client-docker.sh
-	echo Done.
 
-setup-mariadb: clean init provider mariadb
+setup-mariadb: clean init build-provider mariadb
+
+refresh-mariadb: reset-mariadb build-provider mariadb
 
 mysql:
-	echo Building compose...
 	SPID_KC_DB_TYPE=mysql docker compose -f docker-compose-networks.yaml -f docker-compose-mysql.yaml -f docker-compose-keycloak.yaml -f docker-compose-nginx.yaml up -d --wait
-	echo Waiting for services...
 	sleep 10s
-	echo Running configuration client...
 	./run-configuration-client-docker.sh
-	echo Done.
 
-setup-mysql: clean init provider mysql
+setup-mysql: clean init build-provider mysql
+
+refresh-mysql: reset-mysql build-provider mysql
 
 postgres:
-	echo Building compose...
 	SPID_KC_DB_TYPE=postgres docker compose -f docker-compose-networks.yaml -f docker-compose-postgres.yaml -f docker-compose-keycloak.yaml -f docker-compose-nginx.yaml up -d --wait
-	echo Waiting for services...
 	sleep 10s
-	echo Running configuration client...
 	./run-configuration-client-docker.sh
-	echo Done.
 
-setup-postgres: clean init provider postgres
+setup-postgres: clean init build-provider postgres
+
+refresh-postgres: reset-postgres build-provider postgres
 
 test:
 	./run-spid-sp-test-responses.sh
+
+test-mariadb: refresh-mariadb test
+
+test-mysql: refresh-mysql test
+
+test-postgres: refresh-postgres test
 
 full-mariadb: setup-mariadb test
 
