@@ -14,5 +14,11 @@ services:
       POSTGRES_DB: ${SPID_DB_SCHEMA}
       POSTGRES_USER: ${SPID_DB_USERNAME}
       POSTGRES_PASSWORD: ${SPID_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${SPID_DB_USERNAME}", "-d", "${SPID_DB_SCHEMA}"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - postgres-volume:/var/lib/postgresql/18/docker

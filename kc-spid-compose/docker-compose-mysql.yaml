@@ -15,5 +15,11 @@ services:
       MYSQL_DATABASE: ${SPID_DB_SCHEMA}
       MYSQL_USER: ${SPID_DB_USERNAME}
       MYSQL_PASSWORD: ${SPID_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - mysql-volume:/var/lib/mysql
