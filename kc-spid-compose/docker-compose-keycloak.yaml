@@ -33,6 +33,17 @@ services:
       - ./certificates/keycloak-server.crt:/opt/keycloak/conf/server.crt:ro
       - ./certificates/keycloak-server.key:/opt/keycloak/conf/server.key:ro
       - ./certificates/nginx.crt:/opt/keycloak/conf/truststores/nginx.crt:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          { printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0;
+            grep 'HTTP/1.0 200'; }
+          0<>/dev/tcp/localhost/9000
+      start_period: 20s
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - spid-local-network
     depends_on:
