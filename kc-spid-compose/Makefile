@@ -7,6 +7,7 @@ SPID_DB_PASSWORD = keycloak-password
 SPID_KC_VERSION = 26.6.1
 SPID_KC_ADMIN_USERNAME = admin
 SPID_KC_ADMIN_PASSWORD = admin
+NOW := $(shell date +"%Y%m%d_%H%M%S")
 
 
 # Basic commands
@@ -22,8 +23,40 @@ build-provider-jar:
 
 # Test commands
 
+test-metadata:
+	mkdir -p ${PWD}/tests/report/$(NOW)_metadata
+	docker run -ti --net=host --rm \
+		-e IDP_CERT_PATH=/spid/ipd-certs \
+		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
+		-v "${PWD}/tests/report/$(NOW)_metadata:/spid/html_report:rw" \
+		italia/spid-sp-test:0.9.0-KC \
+		--metadata-url "https://localhost:8443/auth/realms/spid/spid-sp-metadata" \
+		--extra --report_format html --report-output-file html_report/
+
+test-authn:
+	mkdir -p ${PWD}/tests/report/$(NOW)_authn
+	docker run -ti --net=host --rm \
+		-e IDP_CERT_PATH=/spid/ipd-certs \
+		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
+		-v "${PWD}/tests/report/$(NOW)_authn:/spid/html_report:rw" \
+		italia/spid-sp-test:0.9.0-KC \
+		--metadata-url "https://localhost:8443/auth/realms/spid/spid-sp-metadata" \
+		--authn-url "https://localhost:8443/auth/realms/spid/protocol/openid-connect/auth?client_id=account&scope=openid&response_type=code&redirect_uri=https://localhost:8443/auth/realms/spid/account&state=12345&kc_idp_hint=spid-spid-sp-test" \
+		--extra --report_format html --report-output-file html_report/
+
 test-responses:
-	./run-spid-sp-test-responses.sh
+	mkdir -p ${PWD}/tests/report/$(NOW)_responses
+	mkdir -p ${PWD}/tests/dumps/$(NOW)_responses
+	docker run -ti --net=host --rm \
+		-e IDP_CERT_PATH=/spid/ipd-certs \
+		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
+		-v "${PWD}/tests/report/$(NOW)_responses:/spid/html_report:rw" \
+		-v "${PWD}/tests/dumps/$(NOW)_responses:/spid/dumps:rw" \
+		italia/spid-sp-test:0.9.0-KC \
+		--metadata-url "https://localhost:8443/auth/realms/spid/spid-sp-metadata" \
+		--authn-url "https://localhost:8443/auth/realms/spid/protocol/openid-connect/auth?client_id=account&scope=openid&response_type=code&redirect_uri=https://localhost:8443/auth/realms/spid/account&state=12345&kc_idp_hint=spid-spid-sp-test" \
+		--extra --report_format html --report-output-file html_report/ \
+		--test-response --response-html-dumps dumps/
 
 
 # Resets docker compose, deletes files and artifacts
