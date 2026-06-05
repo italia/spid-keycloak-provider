@@ -1,19 +1,19 @@
 # Environment variables
 .EXPORT_ALL_VARIABLES:
-SPID_DB_ROOT_PASSWORD = keycloak-root
-SPID_DB_SCHEMA = keycloak
-SPID_DB_USERNAME = keycloak
-SPID_DB_PASSWORD = keycloak-password
-SPID_KC_VERSION = 26.6.1
-SPID_KC_ADMIN_USERNAME = admin
-SPID_KC_ADMIN_PASSWORD = admin
+SPID_DB_ROOT_PASSWORD := keycloak-root
+SPID_DB_SCHEMA := keycloak
+SPID_DB_USERNAME := keycloak
+SPID_DB_PASSWORD := keycloak-password
+SPID_KC_VERSION := $(shell sed -n 's:.*<keycloak.version>\(.*\)</keycloak.version>.*:\1:p' ../pom.xml)
+SPID_KC_ADMIN_USERNAME := admin
+SPID_KC_ADMIN_PASSWORD := admin
 NOW := $(shell date +"%Y%m%d_%H%M%S")
 
 
 # Basic commands
 
 _sleep:
-	sleep 10
+	@sleep 10
 
 build-provider-jar:
 	rm -rf ${PWD}/provider/spid-provider.jar
@@ -87,7 +87,7 @@ mariadb:
 		-f docker-compose-keycloak.yaml \
 		-f docker-compose-nginx.yaml \
 		up -d --wait
-	sleep 10s
+	@sleep 10s
 	./run-configuration-client-docker.sh
 
 reset-mariadb:
@@ -117,7 +117,7 @@ mysql:
 		-f docker-compose-keycloak.yaml \
 		-f docker-compose-nginx.yaml \
 		up -d --wait
-	sleep 10s
+	@sleep 10s
 	./run-configuration-client-docker.sh
 
 reset-mysql:
@@ -147,7 +147,7 @@ postgres:
 		-f docker-compose-keycloak.yaml \
 		-f docker-compose-nginx.yaml \
 		up -d --wait
-	sleep 10s
+	@sleep 10s
 	./run-configuration-client-docker.sh
 
 reset-postgres:
