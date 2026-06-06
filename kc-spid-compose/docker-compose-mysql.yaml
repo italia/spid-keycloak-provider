@@ -13,8 +13,8 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${SPID_DB_ROOT_PASSWORD}
       MYSQL_DATABASE: ${SPID_DB_SCHEMA}
-      MYSQL_USER: ${SPID_DB_USERNAME}
-      MYSQL_PASSWORD: ${SPID_DB_PASSWORD}
+      MYSQL_USER: ${SPID_DB_USR}
+      MYSQL_PASSWORD: ${SPID_DB_PWD}
     healthcheck:
       test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
       start_period: 10s

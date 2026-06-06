@@ -2,11 +2,11 @@
 .EXPORT_ALL_VARIABLES:
 SPID_DB_ROOT_PASSWORD := keycloak-root
 SPID_DB_SCHEMA := keycloak
-SPID_DB_USERNAME := keycloak
-SPID_DB_PASSWORD := keycloak-password
+SPID_DB_USR := keycloak
+SPID_DB_PWD := keycloak-password
 SPID_KC_VERSION := $(shell sed -n 's:.*<keycloak.version>\(.*\)</keycloak.version>.*:\1:p' ../pom.xml)
-SPID_KC_ADMIN_USERNAME := admin
-SPID_KC_ADMIN_PASSWORD := admin
+SPID_KC_ADMIN_USR := admin
+SPID_KC_ADMIN_PWD := admin
 NOW := $(shell date +"%Y%m%d_%H%M%S")
 
 .ONESHELL:

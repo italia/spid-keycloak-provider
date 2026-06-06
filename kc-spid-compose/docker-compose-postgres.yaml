@@ -12,10 +12,10 @@ services:
       - 5432:5432
     environment:
       POSTGRES_DB: ${SPID_DB_SCHEMA}
-      POSTGRES_USER: ${SPID_DB_USERNAME}
-      POSTGRES_PASSWORD: ${SPID_DB_PASSWORD}
+      POSTGRES_USER: ${SPID_DB_USR}
+      POSTGRES_PASSWORD: ${SPID_DB_PWD}
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${SPID_DB_USERNAME}", "-d", "${SPID_DB_SCHEMA}"]
+      test: ["CMD", "pg_isready", "-U", "${SPID_DB_USR}", "-d", "${SPID_DB_SCHEMA}"]
       start_period: 10s
       interval: 10s
       timeout: 5s

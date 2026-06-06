@@ -16,8 +16,8 @@ services:
       KC_HEALTH_ENABLED: "true"
       KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: "info"
-      KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USERNAME}
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USR}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PWD}
       KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt
       KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key
       KC_HOSTNAME_STRICT: "false"
@@ -25,8 +25,8 @@ services:
       DB: ${SPID_KC_DB_TYPE}
       DB_URL_HOST: spid-${SPID_KC_DB_TYPE}
       DB_SCHEMA: ${SPID_DB_SCHEMA}
-      DB_USERNAME: ${SPID_DB_USERNAME}
-      DB_PASSWORD: ${SPID_DB_PASSWORD}
+      DB_USERNAME: ${SPID_DB_USR}
+      DB_PASSWORD: ${SPID_DB_PWD}
     volumes:
       - ./realm:/opt/keycloak/data/import:ro
       - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar:ro
