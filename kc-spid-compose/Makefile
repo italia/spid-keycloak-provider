@@ -9,6 +9,7 @@ SPID_KC_ADMIN_USERNAME := admin
 SPID_KC_ADMIN_PASSWORD := admin
 NOW := $(shell date +"%Y%m%d_%H%M%S")
 
+.ONESHELL:
 
 # Basic commands
 
@@ -19,6 +20,81 @@ build-provider-jar:
 	rm -rf ${PWD}/provider/spid-provider.jar
 	make -C ${PWD}/.. build
 	cp ${PWD}/../target/spid-provider.jar ${PWD}/provider/spid-provider.jar
+
+create-configuration-client-docker-image:
+# Cancellazione directory temporanea
+	rm -rf ${PWD}/tmp-docker-configuration-client
+#Creazione directory temporanea per dowload dei sorgenti
+	mkdir ${PWD}/tmp-docker-configuration-client
+	cd ${PWD}/tmp-docker-configuration-client
+	git clone https://github.com/polifr/keycloak-spid-provider-configuration-client.git
+	docker build --tag spidclient:latest-KC ./keycloak-spid-provider-configuration-client
+	cd -
+# Cancellazione directory temporanea
+	rm -rf ${PWD}/tmp-docker-configuration-client
+
+create-self-signed-certificates:
+# Key and crt files generation for keycloak
+	rm -rf ${PWD}/certificates/keycloak-server.key ${PWD}/certificates/keycloak-server
+	openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+		-keyout ${PWD}/certificates/keycloak-server.key \
+		-out ${PWD}/certificates/keycloak-server.crt \
+		-subj "/C=IT/ST=MI/L=Milan/O=AgID/OU=Keycloak/CN=keycloak" \
+		-addext "subjectAltName = DNS:spid-keycloak, DNS:spid-keycloak:8443, DNS:localhost:8443"
+# Key and crt files generation for nginx
+	rm -rf ${PWD}/certificates/nginx.key ${PWD}/certificates/nginx.crt
+	openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
+		-keyout ${PWD}/certificates/nginx.key \
+		-out ${PWD}/certificates/nginx.crt \
+		-subj "/C=IT/ST=MI/L=Milan/O=AgID/OU=Servizio Accreditamento/CN=spid-nginx" \
+		-addext "subjectAltName = DNS:spid-nginx, DNS:spid-nginx:443, DNS:localhost:443"
+
+create-spid-sp-test-docker-image:
+# Cancellazione directory temporanea
+	rm -rf ${PWD}/tmp-docker-spid-sp-test
+
+#Creazione directory temporanea per dowload dei sorgenti
+	mkdir ${PWD}/tmp-docker-spid-sp-test
+	cd ${PWD}/tmp-docker-spid-sp-test
+
+	git clone -b fixes-2025 https://github.com/nicolabeghin/spid-sp-test.git
+
+	sed -i "s#<ds:X509Certificate />#<ds:X509Certificate>$$(grep -v CERTIFICATE ./spid-sp-test/src/spid_sp_test/responses/certificates/test_public.cert | tr -d '\n')</ds:X509Certificate>#" \
+		./spid-sp-test/src/spid_sp_test/responses/settings.py
+
+	docker build --tag italia/spid-sp-test:0.9.0-KC ./spid-sp-test
+
+	cd -
+
+# Cancellazione directory temporanea
+	rm -rf ${PWD}/tmp-docker-spid-sp-test
+
+create-spid-sp-test-metadata-certificates:
+# Creazione certificati idp aggiornati
+	rm -rf ${PWD}/certificates/spid-sp-test-idp
+	mkdir -p ${PWD}/certificates/spid-sp-test-idp
+
+	docker run --net=host --rm \
+		-v ${PWD}/certificates/spid-sp-test-idp:/spid \
+		--entrypoint "spid-compliant-certificates" -t italia/spid-sp-test:0.9.0-KC generator \
+		--key-size 3072 --common-name "agid.gov.it" --days 7650 --entity-id https://localhost:8443 \
+		--locality-name Roma --org-id "PA:IT-c_h501" --org-name "AgID TEST" --sector public	
+
+	mv ${PWD}/certificates/spid-sp-test-idp/crt.pem ${PWD}/certificates/spid-sp-test-idp/public.cert
+	mv ${PWD}/certificates/spid-sp-test-idp/key.pem ${PWD}/certificates/spid-sp-test-idp/private.key
+
+# Creazione metadata
+	rm -rf ${PWD}/tests/spid-sp-test.xml
+
+# spid-sp-test.xml medadata file generation
+	docker run --net=host --rm -t \
+		-e IDP_CERT_PATH=/spid/ipd-certs \
+		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
+		italia/spid-sp-test:0.9.0-KC --idp-metadata \
+		| sed '/^[[:space:]]*</!d' \
+		| sed 's/WantAuthnRequestsSigned="false"/WantAuthnRequestsSigned="true" WantAssertionsSigned="false"/' \
+		> ${PWD}/tests/spid-sp-test.xml
+
 
 run-configuration-client:
 	rm -rf ${PWD}/configuration-client/log
@@ -90,11 +166,7 @@ clean: reset-mariadb reset-mysql reset-postgres
 
 # Common entities configuration
 
-init:
-	./create-configuration-client-docker-image.sh
-	./create-self-signed-certificates.sh
-	./create-spid-sp-test-docker-image.sh
-	./create-spid-sp-test-metadata-certificates.sh
+init: create-configuration-client-docker-image create-self-signed-certificates create-spid-sp-test-docker-image create-spid-sp-test-metadata-certificates
 
 
 
