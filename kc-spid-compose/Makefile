@@ -20,6 +20,26 @@ build-provider-jar:
 	make -C ${PWD}/.. build
 	cp ${PWD}/../target/spid-provider.jar ${PWD}/provider/spid-provider.jar
 
+run-configuration-client:
+	rm -rf ${PWD}/configuration-client/log
+	mkdir -p ${PWD}/configuration-client/log
+	docker run \
+		--user "$(id -u):$(id -g)" \
+		-v "${PWD}/configuration-client:/opt/mount:rw" \
+		--rm \
+		--entrypoint cp spidclient:latest-KC /usr/src/app/.env-example /opt/mount/.env-example
+	cat ${PWD}/configuration-client/.env-example \
+		| sed 's,createSpidSpTestIdP = false,createSpidSpTestIdP = true,g' \
+		| sed 's,https://yourdomain.com/spid-sp-test.xml,https://spid-nginx:443/spid-sp-test.xml,g' \
+		> ${PWD}/configuration-client/.env
+	docker run \
+		--net=host \
+		-w /usr/src/app \
+		-ti --rm \
+		-v "${PWD}/configuration-client/.env:/usr/src/app/.env:ro" \
+		-v "${PWD}/configuration-client/log:/usr/src/app/log:rw" \
+		spidclient:latest-KC
+
 
 # Test commands
 
@@ -80,15 +100,13 @@ init:
 
 # Mariadb commands
 
-mariadb:
+compose-mariadb:
 	SPID_KC_DB_TYPE=mariadb docker compose \
 		-f docker-compose-networks.yaml \
 		-f docker-compose-mariadb.yaml \
 		-f docker-compose-keycloak.yaml \
 		-f docker-compose-nginx.yaml \
 		up -d --wait
-	@sleep 10s
-	./run-configuration-client-docker.sh
 
 reset-mariadb:
 	SPID_KC_DB_TYPE=mariadb docker compose \
@@ -98,9 +116,9 @@ reset-mariadb:
 		-f docker-compose-nginx.yaml \
 		down -v
 
-setup-mariadb: clean init build-provider-jar mariadb
+setup-mariadb: clean init build-provider-jar compose-mariadb _sleep run-configuration-client
 
-refresh-mariadb: reset-mariadb build-provider-jar mariadb
+refresh-mariadb: reset-mariadb build-provider-jar compose-mariadb _sleep run-configuration-client
 
 test-mariadb: refresh-mariadb test-responses
 
@@ -110,15 +128,13 @@ full-mariadb: setup-mariadb test-responses
 
 # Mysql commands
 
-mysql:
+compose-mysql:
 	SPID_KC_DB_TYPE=mysql docker compose \
 		-f docker-compose-networks.yaml \
 		-f docker-compose-mysql.yaml \
 		-f docker-compose-keycloak.yaml \
 		-f docker-compose-nginx.yaml \
 		up -d --wait
-	@sleep 10s
-	./run-configuration-client-docker.sh
 
 reset-mysql:
 	SPID_KC_DB_TYPE=mysql docker compose \
@@ -128,9 +144,9 @@ reset-mysql:
 		-f docker-compose-nginx.yaml \
 		down -v
 
-setup-mysql: clean init build-provider-jar mysql
+setup-mysql: clean init build-provider-jar compose-mysql _sleep run-configuration-client
 
-refresh-mysql: reset-mysql build-provider-jar mysql
+refresh-mysql: reset-mysql build-provider-jar compose-mysql _sleep run-configuration-client
 
 test-mysql: refresh-mysql test-responses
 
@@ -140,15 +156,13 @@ full-mysql: setup-mysql test-responses
 
 # Postgres commands
 
-postgres:
+compose-postgres:
 	SPID_KC_DB_TYPE=postgres docker compose \
 		-f docker-compose-networks.yaml \
 		-f docker-compose-postgres.yaml \
 		-f docker-compose-keycloak.yaml \
 		-f docker-compose-nginx.yaml \
 		up -d --wait
-	@sleep 10s
-	./run-configuration-client-docker.sh
 
 reset-postgres:
 	SPID_KC_DB_TYPE=postgres docker compose \
@@ -158,9 +172,9 @@ reset-postgres:
 		-f docker-compose-nginx.yaml \
 		down -v
 
-setup-postgres: clean init build-provider-jar postgres
+setup-postgres: clean init build-provider-jar compose-postgres _sleep run-configuration-client
 
-refresh-postgres: reset-postgres build-provider-jar postgres
+refresh-postgres: reset-postgres build-provider-jar compose-postgres _sleep run-configuration-client
 
 test-postgres: refresh-postgres test-responses
 
