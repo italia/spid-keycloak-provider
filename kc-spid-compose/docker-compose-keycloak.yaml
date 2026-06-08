@@ -14,7 +14,6 @@ services:
       KC_DEBUG: "true"
       KC_DEBUG_PORT: "*:8787"
       KC_HEALTH_ENABLED: "true"
-      KC_METRICS_ENABLED: "true"
       KC_LOG_LEVEL: "info"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USR}
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PWD}
@@ -40,10 +39,10 @@ services:
           { printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0;
             grep 'HTTP/1.0 200'; }
           0<>/dev/tcp/localhost/9000
-      start_period: 20s
+      start_period: 30s
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
     networks:
       - spid-local-network
     depends_on:
