@@ -29,12 +29,13 @@ create-configuration-client-docker-image:
 
 create-self-signed-certificates:
 # Key and crt files generation for keycloak
-	rm -rf ${PWD}/certificates/keycloak-server.key ${PWD}/certificates/keycloak-server
+	rm -rf ${PWD}/certificates/keycloak-server.key ${PWD}/certificates/keycloak-server.crt
 	openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
 		-keyout ${PWD}/certificates/keycloak-server.key \
 		-out ${PWD}/certificates/keycloak-server.crt \
 		-subj "/C=IT/ST=MI/L=Milan/O=AgID/OU=Keycloak/CN=keycloak" \
 		-addext "subjectAltName = DNS:spid-keycloak, DNS:spid-keycloak:8443, DNS:localhost:8443"
+	chmod a+r ${PWD}/certificates/keycloak-server.key ${PWD}/certificates/keycloak-server.crt
 # Key and crt files generation for nginx
 	rm -rf ${PWD}/certificates/nginx.key ${PWD}/certificates/nginx.crt
 	openssl req -x509 -newkey rsa:4096 -sha256 -days 3650 -nodes \
@@ -42,6 +43,8 @@ create-self-signed-certificates:
 		-out ${PWD}/certificates/nginx.crt \
 		-subj "/C=IT/ST=MI/L=Milan/O=AgID/OU=Servizio Accreditamento/CN=spid-nginx" \
 		-addext "subjectAltName = DNS:spid-nginx, DNS:spid-nginx:443, DNS:localhost:443"
+	chmod a+r ${PWD}/certificates/nginx.key ${PWD}/certificates/nginx.crt
+
 
 create-spid-sp-test-docker-image:
 # Cancellazione directory temporanea
@@ -63,13 +66,15 @@ create-spid-sp-test-docker-image:
 # Cancellazione directory temporanea
 	rm -rf ${PWD}/tmp-docker-spid-sp-test
 
+
 create-spid-sp-test-metadata-certificates:
 # Creazione certificati idp aggiornati
 	rm -rf ${PWD}/certificates/spid-sp-test-idp
 	mkdir -p ${PWD}/certificates/spid-sp-test-idp
 
 	docker run --net=host --rm \
-		-v ${PWD}/certificates/spid-sp-test-idp:/spid \
+		--user "$(id -u):$(id -g)" \
+		-v "${PWD}/certificates/spid-sp-test-idp:/spid:rw" \
 		--entrypoint "spid-compliant-certificates" -t italia/spid-sp-test:0.9.0-KC generator \
 		--key-size 3072 --common-name "agid.gov.it" --days 7650 --entity-id https://localhost:8443 \
 		--locality-name Roma --org-id "PA:IT-c_h501" --org-name "AgID TEST" --sector public	
@@ -82,8 +87,9 @@ create-spid-sp-test-metadata-certificates:
 
 # spid-sp-test.xml medadata file generation
 	docker run --net=host --rm -t \
+		--user "$(id -u):$(id -g)" \
 		-e IDP_CERT_PATH=/spid/ipd-certs \
-		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
+		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs:ro" \
 		italia/spid-sp-test:0.9.0-KC --idp-metadata \
 		| sed '/^[[:space:]]*</!d' \
 		| sed 's/WantAuthnRequestsSigned="false"/WantAuthnRequestsSigned="true" WantAssertionsSigned="false"/' \
@@ -103,9 +109,10 @@ run-configuration-client:
 		| sed 's,https://yourdomain.com/spid-sp-test.xml,https://spid-nginx:443/spid-sp-test.xml,g' \
 		> ${PWD}/configuration-client/.env
 	docker run \
+		--user "$(id -u):$(id -g)" \
 		--net=host \
 		-w /usr/src/app \
-		-ti --rm \
+		-t --rm \
 		-v "${PWD}/configuration-client/.env:/usr/src/app/.env:ro" \
 		-v "${PWD}/configuration-client/log:/usr/src/app/log:rw" \
 		spidclient:latest-KC
@@ -115,7 +122,8 @@ run-configuration-client:
 
 test-metadata:
 	mkdir -p ${PWD}/tests/report/$(NOW)_metadata
-	docker run -ti --net=host --rm \
+	docker run -t --net=host --rm \
+		--user "$(id -u):$(id -g)" \
 		-e IDP_CERT_PATH=/spid/ipd-certs \
 		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
 		-v "${PWD}/tests/report/$(NOW)_metadata:/spid/html_report:rw" \
@@ -125,7 +133,8 @@ test-metadata:
 
 test-authn:
 	mkdir -p ${PWD}/tests/report/$(NOW)_authn
-	docker run -ti --net=host --rm \
+	docker run -t --net=host --rm \
+		--user "$(id -u):$(id -g)" \
 		-e IDP_CERT_PATH=/spid/ipd-certs \
 		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
 		-v "${PWD}/tests/report/$(NOW)_authn:/spid/html_report:rw" \
@@ -137,7 +146,8 @@ test-authn:
 test-responses:
 	mkdir -p ${PWD}/tests/report/$(NOW)_responses
 	mkdir -p ${PWD}/tests/dumps/$(NOW)_responses
-	docker run -ti --net=host --rm \
+	docker run -t --net=host --rm \
+		--user "$(id -u):$(id -g)" \
 		-e IDP_CERT_PATH=/spid/ipd-certs \
 		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
 		-v "${PWD}/tests/report/$(NOW)_responses:/spid/html_report:rw" \
