@@ -1,0 +1,64 @@
+name: KeyCloak SPID Docker Compose Test
+
+on:
+  pull_request:
+    branches: 
+      - master
+      - main
+    paths:
+      - 'kc-spid-compose/**'
+      - 'src/**'
+      - 'pom.xml'
+      - 'Makefile'
+      - 'Dockerfile'
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify Docker
+        run: |
+          docker version
+          docker compose version
+
+      - name: Verify connectivity
+        run: |
+          curl -L -I https://indicepa.gov.it:443
+
+      - name: Run kc-spid-compose tests
+        working-directory: kc-spid-compose
+        run: |
+          make full-mariadb
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spid-sp-test-report
+          path: |
+            kc-spid-compose/tests/report/**
+            kc-spid-compose/tests/dumps/**
+
+      - name: Collect docker logs
+        if: always()
+        run: |
+          mkdir -p docker-logs
+          docker logs spid-keycloak > docker-logs/keycloak.log 2>&1 || true
+          docker logs spid-nginx > docker-logs/nginx.log 2>&1 || true
+          docker logs spid-mariadb > docker-logs/mariadb.log 2>&1 || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: docker-logs
+          path: docker-logs
+
+      - name: Cleanup
+        if: always()
+        working-directory: kc-spid-compose
+        run: make clean
