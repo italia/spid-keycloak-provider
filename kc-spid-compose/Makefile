@@ -15,18 +15,6 @@ build-provider-jar:
 	make -C ${PWD}/.. build
 	cp ${PWD}/../target/spid-provider.jar ${PWD}/provider/spid-provider.jar
 
-create-configuration-client-docker-image:
-# Cancellazione directory temporanea
-	rm -rf ${PWD}/tmp-docker-configuration-client
-#Creazione directory temporanea per dowload dei sorgenti
-	mkdir ${PWD}/tmp-docker-configuration-client
-	cd ${PWD}/tmp-docker-configuration-client
-	git clone https://github.com/nicolabeghin/keycloak-spid-provider-configuration-client.git
-	docker build --tag spidclient:latest-KC ./keycloak-spid-provider-configuration-client
-	cd -
-# Cancellazione directory temporanea
-	rm -rf ${PWD}/tmp-docker-configuration-client
-
 create-self-signed-certificates:
 # Key and crt files generation for keycloak
 	rm -rf ${PWD}/certificates/keycloak-server.key ${PWD}/certificates/keycloak-server.crt
@@ -103,7 +91,7 @@ run-configuration-client:
 		--user "$(id -u):$(id -g)" \
 		-v "${PWD}/configuration-client:/opt/mount:rw" \
 		--rm \
-		--entrypoint cp spidclient:latest-KC /usr/src/app/.env-example /opt/mount/.env-example
+		--entrypoint cp ghcr.io/polifr/keycloak-spid-provider-configuration-client:latest /usr/src/app/.env-example /opt/mount/.env-example
 	cat ${PWD}/configuration-client/.env-example \
 		| sed 's,createSpidSpTestIdP = false,createSpidSpTestIdP = true,g' \
 		| sed 's,https://yourdomain.com/spid-sp-test.xml,https://spid-nginx:443/spid-sp-test.xml,g' \
@@ -115,7 +103,7 @@ run-configuration-client:
 		-t --rm \
 		-v "${PWD}/configuration-client/.env:/usr/src/app/.env:ro" \
 		-v "${PWD}/configuration-client/log:/usr/src/app/log:rw" \
-		spidclient:latest-KC
+		ghcr.io/polifr/keycloak-spid-provider-configuration-client:latest
 
 
 # Test commands
@@ -170,7 +158,7 @@ clean: reset-mariadb reset-mysql reset-postgres
 
 # Common entities configuration
 
-init: create-configuration-client-docker-image create-self-signed-certificates create-spid-sp-test-docker-image create-spid-sp-test-metadata-certificates
+init: create-self-signed-certificates create-spid-sp-test-docker-image create-spid-sp-test-metadata-certificates
 
 
 
