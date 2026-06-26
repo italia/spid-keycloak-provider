@@ -2,6 +2,10 @@
 .EXPORT_ALL_VARIABLES:
 SPID_KC_VERSION := $(shell sed -n 's:.*<keycloak.version>\(.*\)</keycloak.version>.*:\1:p' ../pom.xml)
 NOW := $(shell date +"%Y%m%d_%H%M%S")
+CONFIGURATION_CLIENT_IMAGE := ghcr.io/polifr/keycloak-spid-provider-configuration-client
+CONFIGURATION_CLIENT_VERSION := latest
+SPID_SP_TEST_IMAGE := italia/spid-sp-test
+SPID_SP_TEST_VERSION := 0.9.0-KC
 
 .ONESHELL:
 
@@ -47,7 +51,7 @@ create-spid-sp-test-docker-image:
 	sed -i "s#<ds:X509Certificate />#<ds:X509Certificate>$$(grep -v CERTIFICATE ./spid-sp-test/src/spid_sp_test/responses/certificates/test_public.cert | tr -d '\n')</ds:X509Certificate>#" \
 		./spid-sp-test/src/spid_sp_test/responses/settings.py
 
-	docker build --tag italia/spid-sp-test:0.9.0-KC ./spid-sp-test
+	docker build --tag $(SPID_SP_TEST_IMAGE):$(SPID_SP_TEST_VERSION) ./spid-sp-test
 
 	cd -
 
@@ -63,7 +67,7 @@ create-spid-sp-test-metadata-certificates:
 	docker run --net=host --rm \
 		--user "$(id -u):$(id -g)" \
 		-v "${PWD}/certificates/spid-sp-test-idp:/spid:rw" \
-		--entrypoint "spid-compliant-certificates" -t italia/spid-sp-test:0.9.0-KC generator \
+		--entrypoint "spid-compliant-certificates" -t $(SPID_SP_TEST_IMAGE):$(SPID_SP_TEST_VERSION) generator \
 		--key-size 3072 --common-name "agid.gov.it" --days 7650 --entity-id https://localhost:8443 \
 		--locality-name Roma --org-id "PA:IT-c_h501" --org-name "AgID TEST" --sector public	
 
@@ -78,7 +82,7 @@ create-spid-sp-test-metadata-certificates:
 		--user "$(id -u):$(id -g)" \
 		-e IDP_CERT_PATH=/spid/ipd-certs \
 		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs:ro" \
-		italia/spid-sp-test:0.9.0-KC --idp-metadata \
+		$(SPID_SP_TEST_IMAGE):$(SPID_SP_TEST_VERSION) --idp-metadata \
 		| sed '/^[[:space:]]*</!d' \
 		| sed 's/WantAuthnRequestsSigned="false"/WantAuthnRequestsSigned="true" WantAssertionsSigned="false"/' \
 		> ${PWD}/tests/spid-sp-test.xml
@@ -91,7 +95,7 @@ run-configuration-client:
 		--user "$(id -u):$(id -g)" \
 		-v "${PWD}/configuration-client:/opt/mount:rw" \
 		--rm \
-		--entrypoint cp ghcr.io/polifr/keycloak-spid-provider-configuration-client:latest /usr/src/app/.env-example /opt/mount/.env-example
+		--entrypoint cp $(CONFIGURATION_CLIENT_IMAGE):$(CONFIGURATION_CLIENT_VERSION) /usr/src/app/.env-example /opt/mount/.env-example
 	cat ${PWD}/configuration-client/.env-example \
 		| sed 's,createSpidSpTestIdP = false,createSpidSpTestIdP = true,g' \
 		| sed 's,https://yourdomain.com/spid-sp-test.xml,https://spid-nginx:443/spid-sp-test.xml,g' \
@@ -103,7 +107,7 @@ run-configuration-client:
 		-t --rm \
 		-v "${PWD}/configuration-client/.env:/usr/src/app/.env:ro" \
 		-v "${PWD}/configuration-client/log:/usr/src/app/log:rw" \
-		ghcr.io/polifr/keycloak-spid-provider-configuration-client:latest
+		$(CONFIGURATION_CLIENT_IMAGE):$(CONFIGURATION_CLIENT_VERSION)
 
 
 # Test commands
@@ -115,7 +119,7 @@ test-metadata:
 		-e IDP_CERT_PATH=/spid/ipd-certs \
 		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
 		-v "${PWD}/tests/report/$(NOW)_metadata:/spid/html_report:rw" \
-		italia/spid-sp-test:0.9.0-KC \
+		$(SPID_SP_TEST_IMAGE):$(SPID_SP_TEST_VERSION) \
 		--metadata-url "https://localhost:8443/auth/realms/spid/spid-sp-metadata" \
 		--extra --report_format html --report-output-file html_report/
 
@@ -126,7 +130,7 @@ test-authn:
 		-e IDP_CERT_PATH=/spid/ipd-certs \
 		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
 		-v "${PWD}/tests/report/$(NOW)_authn:/spid/html_report:rw" \
-		italia/spid-sp-test:0.9.0-KC \
+		$(SPID_SP_TEST_IMAGE):$(SPID_SP_TEST_VERSION) \
 		--metadata-url "https://localhost:8443/auth/realms/spid/spid-sp-metadata" \
 		--authn-url "https://localhost:8443/auth/realms/spid/protocol/openid-connect/auth?client_id=account&scope=openid&response_type=code&redirect_uri=https://localhost:8443/auth/realms/spid/account&state=12345&kc_idp_hint=spid-spid-sp-test" \
 		--extra --report_format html --report-output-file html_report/
@@ -140,7 +144,7 @@ test-responses:
 		-v "${PWD}/certificates/spid-sp-test-idp:/spid/ipd-certs" \
 		-v "${PWD}/tests/report/$(NOW)_responses:/spid/html_report:rw" \
 		-v "${PWD}/tests/dumps/$(NOW)_responses:/spid/dumps:rw" \
-		italia/spid-sp-test:0.9.0-KC \
+		italia/spid-sp-test:$(SPID_SP_TEST_VERSION) \
 		--metadata-url "https://localhost:8443/auth/realms/spid/spid-sp-metadata" \
 		--authn-url "https://localhost:8443/auth/realms/spid/protocol/openid-connect/auth?client_id=account&scope=openid&response_type=code&redirect_uri=https://localhost:8443/auth/realms/spid/account&state=12345&kc_idp_hint=spid-spid-sp-test" \
 		--extra --report_format html --report-output-file html_report/ \
