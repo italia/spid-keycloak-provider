@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v7
 
     - name: Set up JDK
       uses: actions/setup-java@v5
@@ -58,7 +58,7 @@ jobs:
       
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Verify Docker
         run: |
@@ -75,7 +75,7 @@ jobs:
           make clean init
 
       - name: Download provider jar
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: spid-provider.jar
           path: kc-spid-compose/provider
@@ -87,7 +87,7 @@ jobs:
 
       - name: Upload reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: spid-sp-test-report
           path: |
@@ -102,7 +102,7 @@ jobs:
           docker logs spid-nginx > docker-logs/nginx.log 2>&1 || true
           docker logs spid-${{ matrix.db }} > docker-logs/${{ matrix.db }}.log 2>&1 || true
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: docker-logs
