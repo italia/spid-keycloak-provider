@@ -16,7 +16,11 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@v5
       with:
+        distribution: temurin
         java-version: 21
+
+    - name: Check JDK version
+      run: java --version
 
     - name: Cache Maven packages
       uses: actions/cache@v6
