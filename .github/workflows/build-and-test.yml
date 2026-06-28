@@ -1,0 +1,114 @@
+name: Builds JAR and runs test with docker-compose
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Set up JDK
+      uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: 21
+
+    - name: Check JDK version
+      run: java --version
+
+    - name: Cache Maven packages
+      uses: actions/cache@v6
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}-m2
+
+    - name: Build with Maven
+      run: mvn --batch-mode --update-snapshots package
+
+    - uses: actions/upload-artifact@v7
+      with:
+        name: spid-provider.jar
+        path: target/spid-provider.jar
+
+    - name: Release
+      uses: softprops/action-gh-release@v3
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: target/spid-provider.jar
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  test-compose:
+    name: Test on docker-compose
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: build
+
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [mariadb, mysql, postgres]
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Verify Docker
+        run: |
+          docker version
+          docker compose version
+
+      - name: Verify connectivity
+        run: |
+          curl -L -I https://indicepa.gov.it:443
+
+      - name: Clean and init test infrastructure
+        working-directory: kc-spid-compose
+        run: |
+          make clean init
+
+      - name: Download provider jar
+        uses: actions/download-artifact@v8
+        with:
+          name: spid-provider.jar
+          path: kc-spid-compose/provider
+
+      - name: Run kc-spid-compose tests
+        working-directory: kc-spid-compose
+        run: |
+          make compose-${{ matrix.db }} _sleep run-configuration-client test-responses
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: spid-sp-test-report
+          path: |
+            kc-spid-compose/tests/report/**
+            kc-spid-compose/tests/dumps/**
+
+      - name: Collect docker logs
+        if: always()
+        run: |
+          mkdir -p docker-logs
+          docker logs spid-keycloak > docker-logs/keycloak.log 2>&1 || true
+          docker logs spid-nginx > docker-logs/nginx.log 2>&1 || true
+          docker logs spid-${{ matrix.db }} > docker-logs/${{ matrix.db }}.log 2>&1 || true
+
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: docker-logs
+          path: docker-logs
+
+      - name: Cleanup
+        if: always()
+        working-directory: kc-spid-compose
+        run: make clean
