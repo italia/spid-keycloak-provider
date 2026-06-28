@@ -74,16 +74,16 @@ jobs:
         run: |
           make clean init
 
-      - name: Run kc-spid-compose tests
-        working-directory: kc-spid-compose
-        run: |
-          make compose-${{ matrix.db }} _sleep run-configuration-client test-responses
-
       - name: Download provider jar
         uses: actions/download-artifact@v4
         with:
           name: spid-provider.jar
           path: kc-spid-compose/provider
+
+      - name: Run kc-spid-compose tests
+        working-directory: kc-spid-compose
+        run: |
+          make compose-${{ matrix.db }} _sleep run-configuration-client test-responses
 
       - name: Upload reports
         if: always()
