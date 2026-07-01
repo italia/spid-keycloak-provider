@@ -466,6 +466,11 @@ public class SpidChecks {
             }
         }
 
+        String grantedAttributeAuthorityValidationError = validateGrantedAttributeAuthority(documentElement);
+        if (grantedAttributeAuthorityValidationError != null) {
+            return grantedAttributeAuthorityValidationError;
+        }
+
         return null;
     }
 
@@ -504,6 +509,44 @@ public class SpidChecks {
             default:
                 return "SpidSamlCheck_nr97";
         }
+    }
+
+    String validateGrantedAttributeAuthority(Element documentElement) {
+        Element extensionsElement = getDirectChild(documentElement, "Extensions");
+        if (extensionsElement == null) {
+            return null;
+        }
+
+        Element grantedAttributeAuthorityElement = getDirectChild(extensionsElement, "GrantedAttributeAuthority");
+        if (grantedAttributeAuthorityElement == null) {
+            return null;
+        }
+
+        NodeList childNodes = grantedAttributeAuthorityElement.getChildNodes();
+        boolean atLeastOneGrantTokenOccurrence = false;
+
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node node = childNodes.item(i);
+
+            if (node.getNodeType() == Node.ELEMENT_NODE && "GrantToken".equals(node.getLocalName())) {
+                atLeastOneGrantTokenOccurrence = true;
+                Element grantTokenElement = (Element) node;
+
+                if (!grantTokenElement.hasAttribute("Destination")) {
+                    return "SpidSamlCheck_MissingGrantTokenDestination";
+                }
+
+                if (grantTokenElement.getAttribute("Destination").trim().isEmpty()) {
+                    return "SpidSamlCheck_EmptyGrantTokenDestination";
+                }
+            }
+        }
+
+        if (!atLeastOneGrantTokenOccurrence) {
+            return "SpidSamlCheck_MissingGrantToken";
+        }
+
+        return null;
     }
 
     private boolean hasNamedChild(Element element) {
