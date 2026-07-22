@@ -1,0 +1,16 @@
+# Impostazione di default
+* text=auto
+
+# Sorgenti, file xml, properties, yml
+*.java text eol=lf
+*.xml text eol=lf
+*.config text eol=lf
+*.properties text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Script cmd di windows, sempre da gestire come CRLF
+*.cmd text eol=crlf
+
+# Script shell di unix, sempre da gestire come LF
+*.sh text eol=lf

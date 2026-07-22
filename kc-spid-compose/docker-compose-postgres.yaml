@@ -1,0 +1,24 @@
+volumes:
+  postgres-volume:
+    driver: local
+
+services:
+  spid-postgres:
+    image: postgres:18.4 # Latest supported version -> https://www.keycloak.org/server/supported-configurations
+    container_name: "spid-postgres"
+    networks:
+      - spid-local-network
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: ${SPID_DB_SCHEMA}
+      POSTGRES_USER: ${SPID_DB_USR}
+      POSTGRES_PASSWORD: ${SPID_DB_PWD}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${SPID_DB_USR}", "-d", "${SPID_DB_SCHEMA}"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres-volume:/var/lib/postgresql/18/docker

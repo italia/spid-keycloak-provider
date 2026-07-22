@@ -1,0 +1,25 @@
+volumes:
+  mariadb-volume:
+    driver: local
+
+services:
+  spid-mariadb:
+    image: mariadb:11.8 # Latest supported version -> https://www.keycloak.org/server/supported-configurations
+    container_name: "spid-mariadb"
+    networks:
+      - spid-local-network
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SPID_DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${SPID_DB_SCHEMA}
+      MYSQL_USER: ${SPID_DB_USR}
+      MYSQL_PASSWORD: ${SPID_DB_PWD}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mariadb-volume:/var/lib/mysql

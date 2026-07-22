@@ -1,0 +1,3 @@
+networks:
+  spid-local-network:
+    driver: bridge

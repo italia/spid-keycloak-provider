@@ -1,0 +1,49 @@
+# Common spid-keycloak service; ${SPID_KC_DB_TYPE} environment variable can be set to match the db used in the infrastructure
+
+services:
+  spid-keycloak:
+    image: quay.io/keycloak/keycloak:${SPID_KC_VERSION}
+    container_name: "spid-keycloak"
+    command: "start-dev --import-realm --verbose"
+    ports:
+      - 8080:8080 # Standard http
+      - 8443:8443 # Standard https
+      - 8787:8787 # Debug
+      - 9000:9000 # Monitoring / OpenAPI
+    environment:
+      KC_DEBUG: "true"
+      KC_DEBUG_PORT: "*:8787"
+      KC_HEALTH_ENABLED: "true"
+      KC_LOG_LEVEL: "info"
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${SPID_KC_ADMIN_USR}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${SPID_KC_ADMIN_PWD}
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/server.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/server.key
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_RELATIVE_PATH: "/auth" # For backwards compatibility
+      DB: ${SPID_KC_DB_TYPE}
+      DB_URL_HOST: spid-${SPID_KC_DB_TYPE}
+      DB_SCHEMA: ${SPID_DB_SCHEMA}
+      DB_USERNAME: ${SPID_DB_USR}
+      DB_PASSWORD: ${SPID_DB_PWD}
+    volumes:
+      - ./realm:/opt/keycloak/data/import:ro
+      - ./provider/spid-provider.jar:/opt/keycloak/providers/spid-provider.jar:ro
+      - ./certificates/keycloak-server.crt:/opt/keycloak/conf/server.crt:ro
+      - ./certificates/keycloak-server.key:/opt/keycloak/conf/server.key:ro
+      - ./certificates/nginx.crt:/opt/keycloak/conf/truststores/nginx.crt:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >
+          { printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0;
+            grep 'HTTP/1.0 200'; }
+          0<>/dev/tcp/localhost/9000
+      start_period: 30s
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - spid-local-network
+    depends_on:
+      - spid-${SPID_KC_DB_TYPE}
