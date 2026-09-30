@@ -51,6 +51,8 @@ create-spid-sp-test-docker-image:
 	sed -i "s#<ds:X509Certificate />#<ds:X509Certificate>$$(grep -v CERTIFICATE ./spid-sp-test/src/spid_sp_test/responses/certificates/test_public.cert | tr -d '\n')</ds:X509Certificate>#" \
 		./spid-sp-test/src/spid_sp_test/responses/settings.py
 
+	sed -i "s/3\.8-slim-bullseye/3.8-slim-bookworm/" ./spid-sp-test/Dockerfile
+
 	docker build --tag $(SPID_SP_TEST_IMAGE):$(SPID_SP_TEST_VERSION) ./spid-sp-test
 
 	cd -
