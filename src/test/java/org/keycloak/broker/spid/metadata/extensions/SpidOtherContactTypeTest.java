@@ -22,13 +22,13 @@ public class SpidOtherContactTypeTest {
 
     @Test
     void build_withBlanks_shouldReturnEmpty() throws ConfigurationException {
-        setupSpidIdentityProviderConfigGetOtherContactCompanyAnd2MoreStubs("", "", "");
+        stubOtherContact("", "", "");
         assertEquals(Optional.empty(), SpidOtherContactType.build(config));
     }
 
     @Test
     void build_withPublicSPConfig_shouldReturnSpidOtherContactTypePublicSP() throws ConfigurationException {
-        setupSpidIdentityProviderConfigGetOtherContactCompanyAnd3MoreStubs(false);
+        stubFilledOtherContact(false);
         when(config.getIpaCode()).thenReturn("IPA_manager");
         Optional<SpidOtherContactType> optional = SpidOtherContactType.build(config);
         assertTrue(optional.isPresent());
@@ -37,7 +37,7 @@ public class SpidOtherContactTypeTest {
 
     @Test
     void build_withPrivateConfig_shouldReturnSpidOtherContactTypePrivateSP() throws ConfigurationException {
-        setupSpidIdentityProviderConfigGetOtherContactCompanyAnd3MoreStubs(true);
+        stubFilledOtherContact(true);
         when(config.getVatNumber()).thenReturn("IT01234567890");
         when(config.getFiscalCode()).thenReturn("CF_manager");
         Optional<SpidOtherContactType> optional = SpidOtherContactType.build(config);
@@ -45,14 +45,14 @@ public class SpidOtherContactTypeTest {
         assertTrue(optional.get() instanceof SpidOtherContactTypePrivateSP);
     }
 
-    private void setupSpidIdentityProviderConfigGetOtherContactCompanyAnd2MoreStubs(String getOtherContactCompanyReturnValue, String getOtherContactEmailReturnValue, String getOtherContactPhoneReturnValue) {
-        when(config.getOtherContactCompany()).thenReturn(getOtherContactCompanyReturnValue);
-        when(config.getOtherContactEmail()).thenReturn(getOtherContactEmailReturnValue);
-        when(config.getOtherContactPhone()).thenReturn(getOtherContactPhoneReturnValue);
+    private void stubOtherContact(String company, String email, String phone) {
+        when(config.getOtherContactCompany()).thenReturn(company);
+        when(config.getOtherContactEmail()).thenReturn(email);
+        when(config.getOtherContactPhone()).thenReturn(phone);
     }
 
-    private void setupSpidIdentityProviderConfigGetOtherContactCompanyAnd3MoreStubs(boolean isSpPrivateReturnValue) {
-        setupSpidIdentityProviderConfigGetOtherContactCompanyAnd2MoreStubs("Public Company Name", "other_contact@domain.test", "+39 123 456 789");
-        when(config.isSpPrivate()).thenReturn(isSpPrivateReturnValue);
+    private void stubFilledOtherContact(boolean spPrivate) {
+        stubOtherContact("Public Company Name", "other_contact@domain.test", "+39 123 456 789");
+        when(config.isSpPrivate()).thenReturn(spPrivate);
     }
 }
