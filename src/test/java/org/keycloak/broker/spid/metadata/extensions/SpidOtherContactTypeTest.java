@@ -22,18 +22,13 @@ public class SpidOtherContactTypeTest {
 
     @Test
     void build_withBlanks_shouldReturnEmpty() throws ConfigurationException {
-        when(config.getOtherContactCompany()).thenReturn("");
-        when(config.getOtherContactEmail()).thenReturn("");
-        when(config.getOtherContactPhone()).thenReturn("");
+        stubOtherContact("", "", "");
         assertEquals(Optional.empty(), SpidOtherContactType.build(config));
     }
 
     @Test
     void build_withPublicSPConfig_shouldReturnSpidOtherContactTypePublicSP() throws ConfigurationException {
-        when(config.getOtherContactCompany()).thenReturn("Public Company Name");
-        when(config.getOtherContactEmail()).thenReturn("other_contact@domain.test");
-        when(config.getOtherContactPhone()).thenReturn("+39 123 456 789");
-        when(config.isSpPrivate()).thenReturn(false);
+        stubFilledOtherContact(false);
         when(config.getIpaCode()).thenReturn("IPA_manager");
         Optional<SpidOtherContactType> optional = SpidOtherContactType.build(config);
         assertTrue(optional.isPresent());
@@ -42,14 +37,22 @@ public class SpidOtherContactTypeTest {
 
     @Test
     void build_withPrivateConfig_shouldReturnSpidOtherContactTypePrivateSP() throws ConfigurationException {
-        when(config.getOtherContactCompany()).thenReturn("Public Company Name");
-        when(config.getOtherContactEmail()).thenReturn("other_contact@domain.test");
-        when(config.getOtherContactPhone()).thenReturn("+39 123 456 789");
-        when(config.isSpPrivate()).thenReturn(true);
+        stubFilledOtherContact(true);
         when(config.getVatNumber()).thenReturn("IT01234567890");
         when(config.getFiscalCode()).thenReturn("CF_manager");
         Optional<SpidOtherContactType> optional = SpidOtherContactType.build(config);
         assertTrue(optional.isPresent());
         assertTrue(optional.get() instanceof SpidOtherContactTypePrivateSP);
+    }
+
+    private void stubOtherContact(String company, String email, String phone) {
+        when(config.getOtherContactCompany()).thenReturn(company);
+        when(config.getOtherContactEmail()).thenReturn(email);
+        when(config.getOtherContactPhone()).thenReturn(phone);
+    }
+
+    private void stubFilledOtherContact(boolean spPrivate) {
+        stubOtherContact("Public Company Name", "other_contact@domain.test", "+39 123 456 789");
+        when(config.isSpPrivate()).thenReturn(spPrivate);
     }
 }
